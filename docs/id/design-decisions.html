@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Design Decisions — OpsTerm</title>
+<title>🤔 Design Decisions — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -200,10 +200,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </ul>
 </nav>
 
-<1 id="design-decisions">🤔 Design Decisions</1>
+<h1 id="design-decisions">🤔 Design Decisions</h1>
 <p>Dokumen ini menjelaskan <strong>kenapa</strong> OpsTerm dirancang seperti ini — alasan di balik setiap keputusan teknis, termasuk trade-off yang diambil.</p>
 <hr />
-<2 id="daftar-keputusan">📜 Daftar Keputusan</2>
+<h2 id="daftar-keputusan">📜 Daftar Keputusan</h2>
 <table>
 <thead>
 <tr>
@@ -277,10 +277,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </tbody>
 </table>
 <hr />
-<2 id="1-kenapa-python-bukan-go-rust">1️⃣ Kenapa Python, bukan Go/Rust?</2>
-<3 id="konteks">Konteks</3>
+<h2 id="1-kenapa-python-bukan-go-rust">1️⃣ Kenapa Python, bukan Go/Rust?</h2>
+<h3 id="konteks">Konteks</h3>
 <p>OpsTerm butuh bahasa yang <strong>portable, zero-dep, dan gampang di-maintain</strong>.</p>
-<3 id="keputusan-python-3">Keputusan: ✅ Python 3</3>
+<h3 id="keputusan-python-3">Keputusan: ✅ Python 3</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -303,10 +303,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - Performance lebih rendah (tapi untuk CLI tool, ini gak kerasa)<br />
 - Butuh Python interpreter (tapi udah ada di semua system modern)</p>
 <hr />
-<2 id="2-kenapa-single-file-bukan-package">2️⃣ Kenapa single file, bukan package?</2>
-<3 id="konteks-2">Konteks</3>
+<h2 id="2-kenapa-single-file-bukan-package">2️⃣ Kenapa single file, bukan package?</h2>
+<h3 id="konteks-2">Konteks</h3>
 <p>OpsTerm bisa aja dibikin sebagai Python package dengan <code>pip install</code>.</p>
-<3 id="keputusan-single-file-bin-ai">Keputusan: ✅ Single file (<code>bin/ai</code>)</3>
+<h3 id="keputusan-single-file-bin-ai">Keputusan: ✅ Single file (<code>bin/ai</code>)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -327,10 +327,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - Semua fungsi dalam 1 file — susah di-test secara unit.<br />
 - Solusi: kode diorganisir dengan section headers (comments).</p>
 <hr />
-<2 id="3-kenapa-zero-dependencies">3️⃣ Kenapa zero dependencies?</2>
-<3 id="konteks-3">Konteks</3>
+<h2 id="3-kenapa-zero-dependencies">3️⃣ Kenapa zero dependencies?</h2>
+<h3 id="konteks-3">Konteks</h3>
 <p>Banyak Python CLI tool pake <code>PyYAML</code>, <code>requests</code>, <code>click</code>, dll.</p>
-<3 id="keputusan-zero-external-dependencies">Keputusan: ✅ Zero external dependencies</3>
+<h3 id="keputusan-zero-external-dependencies">Keputusan: ✅ Zero external dependencies</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -351,10 +351,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - HTTP client <strong>stdlib</strong> (<code>urllib</code>) — lebih verbose daripada <code>requests</code>, tapi fungsional.<br />
 - CLI parser <strong>stdlib</strong> (<code>argparse</code>) — kurang powerful daripada <code>click</code>, tapi cukup.</p>
 <hr />
-<2 id="4-kenapa-yaml-bukan-json-toml">4️⃣ Kenapa YAML, bukan JSON/TOML?</2>
-<3 id="konteks-4">Konteks</3>
+<h2 id="4-kenapa-yaml-bukan-json-toml">4️⃣ Kenapa YAML, bukan JSON/TOML?</h2>
+<h3 id="konteks-4">Konteks</h3>
 <p>Config format buat server, workflow, dan AI settings.</p>
-<3 id="keputusan-yaml-dengan-custom-parser">Keputusan: ✅ YAML (dengan custom parser)</3>
+<h3 id="keputusan-yaml-dengan-custom-parser">Keputusan: ✅ YAML (dengan custom parser)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -371,10 +371,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - Custom parser → terbatas. Tapi subset YAML yang kita pake (mapping, list, scalar) stabil dan cukup.<br />
 - Inkonisten dengan "zero dep" — technically YAML parsing itu custom code, bukan dependency eksternal.</p>
 <hr />
-<2 id="5-kenapa-openai-compatible-api-bukan-library-ai">5️⃣ Kenapa OpenAI-compatible API, bukan library AI?</2>
-<3 id="konteks-5">Konteks</3>
+<h2 id="5-kenapa-openai-compatible-api-bukan-library-ai">5️⃣ Kenapa OpenAI-compatible API, bukan library AI?</h2>
+<h3 id="konteks-5">Konteks</h3>
 <p>Bisa pake LangChain, LiteLLM, atau library abstraksi AI lainnya.</p>
-<3 id="keputusan-direct-http-call-openai-compatible">Keputusan: ✅ Direct HTTP call (OpenAI-compatible)</3>
+<h3 id="keputusan-direct-http-call-openai-compatible">Keputusan: ✅ Direct HTTP call (OpenAI-compatible)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -394,10 +394,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - Gak ada retry logic, streaming, atau tool calling.<br />
 - Tapi untuk CLI tool yang blocking, ini gak masalah.</p>
 <hr />
-<2 id="6-kenapa-system-ssh-bukan-library-python">6️⃣ Kenapa system SSH, bukan library Python?</2>
-<3 id="konteks-6">Konteks</3>
+<h2 id="6-kenapa-system-ssh-bukan-library-python">6️⃣ Kenapa system SSH, bukan library Python?</h2>
+<h3 id="konteks-6">Konteks</h3>
 <p>Bisa pake <code>paramiko</code> (SSH client library Python).</p>
-<3 id="keputusan-system-ssh-subprocess-usr-bin-ssh">Keputusan: ✅ System SSH (<code>subprocess</code> + <code>/usr/bin/ssh</code>)</3>
+<h3 id="keputusan-system-ssh-subprocess-usr-bin-ssh">Keputusan: ✅ System SSH (<code>subprocess</code> + <code>/usr/bin/ssh</code>)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -420,10 +420,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - Gak bisa parse SSH output secara real-time.<br />
 - Error handling terbatas (cuma exit code).</p>
 <hr />
-<2 id="7-kenapa-file-based-state-bukan-daemon">7️⃣ Kenapa file-based state, bukan daemon?</2>
-<3 id="konteks-7">Konteks</3>
+<h2 id="7-kenapa-file-based-state-bukan-daemon">7️⃣ Kenapa file-based state, bukan daemon?</h2>
+<h3 id="konteks-7">Konteks</h3>
 <p>Beberapa tool pake background daemon yang nyimpen state di memory.</p>
-<3 id="keputusan-file-based-no-daemon">Keputusan: ✅ File-based (no daemon)</3>
+<h3 id="keputusan-file-based-no-daemon">Keputusan: ✅ File-based (no daemon)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -443,10 +443,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 - State dibaca dari disk setiap kali command → overhead dikit (&lt;10ms).<br />
 - Gak bisa ada "real-time" notification.</p>
 <hr />
-<2 id="8-kenapa-vault-optional">8️⃣ Kenapa vault optional?</2>
-<3 id="konteks-8">Konteks</3>
+<h2 id="8-kenapa-vault-optional">8️⃣ Kenapa vault optional?</h2>
+<h3 id="konteks-8">Konteks</h3>
 <p>Vault butuh <code>cryptography</code> yang gak ada di stdlib.</p>
-<3 id="keputusan-optional-cryptography-recommended-fallback-tersedia">Keputusan: ✅ Optional — <code>cryptography</code> recommended, fallback tersedia</3>
+<h3 id="keputusan-optional-cryptography-recommended-fallback-tersedia">Keputusan: ✅ Optional — <code>cryptography</code> recommended, fallback tersedia</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -460,10 +460,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </li>
 </ol>
 <hr />
-<2 id="9-kenapa-generated-completion">9️⃣ Kenapa generated completion?</2>
-<3 id="konteks-9">Konteks</3>
+<h2 id="9-kenapa-generated-completion">9️⃣ Kenapa generated completion?</h2>
+<h3 id="konteks-9">Konteks</h3>
 <p>Completion bisa ditulis manual atau di-generate.</p>
-<3 id="keputusan-generated-embedded-in-script">Keputusan: ✅ Generated (embedded in script)</3>
+<h3 id="keputusan-generated-embedded-in-script">Keputusan: ✅ Generated (embedded in script)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -477,10 +477,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </li>
 </ol>
 <hr />
-<2 id="kenapa-zsh-plugin-terpisah">🔟 Kenapa Zsh plugin terpisah?</2>
-<3 id="konteks-10">Konteks</3>
+<h2 id="kenapa-zsh-plugin-terpisah">🔟 Kenapa Zsh plugin terpisah?</h2>
+<h3 id="konteks-10">Konteks</h3>
 <p>Shell integration bisa jadi bagian dari main script atau file terpisah.</p>
-<3 id="keputusan-file-terpisah-zsh-opsterm-plugin-zsh">Keputusan: ✅ File terpisah (<code>zsh/opsterm.plugin.zsh</code>)</3>
+<h3 id="keputusan-file-terpisah-zsh-opsterm-plugin-zsh">Keputusan: ✅ File terpisah (<code>zsh/opsterm.plugin.zsh</code>)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
@@ -497,7 +497,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </li>
 </ol>
 <hr />
-<2 id="saran-untuk-improvement">💡 Saran untuk Improvement</2>
+<h2 id="saran-untuk-improvement">💡 Saran untuk Improvement</h2>
 <p>Berdasarkan design decisions di atas, beberapa saran:</p>
 <ol>
 <li>
@@ -514,7 +514,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </li>
 </ol>
 <hr />
-<2 id="referensi">🔗 Referensi</2>
+<h2 id="referensi">🔗 Referensi</h2>
 <ul>
 <li><a href="https://docs.python.org/3/library/argparse.html">Python Argparse Docs</a></li>
 <li><a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat Completions API</a></li>

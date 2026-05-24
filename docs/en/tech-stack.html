@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tech Stack — OpsTerm</title>
+<title>🔧 Tech Stack — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -193,10 +193,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </ul>
 </nav>
 
-<1 id="tech-stack">🔧 Tech Stack</1>
+<h1 id="tech-stack">🔧 Tech Stack</h1>
 <p>This document explains the technology used in OpsTerm — from the programming language to the communication protocol.</p>
 <hr />
-<2 id="summary">🎯 Summary</2>
+<h2 id="summary">🎯 Summary</h2>
 <table>
 <thead>
 <tr>
@@ -253,8 +253,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 The only optional dependency: <code>pip install cryptography</code> (for vault).</p>
 </blockquote>
 <hr />
-<2 id="language-python-3">🐍 Language: Python 3</2>
-<3 id="why-python">Why Python?</3>
+<h2 id="language-python-3">🐍 Language: Python 3</h2>
+<h3 id="why-python">Why Python?</h3>
 <table>
 <thead>
 <tr>
@@ -281,7 +281,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </tr>
 </tbody>
 </table>
-<3 id="why-not-go-rust">Why NOT Go / Rust?</3>
+<h3 id="why-not-go-rust">Why NOT Go / Rust?</h3>
 <table>
 <thead>
 <tr>
@@ -310,9 +310,9 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </table>
 <p>Python is the <strong>most practical</strong> choice for a CLI tool that must be zero-dependency and portable.</p>
 <hr />
-<2 id="zero-dependency-strategy">📦 Zero-Dependency Strategy</2>
+<h2 id="zero-dependency-strategy">📦 Zero-Dependency Strategy</h2>
 <p>This is <strong>OpsTerm's main selling point</strong>. How is it done?</p>
-<3 id="what-typically-uses-third-party-libraries">What Typically Uses Third-Party Libraries:</3>
+<h3 id="what-typically-uses-third-party-libraries">What Typically Uses Third-Party Libraries:</h3>
 <table>
 <thead>
 <tr>
@@ -349,7 +349,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </tr>
 </tbody>
 </table>
-<3 id="custom-yaml-parser">Custom YAML Parser</3>
+<h3 id="custom-yaml-parser">Custom YAML Parser</h3>
 <p>OpsTerm's YAML parser is <strong>minimal — it only supports the YAML subset that OpsTerm uses</strong>:</p>
 <p><strong>Supported:</strong><br />
 - Key-value: <code>key: value</code><br />
@@ -368,8 +368,8 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 2. <strong>Overkill</strong> — we only use a small YAML subset<br />
 3. <strong>Maintainable</strong> — the parser is only ~80 lines, easy to understand</p>
 <hr />
-<2 id="sqlite-history">🗄️ SQLite History</2>
-<3 id="schema">Schema:</3>
+<h2 id="sqlite-history">🗄️ SQLite History</h2>
+<h3 id="schema">Schema:</h3>
 <div class="codehilite"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">history</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
 <span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">,</span><span class="s1">&#39;localtime&#39;</span><span class="p">)),</span>
@@ -379,7 +379,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="p">);</span>
 </code></pre></div>
 
-<3 id="why-sqlite">Why SQLite?</3>
+<h3 id="why-sqlite">Why SQLite?</h3>
 <ul>
 <li><strong>Built into Python</strong> (<code>import sqlite3</code>)</li>
 <li><strong>Zero config</strong> — database file created automatically</li>
@@ -387,9 +387,9 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <li><strong>Searchable</strong> — can be queried using SQL</li>
 </ul>
 <hr />
-<2 id="protocol-openai-compatible-api">🔗 Protocol: OpenAI-Compatible API</2>
+<h2 id="protocol-openai-compatible-api">🔗 Protocol: OpenAI-Compatible API</h2>
 <p>The AI client uses a format that is <strong>compatible with OpenAI</strong>.</p>
-<3 id="request">Request:</3>
+<h3 id="request">Request:</h3>
 <div class="codehilite"><pre><span></span><code><span class="err">POST</span><span class="w"> </span><span class="err">/v</span><span class="mi">1</span><span class="err">/cha</span><span class="kc">t</span><span class="err">/comple</span><span class="kc">t</span><span class="err">io</span><span class="kc">ns</span>
 <span class="err">Au</span><span class="kc">t</span><span class="err">horiza</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">Bearer</span><span class="w"> </span><span class="err">***</span>
 <span class="err">Co</span><span class="kc">ntent</span><span class="mi">-</span><span class="err">Type</span><span class="p">:</span><span class="w"> </span><span class="err">applica</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="err">/jso</span><span class="kc">n</span>
@@ -405,7 +405,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="p">}</span>
 </code></pre></div>
 
-<3 id="response">Response:</3>
+<h3 id="response">Response:</h3>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chatcmpl-...&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;choices&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
@@ -417,7 +417,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="p">}</span>
 </code></pre></div>
 
-<3 id="supported-providers">Supported Providers:</3>
+<h3 id="supported-providers">Supported Providers:</h3>
 <table>
 <thead>
 <tr>
@@ -460,8 +460,8 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </tbody>
 </table>
 <hr />
-<2 id="vault-encryption">🔐 Vault Encryption</2>
-<3 id="primary-recommended-cryptography-fernet-fernet">Primary (recommended): <code>cryptography.fernet.Fernet</code></3>
+<h2 id="vault-encryption">🔐 Vault Encryption</h2>
+<h3 id="primary-recommended-cryptography-fernet-fernet">Primary (recommended): <code>cryptography.fernet.Fernet</code></h3>
 <div class="codehilite"><pre><span></span><code>Master Password
        │
        ▼
@@ -477,15 +477,15 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
    vault.json
 </code></pre></div>
 
-<3 id="fallback-no-cryptography-hmac-xor">Fallback (no cryptography): HMAC + XOR</3>
+<h3 id="fallback-no-cryptography-hmac-xor">Fallback (no cryptography): HMAC + XOR</h3>
 <p>If <code>cryptography</code> is not installed, OpsTerm uses a fallback encryption:<br />
 1. <strong>Key derivation</strong>: PBKDF2 from <code>hashlib</code> (stdlib)<br />
 2. <strong>Encryption</strong>: XOR cipher with random IV<br />
 3. <strong>Integrity</strong>: HMAC-SHA256</p>
 <p>⚠️ This fallback is <strong>less secure</strong> than AES. Recommended: <code>pip install cryptography</code></p>
 <hr />
-<2 id="ssh-scp-communication">📡 SSH/SCP Communication</2>
-<3 id="ssh-command-building">SSH Command Building:</3>
+<h2 id="ssh-scp-communication">📡 SSH/SCP Communication</h2>
+<h3 id="ssh-command-building">SSH Command Building:</h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Direct SSH</span>
 <span class="n">ssh</span> <span class="o">-</span><span class="n">i</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_ed25519</span> <span class="o">-</span><span class="n">p</span> <span class="mi">22</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">203.0.113.1</span> <span class="o">-</span><span class="n">t</span>
 
@@ -493,7 +493,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="n">ssh</span> <span class="o">-</span><span class="n">J</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">10.0.0.1</span><span class="p">:</span><span class="mi">22</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">203.0.113.1</span> <span class="o">-</span><span class="n">t</span>
 </code></pre></div>
 
-<3 id="scp-command-building">SCP Command Building:</3>
+<h3 id="scp-command-building">SCP Command Building:</h3>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Upload</span>
 <span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_ed25519</span> <span class="n">local</span><span class="o">.</span><span class="n">txt</span> <span class="n">ubuntu</span><span class="nd">@host</span><span class="p">:</span><span class="o">/</span><span class="n">remote</span><span class="o">/</span><span class="n">path</span><span class="o">/</span>
 
@@ -504,15 +504,15 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="n">scp</span> <span class="o">-</span><span class="n">o</span> <span class="n">ProxyJump</span><span class="o">=</span><span class="n">ubuntu</span><span class="nd">@bastion</span><span class="p">:</span><span class="mi">22</span> <span class="n">file</span><span class="o">.</span><span class="n">txt</span> <span class="n">ubuntu</span><span class="nd">@internal</span><span class="p">:</span><span class="o">/</span><span class="n">path</span><span class="o">/</span>
 </code></pre></div>
 
-<3 id="interaction">Interaction:</3>
+<h3 id="interaction">Interaction:</h3>
 <ul>
 <li><strong>SSH</strong>: <code>os.execvp()</code> → replaces the process, interactive</li>
 <li><strong>SCP</strong>: <code>subprocess.run()</code> → blocking until complete</li>
 <li><strong>Workflow SSH</strong>: <code>subprocess.run()</code> → non-interactive, command via SSH</li>
 </ul>
 <hr />
-<2 id="zsh-plugin-integration">🐚 Zsh Plugin Integration</2>
-<3 id="hooks-used">Hooks Used:</3>
+<h2 id="zsh-plugin-integration">🐚 Zsh Plugin Integration</h2>
+<h3 id="hooks-used">Hooks Used:</h3>
 <table>
 <thead>
 <tr>
@@ -534,12 +534,12 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </tr>
 </tbody>
 </table>
-<3 id="aliases">Aliases:</3>
+<h3 id="aliases">Aliases:</h3>
 <div class="codehilite"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span>ai-last<span class="o">=</span><span class="s1">&#39;ai last&#39;</span>
 <span class="nb">alias</span><span class="w"> </span>ai-explain<span class="o">=</span><span class="s1">&#39;ai explain-last&#39;</span>
 </code></pre></div>
 
-<3 id="how-ai-ti-ai-terminal-integration-works">How <code>ai-ti</code> (AI + Terminal Integration) works:</3>
+<h3 id="how-ai-ti-ai-terminal-integration-works">How <code>ai-ti</code> (AI + Terminal Integration) works:</h3>
 <div class="codehilite"><pre><span></span><code>ai-ti<span class="o">()</span><span class="w"> </span><span class="o">{</span>
 <span class="w">    </span><span class="c1"># 1. Ask AI</span>
 <span class="w">    </span>ai<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
@@ -551,7 +551,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </code></pre></div>
 
 <hr />
-<2 id="comparison-with-alternatives">🎯 Comparison with Alternatives</2>
+<h2 id="comparison-with-alternatives">🎯 Comparison with Alternatives</h2>
 <table>
 <thead>
 <tr>

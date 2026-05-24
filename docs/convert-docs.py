@@ -14,6 +14,7 @@ def generate_toc(html):
 
     def heading_replacer(m):
         tag = m.group(1)           # '1', '2', or '3'
+        tag_name = f'h{tag}'     # 'h1', 'h2', 'h3'
         existing_id = m.group(2) or ""
         inner = m.group(3)
         attrs = m.group(2) or ""
@@ -33,15 +34,15 @@ def generate_toc(html):
 
         # Add id attribute
         if 'id=' in existing_id:
-            new_open = f'<{tag} {existing_id}'
+            new_open = f'<{tag_name} {existing_id}'
         else:
-            new_open = f'<{tag} id="{raw_id}"'
+            new_open = f'<{tag_name} id="{raw_id}"'
 
         # Collect for ToC
         level = int(tag)  # 1, 2, 3
         toc_items.append((level, raw_id, text))
 
-        return new_open + '>' + inner + f'</{tag}>'
+        return new_open + '>' + inner + f'</{tag_name}>'
 
     # Match opening h1/h2/h3 with optional attributes
     html_fixed = re.sub(
