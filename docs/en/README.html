@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 OpsTerm Documentation — OpsTerm</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  background: #f8f9fa;
+  color: #1a1a2e;
+  line-height: 1.7;
+  padding: 20px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px 48px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #e9ecef;
+}
+h1 { font-size: 28px; margin: 20px 0 10px; }
+h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e9ecef; }
+h3 { font-size: 18px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+code {
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+pre code {
+  display: block;
+  background: #1a1a2e;
+  color: #e9ecef;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+pre code .comment { color: #6c757d; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+th { background: #f1f3f5; font-weight: 600; }
+tr:nth-child(even) td { background: #f8f9fa; }
+a { color: #1971c2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 2px solid #e9ecef; margin: 30px 0; }
+blockquote {
+  border-left: 4px solid #1971c2;
+  padding: 10px 16px;
+  margin: 15px 0;
+  background: #f1f3f5;
+  border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
+.nav-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #888;
+}
+.nav-back:hover { color: #1971c2; }
+.footer {
+  text-align: center;
+  padding: 30px 0 10px;
+  font-size: 13px;
+  color: #888;
+  border-top: 1px solid #e9ecef;
+  margin-top: 40px;
+}
+.footer a { color: #1971c2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+
+<h1>📚 OpsTerm Documentation</h1>
+<p>Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, the technologies it uses, and why it's designed the way it is.</p>
+<hr />
+<h2>📖 Document Index</h2>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Description</th>
+<th>Also available in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="architecture.html">📐 Architecture &amp; System Design</a></td>
+<td><strong>How OpsTerm works</strong> — the flow from user typing a command to execution</td>
+<td><a href="../id/architecture.html">🇮🇩 Bahasa Indonesia</a></td>
+</tr>
+<tr>
+<td><a href="tech-stack.html">🔧 Tech Stack</a></td>
+<td><strong>Technologies used</strong> — languages, libraries, protocols, formats</td>
+<td><a href="../id/tech-stack.html">🇮🇩 Bahasa Indonesia</a></td>
+</tr>
+<tr>
+<td><a href="design-decisions.html">🤔 Design Decisions</a></td>
+<td><strong>Why it's designed this way</strong> — rationale behind every technical decision</td>
+<td><a href="../id/design-decisions.html">🇮🇩 Bahasa Indonesia</a></td>
+</tr>
+<tr>
+<td><a href="features.html">🎯 Features</a></td>
+<td><strong>All features</strong> — complete list with usage examples and use-case matrix</td>
+<td><a href="../id/features.html">🇮🇩 Bahasa Indonesia</a></td>
+</tr>
+<tr>
+<td><a href="../ops-term-architecture.excalidraw">📊 Architecture Diagram</a></td>
+<td><strong>Excalidraw diagram</strong> — open at <a href="https://excalidraw.com">excalidraw.com</a></td>
+<td>—</td>
+</tr>
+<tr>
+<td><a href="../ops-term-architecture.png">🖼️ Architecture Diagram (PNG)</a></td>
+<td><strong>Image version</strong> — view directly without opening Excalidraw</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>🚀 Quick Overview</h2>
+<div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
+│                  USER LAPTOP                         │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  $ ai ssh vps-utama                           │  │
+│  │  $ ai &quot;how to check disk&quot;                     │  │
+│  │  $ docker ps | ai &quot;error?&quot;                    │  │
+│  └───────────────┬───────────────────────────────┘  │
+│                  │                                   │
+│  ┌───────────────▼───────────────────────────────┐  │
+│  │           OpsTerm (bin/ai)                     │  │
+│  │  ┌─────────┐ ┌────────┐ ┌────────┐ ┌──────┐  │  │
+│  │  │ AI      │ │ SSH    │ │ SCP    │ │Vault │  │  │
+│  │  │ Client  │ │ Runner │ │ Transfer│ │      │  │  │
+│  │  └────┬────┘ └───┬────┘ └───┬────┘ └──┬───┘  │  │
+│  └───────┼──────────┼──────────┼─────────┼───────┘  │
+│          │          │          │         │           │
+└──────────┼──────────┼──────────┼─────────┼───────────┘
+           │          │          │         │
+     ┌─────▼──┐ ┌────▼───┐ ┌───▼────┐ ┌──▼────────┐
+     │AI API  │ │SSH     │ │Server  │ │Local File  │
+     │Provider│ │ Server │ │Filesys │ │System      │
+     └────────┘ └────────┘ └────────┘ └────────────┘
+</code></pre></div>
+
+<p><strong>Core principle:</strong> OpsTerm runs on your <strong>local laptop</strong>. The AI lives in your terminal, not on the remote server. So when you SSH into any server, the AI is still available.</p>
+<hr />
+<h2>📁 Project Structure</h2>
+<div class="codehilite"><pre><span></span><code>~/opsterm/
+├── bin/
+│   └── ai                    ← Main script (single file, ~1500 lines)
+├── completions/
+│   ├── opsterm.bash          ← Bash tab completion
+│   └── opsterm.zsh           ← Zsh tab completion
+├── zsh/
+│   └── opsterm.plugin.zsh    ← Zsh shell integration plugin
+├── docs/                     ← This documentation
+│   ├── en/                   ← English documentation
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Architecture &amp; system design
+│   │   ├── tech-stack.md     ← Tech stack details
+│   │   ├── design-decisions.md← Design rationale
+│   │   └── features.md       ← All features
+│   ├── id/                   ← Indonesian documentation
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Arsitektur &amp; system design
+│   │   ├── tech-stack.md     ← Tech stack
+│   │   ├── design-decisions.md← Design decisions
+│   │   └── features.md       ← Fitur lengkap
+│   ├── ops-term-architecture.excalidraw ← Excalidraw diagram
+│   └── ops-term-architecture.png        ← PNG architecture diagram
+├── setup.sh                  ← Install script
+├── README.md                 ← English README
+├── README.id.md              ← Indonesian README
+└── .gitignore
+</code></pre></div>
+
+<p><strong>User config</strong> (gitignored, stored at <code>~/.ai-workflows/</code>):</p>
+<div class="codehilite"><pre><span></span><code>~/.ai-workflows/
+├── config.yaml       ← AI provider settings
+├── servers.yaml      ← Server list + proxy config
+├── workflows.yaml    ← Workflow definitions
+├── vault.json        ← Encrypted credentials
+├── history.db        ← SQLite history
+└── last_*.txt        ← Last command output
+</code></pre></div>
+
+<hr />
+<h2>🧠 Design Philosophy</h2>
+<ol>
+<li><strong>Zero dependencies</strong> — just Python 3 stdlib, no <code>pip install</code> needed (except vault encryption)</li>
+<li><strong>Single file</strong> — <code>bin/ai</code> can be copied to any server and run immediately</li>
+<li><strong>Local-first</strong> — AI runs on your local terminal, not on the server. SSH without losing AI access</li>
+<li><strong>Config as code</strong> — server &amp; workflow configs use YAML, version-control friendly</li>
+<li><strong>Progressive disclosure</strong> — simple features are easy to use, complex features are available when needed</li>
+</ol>
+<hr />
+<h2>🎯 Recommended Reading Order</h2>
+<ol>
+<li><a href="architecture.html">📐 Architecture &amp; System Design</a> — understand the workflow flow</li>
+<li><a href="tech-stack.html">🔧 Tech Stack</a> — technologies used</li>
+<li><a href="design-decisions.html">🤔 Design Decisions</a> — why these choices were made</li>
+<li><a href="../ops-term-architecture.excalidraw">📊 Architecture Diagram</a> — visual overview (open at excalidraw.com)</li>
+</ol>
+<hr />
+<p>Next: <a href="architecture.html">📐 Architecture &amp; System Design →</a></p>
+
+<div class="footer">
+  <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+</div>
+
+</div>
+</body>
+</html>

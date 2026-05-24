@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔧 Tech Stack — OpsTerm</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  background: #f8f9fa;
+  color: #1a1a2e;
+  line-height: 1.7;
+  padding: 20px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px 48px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #e9ecef;
+}
+h1 { font-size: 28px; margin: 20px 0 10px; }
+h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e9ecef; }
+h3 { font-size: 18px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+code {
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+pre code {
+  display: block;
+  background: #1a1a2e;
+  color: #e9ecef;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+pre code .comment { color: #6c757d; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+th { background: #f1f3f5; font-weight: 600; }
+tr:nth-child(even) td { background: #f8f9fa; }
+a { color: #1971c2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 2px solid #e9ecef; margin: 30px 0; }
+blockquote {
+  border-left: 4px solid #1971c2;
+  padding: 10px 16px;
+  margin: 15px 0;
+  background: #f1f3f5;
+  border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
+.nav-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #888;
+}
+.nav-back:hover { color: #1971c2; }
+.footer {
+  text-align: center;
+  padding: 30px 0 10px;
+  font-size: 13px;
+  color: #888;
+  border-top: 1px solid #e9ecef;
+  margin-top: 40px;
+}
+.footer a { color: #1971c2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+
+<h1>🔧 Tech Stack</h1>
+<p>This document explains the technology used in OpsTerm — from the programming language to the communication protocol.</p>
+<hr />
+<h2>🎯 Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Language</strong></td>
+<td>Python 3</td>
+<td>&gt;= 3.7+</td>
+</tr>
+<tr>
+<td><strong>CLI Parser</strong></td>
+<td><code>argparse</code> (stdlib)</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td><strong>Config Format</strong></td>
+<td>YAML (custom parser)</td>
+<td>Zero dep</td>
+</tr>
+<tr>
+<td><strong>HTTP Client</strong></td>
+<td><code>urllib</code> (stdlib)</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>SQLite via <code>sqlite3</code></td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td><strong>Encryption</strong></td>
+<td><code>cryptography</code> (optional)</td>
+<td>&gt;= 3.0</td>
+</tr>
+<tr>
+<td><strong>SSH/SCP</strong></td>
+<td>System <code>ssh</code> / <code>scp</code></td>
+<td>OS default</td>
+</tr>
+<tr>
+<td><strong>Shell</strong></td>
+<td>Zsh plugin (zsh hooks)</td>
+<td>Zsh only</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Zero mandatory dependencies</strong> — just Python 3 stdlib. Everything is built-in.<br />
+The only optional dependency: <code>pip install cryptography</code> (for vault).</p>
+</blockquote>
+<hr />
+<h2>🐍 Language: Python 3</h2>
+<h3>Why Python?</h3>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Availability</strong></td>
+<td>Present on every Linux/macOS, no installation needed</td>
+</tr>
+<tr>
+<td><strong>Full stdlib</strong></td>
+<td>JSON, SQLite, HTTP, argparse, hashlib — all built-in</td>
+</tr>
+<tr>
+<td><strong>Cross-platform</strong></td>
+<td>Works on Linux &amp; macOS without changes</td>
+</tr>
+<tr>
+<td><strong>Rapid development</strong></td>
+<td>Fast to prototype and build new features</td>
+</tr>
+</tbody>
+</table>
+<h3>Why NOT Go / Rust?</h3>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Go</strong></td>
+<td>Needs cross-platform compilation, binary size &gt;10MB</td>
+</tr>
+<tr>
+<td><strong>Rust</strong></td>
+<td>High learning curve, slow compilation times</td>
+</tr>
+<tr>
+<td><strong>Node.js</strong></td>
+<td>Heavy dependency (node_modules), not available on default systems</td>
+</tr>
+<tr>
+<td><strong>Bash</strong></td>
+<td>Hard to maintain beyond 1000 lines, painful JSON parsing</td>
+</tr>
+</tbody>
+</table>
+<p>Python is the <strong>most practical</strong> choice for a CLI tool that must be zero-dependency and portable.</p>
+<hr />
+<h2>📦 Zero-Dependency Strategy</h2>
+<p>This is <strong>OpsTerm's main selling point</strong>. How is it done?</p>
+<h3>What Typically Uses Third-Party Libraries:</h3>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Typical Library</th>
+<th>OpsTerm Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>YAML Parsing</strong></td>
+<td>PyYAML</td>
+<td>Custom minimal parser (~80 lines)</td>
+</tr>
+<tr>
+<td><strong>HTTP Requests</strong></td>
+<td>requests</td>
+<td><code>urllib.request</code> (stdlib)</td>
+</tr>
+<tr>
+<td><strong>Arg Parsing</strong></td>
+<td>click, typer</td>
+<td><code>argparse</code> (stdlib)</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>SQLAlchemy</td>
+<td><code>sqlite3</code> (stdlib)</td>
+</tr>
+<tr>
+<td><strong>Encryption</strong></td>
+<td>cryptography</td>
+<td><code>hashlib</code> + <code>hmac</code> (stdlib) + optional cryptography</td>
+</tr>
+</tbody>
+</table>
+<h3>Custom YAML Parser</h3>
+<p>OpsTerm's YAML parser is <strong>minimal — it only supports the YAML subset that OpsTerm uses</strong>:</p>
+<p><strong>Supported:</strong><br />
+- Key-value: <code>key: value</code><br />
+- Nested mapping via indentation<br />
+- Lists: <code>- item</code><br />
+- Nested objects in lists<br />
+- Comments (<code>#</code>)<br />
+- Strings, numbers, booleans, null</p>
+<p><strong>NOT supported:</strong><br />
+- YAML anchors (<code>&amp;anchor</code>, <code>*alias</code>)<br />
+- Multi-line strings (<code>|</code>, <code>&gt;</code>)<br />
+- Inline JSON (<code>{key: value}</code>)<br />
+- Complex types (timestamps, sets)</p>
+<p><strong>Why not use PyYAML?</strong><br />
+1. <strong>Dependency</strong> — users would need to <code>pip install</code> it first<br />
+2. <strong>Overkill</strong> — we only use a small YAML subset<br />
+3. <strong>Maintainable</strong> — the parser is only ~80 lines, easy to understand</p>
+<hr />
+<h2>🗄️ SQLite History</h2>
+<h3>Schema:</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">history</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">,</span><span class="s1">&#39;localtime&#39;</span><span class="p">)),</span>
+<span class="w">    </span><span class="k">mode</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">        </span><span class="c1">-- &#39;ai&#39;, &#39;ssh&#39;, &#39;workflow&#39;, &#39;pipe&#39;, &#39;shell&#39;, &#39;scp&#39;, &#39;vault&#39;</span>
+<span class="w">    </span><span class="k">input</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">       </span><span class="c1">-- command/question (max 500 chars)</span>
+<span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="nb">TEXT</span><span class="w">       </span><span class="c1">-- response (max 2000 chars)</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<h3>Why SQLite?</h3>
+<ul>
+<li><strong>Built into Python</strong> (<code>import sqlite3</code>)</li>
+<li><strong>Zero config</strong> — database file created automatically</li>
+<li><strong>Permanent</strong> — history persists even after closing the terminal</li>
+<li><strong>Searchable</strong> — can be queried using SQL</li>
+</ul>
+<hr />
+<h2>🔗 Protocol: OpenAI-Compatible API</h2>
+<p>The AI client uses a format that is <strong>compatible with OpenAI</strong>.</p>
+<h3>Request:</h3>
+<div class="codehilite"><pre><span></span><code><span class="err">POST</span><span class="w"> </span><span class="err">/v</span><span class="mi">1</span><span class="err">/cha</span><span class="kc">t</span><span class="err">/comple</span><span class="kc">t</span><span class="err">io</span><span class="kc">ns</span>
+<span class="err">Au</span><span class="kc">t</span><span class="err">horiza</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">Bearer</span><span class="w"> </span><span class="err">***</span>
+<span class="err">Co</span><span class="kc">ntent</span><span class="mi">-</span><span class="err">Type</span><span class="p">:</span><span class="w"> </span><span class="err">applica</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="err">/jso</span><span class="kc">n</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deepseek-chat&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You are a terminal assistant...&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;how to check disk usage&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>Response:</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chatcmpl-...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;choices&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">        </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;$ df -h /&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>Supported Providers:</h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Base URL</th>
+<th>Auth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DeepSeek</strong></td>
+<td><code>https://api.deepseek.com/v1</code></td>
+<td>API Key</td>
+</tr>
+<tr>
+<td><strong>OpenAI</strong></td>
+<td><code>https://api.openai.com/v1</code></td>
+<td>API Key</td>
+</tr>
+<tr>
+<td><strong>OpenRouter</strong></td>
+<td><code>https://openrouter.ai/api/v1</code></td>
+<td>API Key</td>
+</tr>
+<tr>
+<td><strong>Ollama</strong> (local)</td>
+<td><code>http://localhost:11434/v1</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>vLLM</strong> (self-hosted)</td>
+<td><code>http://your-server:8000/v1</code></td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><strong>Any OpenAI-compat</strong></td>
+<td>Configurable</td>
+<td>API Key / None</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>🔐 Vault Encryption</h2>
+<h3>Primary (recommended): <code>cryptography.fernet.Fernet</code></h3>
+<div class="codehilite"><pre><span></span><code>Master Password
+       │
+       ▼
+   PBKDF2 (SHA-256, 600k iterations, salt)
+       │
+       ▼
+   AES-128-CBC (Fernet)
+       │
+       ▼
+   Base64-encoded token
+       │
+       ▼
+   vault.json
+</code></pre></div>
+
+<h3>Fallback (no cryptography): HMAC + XOR</h3>
+<p>If <code>cryptography</code> is not installed, OpsTerm uses a fallback encryption:<br />
+1. <strong>Key derivation</strong>: PBKDF2 from <code>hashlib</code> (stdlib)<br />
+2. <strong>Encryption</strong>: XOR cipher with random IV<br />
+3. <strong>Integrity</strong>: HMAC-SHA256</p>
+<p>⚠️ This fallback is <strong>less secure</strong> than AES. Recommended: <code>pip install cryptography</code></p>
+<hr />
+<h2>📡 SSH/SCP Communication</h2>
+<h3>SSH Command Building:</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Direct SSH</span>
+<span class="n">ssh</span> <span class="o">-</span><span class="n">i</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_ed25519</span> <span class="o">-</span><span class="n">p</span> <span class="mi">22</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">203.0.113.1</span> <span class="o">-</span><span class="n">t</span>
+
+<span class="c1"># Multi-hop via ProxyJump</span>
+<span class="n">ssh</span> <span class="o">-</span><span class="n">J</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">10.0.0.1</span><span class="p">:</span><span class="mi">22</span> <span class="n">ubuntu</span><span class="o">@</span><span class="mf">203.0.113.1</span> <span class="o">-</span><span class="n">t</span>
+</code></pre></div>
+
+<h3>SCP Command Building:</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Upload</span>
+<span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_ed25519</span> <span class="n">local</span><span class="o">.</span><span class="n">txt</span> <span class="n">ubuntu</span><span class="nd">@host</span><span class="p">:</span><span class="o">/</span><span class="n">remote</span><span class="o">/</span><span class="n">path</span><span class="o">/</span>
+
+<span class="c1"># Download</span>
+<span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_ed25519</span> <span class="n">ubuntu</span><span class="nd">@host</span><span class="p">:</span><span class="o">/</span><span class="n">remote</span><span class="o">/</span><span class="n">path</span><span class="o">/</span> <span class="n">local</span><span class="o">.</span><span class="n">txt</span>
+
+<span class="c1"># Via jump host</span>
+<span class="n">scp</span> <span class="o">-</span><span class="n">o</span> <span class="n">ProxyJump</span><span class="o">=</span><span class="n">ubuntu</span><span class="nd">@bastion</span><span class="p">:</span><span class="mi">22</span> <span class="n">file</span><span class="o">.</span><span class="n">txt</span> <span class="n">ubuntu</span><span class="nd">@internal</span><span class="p">:</span><span class="o">/</span><span class="n">path</span><span class="o">/</span>
+</code></pre></div>
+
+<h3>Interaction:</h3>
+<ul>
+<li><strong>SSH</strong>: <code>os.execvp()</code> → replaces the process, interactive</li>
+<li><strong>SCP</strong>: <code>subprocess.run()</code> → blocking until complete</li>
+<li><strong>Workflow SSH</strong>: <code>subprocess.run()</code> → non-interactive, command via SSH</li>
+</ul>
+<hr />
+<h2>🐚 Zsh Plugin Integration</h2>
+<h3>Hooks Used:</h3>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Timing</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>preexec</code></td>
+<td>Before command runs</td>
+<td>Save command to <code>last_command.txt</code></td>
+</tr>
+<tr>
+<td><code>precmd</code></td>
+<td>After command finishes</td>
+<td>(reserved for future use)</td>
+</tr>
+</tbody>
+</table>
+<h3>Aliases:</h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span>ai-last<span class="o">=</span><span class="s1">&#39;ai last&#39;</span>
+<span class="nb">alias</span><span class="w"> </span>ai-explain<span class="o">=</span><span class="s1">&#39;ai explain-last&#39;</span>
+</code></pre></div>
+
+<h3>How <code>ai-ti</code> (AI + Terminal Integration) works:</h3>
+<div class="codehilite"><pre><span></span><code>ai-ti<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="c1"># 1. Ask AI</span>
+<span class="w">    </span>ai<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+
+<span class="w">    </span><span class="c1"># 2. Extract command from response (lines starting with $)</span>
+<span class="w">    </span><span class="c1"># 3. Ask user: run it?</span>
+<span class="w">    </span><span class="c1"># 4. If yes, execute</span>
+<span class="o">}</span>
+</code></pre></div>
+
+<hr />
+<h2>🎯 Comparison with Alternatives</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>OpsTerm</th>
+<th>Warp.dev</th>
+<th>ShellGPT</th>
+<th>Claude Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dependencies</strong></td>
+<td>✅ Zero</td>
+<td>❌ Binary</td>
+<td>⚠️ pip</td>
+<td>❌ Binary</td>
+</tr>
+<tr>
+<td><strong>Custom AI</strong></td>
+<td>✅ Any provider</td>
+<td>❌ Vendor lock</td>
+<td>✅ Many providers</td>
+<td>❌ Claude only</td>
+</tr>
+<tr>
+<td><strong>SSH Multi-hop</strong></td>
+<td>✅ Built-in</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Workflow</strong></td>
+<td>✅ Multi-step</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Vault</strong></td>
+<td>✅ Encrypted</td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Tab Completion</strong></td>
+<td>✅ bash+zsh</td>
+<td>✅ built-in</td>
+<td>❌ No</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Platform</strong></td>
+<td>Linux + macOS</td>
+<td>macOS only</td>
+<td>Linux + macOS</td>
+<td>Linux + macOS</td>
+</tr>
+<tr>
+<td><strong>Weight</strong></td>
+<td>~50KB (script)</td>
+<td>~200MB+</td>
+<td>~10MB</td>
+<td>~500MB+</td>
+</tr>
+<tr>
+<td><strong>Zero Dep</strong></td>
+<td>✅ Python stdlib</td>
+<td>❌</td>
+<td>✅ (stdin/out)</td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>Next: <a href="design-decisions.html">🤔 Design Decisions →</a></p>
+
+<div class="footer">
+  <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+</div>
+
+</div>
+</body>
+</html>

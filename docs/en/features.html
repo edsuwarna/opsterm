@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 OpsTerm Features — Complete — OpsTerm</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  background: #f8f9fa;
+  color: #1a1a2e;
+  line-height: 1.7;
+  padding: 20px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px 48px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #e9ecef;
+}
+h1 { font-size: 28px; margin: 20px 0 10px; }
+h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e9ecef; }
+h3 { font-size: 18px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+code {
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+pre code {
+  display: block;
+  background: #1a1a2e;
+  color: #e9ecef;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+pre code .comment { color: #6c757d; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+th { background: #f1f3f5; font-weight: 600; }
+tr:nth-child(even) td { background: #f8f9fa; }
+a { color: #1971c2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 2px solid #e9ecef; margin: 30px 0; }
+blockquote {
+  border-left: 4px solid #1971c2;
+  padding: 10px 16px;
+  margin: 15px 0;
+  background: #f1f3f5;
+  border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
+.nav-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #888;
+}
+.nav-back:hover { color: #1971c2; }
+.footer {
+  text-align: center;
+  padding: 30px 0 10px;
+  font-size: 13px;
+  color: #888;
+  border-top: 1px solid #e9ecef;
+  margin-top: 40px;
+}
+.footer a { color: #1971c2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+
+<h1>🎯 OpsTerm Features — Complete</h1>
+<p>This document explains <strong>all features</strong> available in OpsTerm, complete with usage examples and explanations.</p>
+<hr />
+<h2>📋 Feature Overview</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Feature</th>
+<th>CLI Command</th>
+<th>Category</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>🤖 <strong>AI Chat</strong></td>
+<td><code>ai &lt;prompt&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>2</td>
+<td>🔑 <strong>Smart SSH</strong></td>
+<td><code>ai ssh &lt;server&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>3</td>
+<td>🔗 <strong>Multi-hop SSH</strong></td>
+<td><code>ai ssh &lt;srv&gt; --via &lt;proxy&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>4</td>
+<td>📁 <strong>SCP File Transfer</strong></td>
+<td><code>ai scp &lt;src&gt; &lt;dst&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>5</td>
+<td>⚡ <strong>Workflow</strong></td>
+<td><code>ai run &lt;name&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>6</td>
+<td>🔐 <strong>Vault</strong></td>
+<td><code>ai vault</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>7</td>
+<td>🔗 <strong>Pipe Mode</strong></td>
+<td><code>cmd \| ai &lt;prompt&gt;</code></td>
+<td>Core</td>
+</tr>
+<tr>
+<td>8</td>
+<td>💻 <strong>Shell Integration</strong></td>
+<td><code>ai explain-last</code></td>
+<td>Shell</td>
+</tr>
+<tr>
+<td>9</td>
+<td>⌨️ <strong>Tab Completion</strong></td>
+<td><code>ai completion bash\|zsh</code></td>
+<td>Utility</td>
+</tr>
+<tr>
+<td>10</td>
+<td>🛠️ <strong>Server Manager</strong></td>
+<td><code>ai servers</code></td>
+<td>Management</td>
+</tr>
+<tr>
+<td>11</td>
+<td>📋 <strong>Workflow Manager</strong></td>
+<td><code>ai workflows</code></td>
+<td>Management</td>
+</tr>
+<tr>
+<td>12</td>
+<td>⚙️ <strong>Config Manager</strong></td>
+<td><code>ai config</code></td>
+<td>Management</td>
+</tr>
+<tr>
+<td>13</td>
+<td>📖 <strong>History</strong></td>
+<td><code>ai history</code></td>
+<td>Management</td>
+</tr>
+<tr>
+<td>14</td>
+<td>🚀 <strong>Init</strong></td>
+<td><code>ai init</code></td>
+<td>Setup</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1️⃣ 🤖 AI Chat</h2>
+<p>Ask anything to AI directly from your terminal.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Ask for a shell command</span>
+ai<span class="w"> </span>find<span class="w"> </span>log<span class="w"> </span>files<span class="w"> </span>larger<span class="w"> </span>than<span class="w"> </span>1GB
+<span class="c1"># Output: $ find /var/log -type f -size +1G</span>
+
+<span class="c1"># Ask for an explanation</span>
+ai<span class="w"> </span>explain<span class="w"> </span>what<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>reverse<span class="w"> </span>proxy
+
+<span class="c1"># Generate a docker compose</span>
+ai<span class="w"> </span>create<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span><span class="k">for</span><span class="w"> </span>nginx<span class="w"> </span>+<span class="w"> </span>postgres
+
+<span class="c1"># General question</span>
+ai<span class="w"> </span>how<span class="w"> </span>to<span class="w"> </span>check<span class="w"> </span>disk<span class="w"> </span>usage<span class="w"> </span><span class="k">in</span><span class="w"> </span>linux
+</code></pre></div>
+
+<p><strong>How it works:</strong><br />
+1. Load config (API key, model, URL from config.yaml)<br />
+2. Build prompt + system message<br />
+3. HTTP POST to AI provider (OpenAI-compatible API)<br />
+4. Parse response JSON<br />
+5. Print to terminal<br />
+6. Save to history (SQLite)<br />
+7. Detect <code>$</code> prefix → offer auto-exec</p>
+<p><strong>Provider support:</strong> DeepSeek, OpenAI, OpenRouter, Ollama, vLLM, or anything that is OpenAI-compatible.</p>
+<hr />
+<h2>2️⃣ 🔑 Smart SSH</h2>
+<p>SSH into servers without memorizing IP addresses.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Direct connect</span>
+ai<span class="w"> </span>ssh<span class="w"> </span>vps-main
+
+<span class="c1"># Fuzzy match — partial name is enough</span>
+ai<span class="w"> </span>ssh<span class="w"> </span>vps
+
+<span class="c1"># List servers first</span>
+ai<span class="w"> </span>servers<span class="w"> </span>list
+</code></pre></div>
+
+<p><strong>Server configuration in <code>~/.ai-workflows/servers.yaml</code>:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nt">servers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">vps-main</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;203.0.113.1&quot;</span>
+<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ubuntu&quot;</span>
+<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;~/.ssh/id_ed25519&quot;</span>
+<span class="w">    </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Main</span><span class="nv"> </span><span class="s">Tencent</span><span class="nv"> </span><span class="s">Cloud</span><span class="nv"> </span><span class="s">VPS&quot;</span>
+</code></pre></div>
+
+<p><strong>Configurable fields:</strong><br />
+- <code>host</code> — IP or domain<br />
+- <code>user</code> — SSH username<br />
+- <code>port</code> — SSH port (default: 22)<br />
+- <code>key</code> — path to private key<br />
+- <code>proxy</code> — jump host (see multi-hop feature)<br />
+- <code>desc</code> — description</p>
+<hr />
+<h2>3️⃣ 🔗 Multi-hop SSH</h2>
+<p>SSH into internal servers that are only accessible through a jump host / bastion.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Via CLI (per-call)</span>
+ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w"> </span>--via<span class="w"> </span>bastion
+
+<span class="c1"># Via config (permanent)</span>
+ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w">  </span><span class="c1"># automatically routes through bastion</span>
+</code></pre></div>
+
+<p><strong>Permanent config in servers.yaml:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nt">servers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">bastion</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;123.123.123.123&quot;</span>
+<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ubuntu&quot;</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;~/.ssh/id_ed25519&quot;</span>
+
+<span class="w">  </span><span class="nt">internal-server</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.0.0.5&quot;</span>
+<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ubuntu&quot;</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;~/.ssh/internal-key&quot;</span>
+<span class="w">    </span><span class="nt">proxy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bastion&quot;</span><span class="w">           </span><span class="c1"># &lt;-- automatically routes through bastion</span>
+</code></pre></div>
+
+<p><strong>How it works:</strong><br />
+- Uses SSH <code>-J</code> (ProxyJump) flag<br />
+- Chains can be long: <code>ssh -J jump1,jump2 server</code><br />
+- Proxy servers are resolved from servers.yaml as well</p>
+<hr />
+<h2>4️⃣ 📁 SCP File Transfer</h2>
+<p>Upload/download files between local and remote servers using <code>server:path</code> syntax.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Upload from local to server</span>
+ai<span class="w"> </span>scp<span class="w"> </span>./config.yaml<span class="w"> </span>vps-main:/home/ubuntu/
+
+<span class="c1"># Download from server to local</span>
+ai<span class="w"> </span>scp<span class="w"> </span>vps-main:logs/app.log<span class="w"> </span>.
+
+<span class="c1"># Through a jump host</span>
+ai<span class="w"> </span>scp<span class="w"> </span>file.txt<span class="w"> </span>internal-server:/tmp/<span class="w"> </span>--via<span class="w"> </span>bastion
+</code></pre></div>
+
+<p><strong>How it works:</strong><br />
+- Parse <code>server:path</code> → resolve to <code>user@host:path</code><br />
+- Same as SSH: supports proxy jump, key file, custom port<br />
+- Uses the system <code>scp</code> command via subprocess</p>
+<hr />
+<h2>5️⃣ ⚡ Workflow</h2>
+<p>Multi-step automation that runs several commands sequentially.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Run a workflow</span>
+ai<span class="w"> </span>run<span class="w"> </span>deploy-app
+
+<span class="c1"># List workflows</span>
+ai<span class="w"> </span>workflows<span class="w"> </span>list
+</code></pre></div>
+
+<p><strong>Example workflow:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nt">workflows</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">deploy-full</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Full</span><span class="nv"> </span><span class="s">deployment</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">file</span><span class="nv"> </span><span class="s">transfer&quot;</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">scp</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;./docker-compose.yml&quot;</span>
+<span class="w">        </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/home/ubuntu/app/docker-compose.yml&quot;</span>
+<span class="w">        </span><span class="nt">ssh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-main</span>
+<span class="w">        </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Upload</span><span class="nv"> </span><span class="s">compose</span><span class="nv"> </span><span class="s">file&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ssh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-main</span>
+<span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cd</span><span class="nv"> </span><span class="s">/home/ubuntu/app</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">docker</span><span class="nv"> </span><span class="s">compose</span><span class="nv"> </span><span class="s">pull</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">docker</span><span class="nv"> </span><span class="s">compose</span><span class="nv"> </span><span class="s">up</span><span class="nv"> </span><span class="s">-d&quot;</span>
+<span class="w">        </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Pull</span><span class="nv"> </span><span class="s">images</span><span class="nv"> </span><span class="s">&amp;</span><span class="nv"> </span><span class="s">restart&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">&#39;✅</span><span class="nv"> </span><span class="s">Deploy</span><span class="nv"> </span><span class="s">complete!&#39;&quot;</span>
+<span class="w">        </span><span class="nt">desc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Notification&quot;</span>
+</code></pre></div>
+
+<p><strong>Step types:</strong><br />
+| Type | Format | Function |<br />
+|------|--------|----------|<br />
+| <code>ssh</code> | <code>ssh: &lt;server&gt;</code> + <code>command:</code> | Run command on remote server |<br />
+| <code>scp</code> | <code>scp: &lt;src&gt;</code> + <code>to: &lt;dst&gt;</code> + <code>ssh: &lt;server&gt;</code> | Transfer file to server |<br />
+| <code>command</code> | <code>command:</code> | Run local command |<br />
+| <code>confirm</code> | <code>confirm: true</code> | Request user confirmation before proceeding |<br />
+| <code>wait</code> | <code>wait: &lt;seconds&gt;</code> | Wait for a specified number of seconds |</p>
+<hr />
+<h2>6️⃣ 🔐 Vault — Encrypted Credentials</h2>
+<p>Store credentials (API keys, passwords, tokens) in encrypted form.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Init vault (set master password)</span>
+ai<span class="w"> </span>vault<span class="w"> </span>init
+
+<span class="c1"># Store a credential</span>
+ai<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>db_password<span class="w"> </span><span class="s2">&quot;supersecret&quot;</span>
+ai<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>github_token<span class="w"> </span><span class="s2">&quot;ghp_...&quot;</span>
+
+<span class="c1"># Retrieve a credential</span>
+ai<span class="w"> </span>vault<span class="w"> </span>get<span class="w"> </span>db_password<span class="w">    </span><span class="c1"># Output: supersecret</span>
+
+<span class="c1"># List keys</span>
+ai<span class="w"> </span>vault<span class="w"> </span>list
+
+<span class="c1"># Delete a key</span>
+ai<span class="w"> </span>vault<span class="w"> </span>rm<span class="w"> </span>db_password
+
+<span class="c1"># Lock vault (clear password from memory)</span>
+ai<span class="w"> </span>vault<span class="w"> </span>lock
+</code></pre></div>
+
+<p><strong>Technical details:</strong><br />
+- <strong>Encryption:</strong> AES-128-CBC via <code>cryptography.fernet.Fernet</code><br />
+- <strong>Key derivation:</strong> PBKDF2-HMAC-SHA256, 600,000 iterations<br />
+- <strong>Master password:</strong> from <code>OPSTERM_VAULT_PASSWORD</code> env or prompt<br />
+- <strong>Fallback:</strong> if <code>cryptography</code> is not installed → HMAC + XOR (less secure)<br />
+- <strong>Storage:</strong> encrypted JSON at <code>~/.ai-workflows/vault.json</code></p>
+<hr />
+<h2>7️⃣ 🔗 Pipe Mode</h2>
+<p>Send command output to AI for analysis.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Explain output</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;are there any errors?&quot;</span>
+docker<span class="w"> </span>logs<span class="w"> </span>webapp<span class="w"> </span>--tail<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;analyze these errors&quot;</span>
+free<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;is there enough memory?&quot;</span>
+netstat<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;what ports are open?&quot;</span>
+
+<span class="c1"># Pipe without a specific prompt</span>
+df<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai
+<span class="c1"># AI auto-prompt: &quot;Explain this output&quot;</span>
+</code></pre></div>
+
+<p><strong>How it works:</strong><br />
+1. Detect stdin (<code>sys.stdin.isatty() == False</code>)<br />
+2. Read stdin → store as <code>stdin_data</code><br />
+3. Build prompt: "Output from command:\n<code>\n{stdin_data}\n</code>\nQuestion: {prompt}"<br />
+4. Send to AI → print response</p>
+<hr />
+<h2>8️⃣ 💻 Shell Integration (Zsh Plugin)</h2>
+<p>Integration with Zsh shell for viewing and explaining the last command's output.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Load in .zshrc</span>
+<span class="nb">source</span><span class="w"> </span>~/opsterm/zsh/opsterm.plugin.zsh
+
+<span class="c1"># View last command output</span>
+ai<span class="w"> </span>last
+
+<span class="c1"># Explain last command output using AI</span>
+ai<span class="w"> </span>explain-last
+</code></pre></div>
+
+<p><strong>Features:</strong><br />
+- <strong><code>ai-last</code></strong> — alias for <code>ai last</code><br />
+- <strong><code>ai-explain</code></strong> — alias for <code>ai explain-last</code><br />
+- <strong><code>ai-ti</code></strong> — AI + Terminal Integration: ask AI, extract command, auto-execute</p>
+<p><strong>How it works:</strong><br />
+- Zsh <code>preexec</code> hook → saves command before it runs<br />
+- Last command output is stored in <code>~/.ai-workflows/last_output.txt</code><br />
+- <code>ai explain-last</code> → reads file → sends to AI</p>
+<hr />
+<h2>9️⃣ ⌨️ Tab Completion</h2>
+<p>Auto-complete for bash and zsh — no need to memorize server/workflow names.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Bash</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>ai<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
+
+<span class="c1"># Zsh</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>ai<span class="w"> </span>completion<span class="w"> </span>zsh<span class="o">)</span>
+
+<span class="c1"># Or permanently:</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(ai completion bash)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(ai completion zsh)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
+</code></pre></div>
+
+<p><strong>Completion contexts:</strong><br />
+| Context | Completion |<br />
+|---------|------------|<br />
+| <code>ai [Tab]</code> | All subcommands |<br />
+| <code>ai ssh [Tab]</code> | Server names |<br />
+| <code>ai run [Tab]</code> | Workflow names |<br />
+| <code>ai scp [Tab]</code> | <code>server:</code> prefix |<br />
+| <code>ai servers [Tab]</code> | <code>add</code>, <code>edit</code>, <code>rm</code>, <code>list</code> |<br />
+| <code>ai vault [Tab]</code> | <code>init</code>, <code>set</code>, <code>get</code>, <code>list</code>, <code>rm</code>, <code>lock</code> |<br />
+| <code>ai --via [Tab]</code> | Proxy server names |</p>
+<hr />
+<h2>🔟 🛠️ Server Manager</h2>
+<p>CRUD for servers — save, edit, and delete server configurations.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># List all servers (with PROXY column)</span>
+ai<span class="w"> </span>servers<span class="w"> </span>list
+<span class="c1"># Output:</span>
+<span class="c1"># NAME       HOST            USER    PORT  PROXY  DESCRIPTION</span>
+<span class="c1"># vps-main   203.0.113.1  ubuntu  22    —      Tencent Cloud VPS</span>
+
+<span class="c1"># Add a new server (interactive)</span>
+ai<span class="w"> </span>servers<span class="w"> </span>add
+
+<span class="c1"># Edit a server</span>
+ai<span class="w"> </span>servers<span class="w"> </span>edit<span class="w"> </span>vps-main
+
+<span class="c1"># Delete a server</span>
+ai<span class="w"> </span>servers<span class="w"> </span>rm<span class="w"> </span>vps-main
+</code></pre></div>
+
+<p>Data stored in <code>~/.ai-workflows/servers.yaml</code>.</p>
+<hr />
+<h2>1️⃣1️⃣ 📋 Workflow Manager</h2>
+<p>CRUD for workflows — save, edit, and delete workflows.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># List all workflows</span>
+ai<span class="w"> </span>workflows<span class="w"> </span>list
+
+<span class="c1"># Add a new workflow (interactive)</span>
+ai<span class="w"> </span>workflows<span class="w"> </span>add
+
+<span class="c1"># Edit a workflow (opens editor)</span>
+ai<span class="w"> </span>workflows<span class="w"> </span>edit<span class="w"> </span>deploy-app
+
+<span class="c1"># Delete a workflow</span>
+ai<span class="w"> </span>workflows<span class="w"> </span>rm<span class="w"> </span>deploy-app
+</code></pre></div>
+
+<p>Data stored in <code>~/.ai-workflows/workflows.yaml</code>.</p>
+<hr />
+<h2>1️⃣2️⃣ ⚙️ Config Manager</h2>
+<p>View and set OpsTerm configuration.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># View all config</span>
+ai<span class="w"> </span>config<span class="w"> </span>list
+
+<span class="c1"># Set a value</span>
+ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.model<span class="w"> </span>deepseek-chat
+ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.api_url<span class="w"> </span>https://api.deepseek.com/v1/chat/completions
+ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.temperature<span class="w"> </span><span class="m">0</span>.3
+ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>shell.confirm_before_exec<span class="w"> </span><span class="nb">true</span>
+
+<span class="c1"># Get a specific value</span>
+ai<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </span>ai.model
+</code></pre></div>
+
+<p>Data stored in <code>~/.ai-workflows/config.yaml</code>.</p>
+<hr />
+<h2>1️⃣3️⃣ 📖 History</h2>
+<p>History of all commands that have been run.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># View last 20 entries</span>
+ai<span class="w"> </span><span class="nb">history</span>
+
+<span class="c1"># View last 50 entries</span>
+ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span><span class="m">50</span>
+</code></pre></div>
+
+<p><strong>Output:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="w">  </span><span class="o">[</span><span class="n">1</span><span class="o">]</span><span class="w"> </span><span class="err">🤖</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">30</span><span class="w"> </span><span class="o">[</span><span class="n">ai</span><span class="o">]</span><span class="w"> </span><span class="n">how</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="k">check</span><span class="w"> </span><span class="k">disk</span><span class="w"> </span><span class="k">usage</span>
+<span class="w">  </span><span class="o">[</span><span class="n">2</span><span class="o">]</span><span class="w"> </span><span class="err">🔑</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">35</span><span class="w"> </span><span class="o">[</span><span class="n">ssh</span><span class="o">]</span><span class="w"> </span><span class="n">vps</span><span class="o">-</span><span class="n">main</span>
+<span class="w">  </span><span class="o">[</span><span class="n">3</span><span class="o">]</span><span class="w"> </span><span class="err">⚡</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">40</span><span class="w"> </span><span class="o">[</span><span class="n">workflow</span><span class="o">]</span><span class="w"> </span><span class="n">deploy</span><span class="o">-</span><span class="n">app</span>
+<span class="w">  </span><span class="o">[</span><span class="n">4</span><span class="o">]</span><span class="w"> </span><span class="err">🔗</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">45</span><span class="w"> </span><span class="o">[</span><span class="n">pipe</span><span class="o">]</span><span class="w"> </span><span class="n">docker</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ai</span><span class="w"> </span><span class="n">error</span>
+</code></pre></div>
+
+<p><strong>Mode icons:</strong><br />
+| Icon | Mode |<br />
+|------|------|<br />
+| 🤖 | AI chat |<br />
+| 🔑 | SSH |<br />
+| ⚡ | Workflow |<br />
+| 🔗 | Pipe mode |<br />
+| 💻 | Shell command |<br />
+| 📁 | SCP transfer |<br />
+| 🔐 | Vault |</p>
+<p>Data stored in SQLite: <code>~/.ai-workflows/history.db</code>.</p>
+<hr />
+<h2>1️⃣4️⃣ 🚀 Init</h2>
+<p>First-time setup — creates default configuration files.</p>
+<div class="codehilite"><pre><span></span><code>ai<span class="w"> </span>init
+</code></pre></div>
+
+<p><strong>Created files:</strong><br />
+- <code>~/.ai-workflows/config.yaml</code> — AI provider template<br />
+- <code>~/.ai-workflows/servers.yaml</code> — example server config<br />
+- <code>~/.ai-workflows/workflows.yaml</code> — example workflow config</p>
+<hr />
+<h2>🎯 Use Case Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>What You Want To Do</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SSH into a server</strong></td>
+<td><code>ai ssh vps-main</code></td>
+</tr>
+<tr>
+<td><strong>SSH through a bastion</strong></td>
+<td><code>ai ssh internal --via bastion</code></td>
+</tr>
+<tr>
+<td><strong>Upload a file</strong></td>
+<td><code>ai scp file.txt server:/path/</code></td>
+</tr>
+<tr>
+<td><strong>Download a file</strong></td>
+<td><code>ai scp server:log.txt .</code></td>
+</tr>
+<tr>
+<td><strong>Deploy an app</strong></td>
+<td><code>ai run deploy-app</code></td>
+</tr>
+<tr>
+<td><strong>Check server health</strong></td>
+<td><code>ai run check-server</code></td>
+</tr>
+<tr>
+<td><strong>Ask for a command</strong></td>
+<td><code>ai how to check disk</code></td>
+</tr>
+<tr>
+<td><strong>Explain an error</strong></td>
+<td><code>docker logs -n50 \| ai "error?"</code></td>
+</tr>
+<tr>
+<td><strong>Explain last command</strong></td>
+<td><code>ai explain-last</code></td>
+</tr>
+<tr>
+<td><strong>Store a password</strong></td>
+<td><code>ai vault set db_pass</code></td>
+</tr>
+<tr>
+<td><strong>Retrieve a password</strong></td>
+<td><code>ai vault get db_pass</code></td>
+</tr>
+<tr>
+<td><strong>Auto-complete</strong></td>
+<td><code>ai [Tab]</code></td>
+</tr>
+<tr>
+<td><strong>View history</strong></td>
+<td><code>ai history</code></td>
+</tr>
+<tr>
+<td><strong>Setup from scratch</strong></td>
+<td><code>ai init</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>🔜 Future Roadmap</h2>
+<ul>
+<li>[ ] <strong>Tmux/screen session manager</strong> — manage multi-sessions from OpsTerm</li>
+<li>[ ] <strong>Docker exec shortcut</strong> — <code>ai exec &lt;container&gt;</code> to jump directly into a container</li>
+<li>[ ] <strong>SSH config parser</strong> — import from <code>~/.ssh/config</code></li>
+<li>[ ] <strong>Fish shell support</strong> — completion &amp; plugin for Fish</li>
+<li>[ ] <strong>Multi-hop chain</strong> — <code>ai ssh server --via jump1,jump2</code></li>
+<li>[ ] <strong>Vault auto-unlock</strong> — unlock vault using fingerprint/keychain</li>
+</ul>
+
+<div class="footer">
+  <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+</div>
+
+</div>
+</body>
+</html>

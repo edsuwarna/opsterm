@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤔 Design Decisions — OpsTerm</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  background: #f8f9fa;
+  color: #1a1a2e;
+  line-height: 1.7;
+  padding: 20px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px 48px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #e9ecef;
+}
+h1 { font-size: 28px; margin: 20px 0 10px; }
+h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e9ecef; }
+h3 { font-size: 18px; margin: 20px 0 8px; }
+p { margin: 10px 0; }
+code {
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+pre code {
+  display: block;
+  background: #1a1a2e;
+  color: #e9ecef;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+pre code .comment { color: #6c757d; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+th { background: #f1f3f5; font-weight: 600; }
+tr:nth-child(even) td { background: #f8f9fa; }
+a { color: #1971c2; text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+hr { border: none; border-top: 2px solid #e9ecef; margin: 30px 0; }
+blockquote {
+  border-left: 4px solid #1971c2;
+  padding: 10px 16px;
+  margin: 15px 0;
+  background: #f1f3f5;
+  border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
+.nav-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #888;
+}
+.nav-back:hover { color: #1971c2; }
+.footer {
+  text-align: center;
+  padding: 30px 0 10px;
+  font-size: 13px;
+  color: #888;
+  border-top: 1px solid #e9ecef;
+  margin-top: 40px;
+}
+.footer a { color: #1971c2; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+
+<h1>🤔 Design Decisions</h1>
+<p>Dokumen ini menjelaskan <strong>kenapa</strong> OpsTerm dirancang seperti ini — alasan di balik setiap keputusan teknis, termasuk trade-off yang diambil.</p>
+<hr />
+<h2>📜 Daftar Keputusan</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Keputusan</th>
+<th>Pilihan</th>
+<th>Alternatif yang Ditolak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Bahasa</strong></td>
+<td>Python 3</td>
+<td>Go, Rust, Node.js, Bash</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Arsitektur</strong></td>
+<td>Single file CLI</td>
+<td>Modular package, Client-server</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Dependencies</strong></td>
+<td>Zero (stdlib only)</td>
+<td>PyYAML, requests, click</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Config format</strong></td>
+<td>YAML (custom parser)</td>
+<td>JSON, TOML, INI</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>AI Protocol</strong></td>
+<td>OpenAI-compatible API</td>
+<td>LangChain, custom gRPC</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>SSH Method</strong></td>
+<td>Subprocess + system ssh</td>
+<td>paramiko, asyncssh</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>State</strong></td>
+<td>File-based (no daemon)</td>
+<td>SQLite daemon, Redis</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Vault</strong></td>
+<td>Optional cryptography</td>
+<td>Hardcoded key, no encryption</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Completion</strong></td>
+<td>Generated script</td>
+<td>Manual completion</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Shell Integration</strong></td>
+<td>Zsh plugin</td>
+<td>Hook shell, LD_PRELOAD</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1️⃣ Kenapa Python, bukan Go/Rust?</h2>
+<h3>Konteks</h3>
+<p>OpsTerm butuh bahasa yang <strong>portable, zero-dep, dan gampang di-maintain</strong>.</p>
+<h3>Keputusan: ✅ Python 3</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Ada di mana-mana</strong> — Semua Linux &amp; macOS punya Python 3. User tinggal download script, langsung jalan. Kalo Go/Rust, harus compile dulu atau download binary.</p>
+</li>
+<li>
+<p><strong>Stdlib kaya</strong> — <code>argparse</code>, <code>json</code>, <code>sqlite3</code>, <code>urllib</code>, <code>hashlib</code>, <code>subprocess</code> — semua built-in. Di Go/Rust, library-library ini butuh import eksternal atau stdlib yang kurang lengkap.</p>
+</li>
+<li>
+<p><strong>Maintainability</strong> — Python lebih gampang dibaca &amp; dimodifikasi. Kontributor potensial lebih gampang ngerti kode.</p>
+</li>
+<li>
+<p><strong>File size</strong> — Script Python ~50KB vs Go binary ~10MB. Kecil, gampang di-copy ke server mana pun.</p>
+</li>
+<li>
+<p><strong>Rapid iteration</strong> — Fitur baru bisa langsung dipake tanpa compile. Edit → save → run.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- Performance lebih rendah (tapi untuk CLI tool, ini gak kerasa)<br />
+- Butuh Python interpreter (tapi udah ada di semua system modern)</p>
+<hr />
+<h2>2️⃣ Kenapa single file, bukan package?</h2>
+<h3>Konteks</h3>
+<p>OpsTerm bisa aja dibikin sebagai Python package dengan <code>pip install</code>.</p>
+<h3>Keputusan: ✅ Single file (<code>bin/ai</code>)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Portable</strong> — Copy 1 file ke server mana pun, langsung jalan. <code>scp bin/ai server:~/.local/bin/</code></p>
+</li>
+<li>
+<p><strong>Zero setup</strong> — Ga perlu <code>pip install</code>, ga perlu <code>python -m opsterm</code>. Langsung <code>./ai</code>.</p>
+</li>
+<li>
+<p><strong>Transparent</strong> — Isinya bisa dibaca &amp; dipahami. Gak ada <code>__pycache__</code>, <code>egg-info</code>, dll.</p>
+</li>
+<li>
+<p><strong>Easy debugging</strong> — Kalo error, tinggal edit baris tertentu, gak perlu cari file di folder.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- File besar (~1500 baris). Tapi masih kecil dibanding app lain.<br />
+- Semua fungsi dalam 1 file — susah di-test secara unit.<br />
+- Solusi: kode diorganisir dengan section headers (comments).</p>
+<hr />
+<h2>3️⃣ Kenapa zero dependencies?</h2>
+<h3>Konteks</h3>
+<p>Banyak Python CLI tool pake <code>PyYAML</code>, <code>requests</code>, <code>click</code>, dll.</p>
+<h3>Keputusan: ✅ Zero external dependencies</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>No install step</strong> — Clone repo → langsung jalan. Gak perlu <code>pip install -r requirements.txt</code>.</p>
+</li>
+<li>
+<p><strong>No version conflicts</strong> — Gak bakal bentrok sama library system atau project lain.</p>
+</li>
+<li>
+<p><strong>Works in any Python env</strong> — Virtual env, system Python, container, semuanya jalan.</p>
+</li>
+<li>
+<p><strong>Easy to audit</strong> — Semua kode yang jalan bisa dibaca. Gak ada hidden dependency.</p>
+</li>
+</ol>
+<p><strong>Yang dikorbankan:</strong><br />
+- YAML parser <strong>manual</strong> (~80 baris) — gak support full YAML spec, tapi cukup buat kebutuhan.<br />
+- HTTP client <strong>stdlib</strong> (<code>urllib</code>) — lebih verbose daripada <code>requests</code>, tapi fungsional.<br />
+- CLI parser <strong>stdlib</strong> (<code>argparse</code>) — kurang powerful daripada <code>click</code>, tapi cukup.</p>
+<hr />
+<h2>4️⃣ Kenapa YAML, bukan JSON/TOML?</h2>
+<h3>Konteks</h3>
+<p>Config format buat server, workflow, dan AI settings.</p>
+<h3>Keputusan: ✅ YAML (dengan custom parser)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Readability</strong> — YAML lebih enak dibaca manusia dibanding JSON. Comment, indentasi bersih.</p>
+</li>
+<li>
+<p><strong>User-friendly</strong> — Target user OpsTerm adalah DevOps engineer yang biasa pake YAML (Docker Compose, Kubernetes, Ansible, GitHub Actions).</p>
+</li>
+<li>
+<p><strong>No brackets</strong> — JSON penuh <code>{}</code> dan <code>[]</code> yang ganggu readability buat config panjang.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- Custom parser → terbatas. Tapi subset YAML yang kita pake (mapping, list, scalar) stabil dan cukup.<br />
+- Inkonisten dengan "zero dep" — technically YAML parsing itu custom code, bukan dependency eksternal.</p>
+<hr />
+<h2>5️⃣ Kenapa OpenAI-compatible API, bukan library AI?</h2>
+<h3>Konteks</h3>
+<p>Bisa pake LangChain, LiteLLM, atau library abstraksi AI lainnya.</p>
+<h3>Keputusan: ✅ Direct HTTP call (OpenAI-compatible)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Zero dependency</strong> — Cuma <code>urllib</code> (stdlib). LangChain butuh 20+ dependencies.</p>
+</li>
+<li>
+<p><strong>Provider agnostic</strong> — Format OpenAI request/response udah jadi standar de-facto. DeepSeek, Ollama, vLLM, OpenRouter — semua support.</p>
+</li>
+<li>
+<p><strong>Simple</strong> — Chat Completion API cuma 1 endpoint, format sederhana.</p>
+</li>
+<li>
+<p><strong>Debug friendly</strong> — Request/response bisa di-log, di-inspect, di-test pake curl.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- Gak ada retry logic, streaming, atau tool calling.<br />
+- Tapi untuk CLI tool yang blocking, ini gak masalah.</p>
+<hr />
+<h2>6️⃣ Kenapa system SSH, bukan library Python?</h2>
+<h3>Konteks</h3>
+<p>Bisa pake <code>paramiko</code> (SSH client library Python).</p>
+<h3>Keputusan: ✅ System SSH (<code>subprocess</code> + <code>/usr/bin/ssh</code>)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Feature parity</strong> — System SSH punya semua fitur: key management, ProxyJump, agent forwarding, compression, dll.</p>
+</li>
+<li>
+<p><strong>Zero dependency</strong> — <code>paramiko</code> butuh <code>bcrypt</code>, <code>cryptography</code>, <code>pynacl</code>, dll.</p>
+</li>
+<li>
+<p><strong>Familiar</strong> — Semua konfigurasi SSH (known_hosts, config, agent) jalan otomatis.</p>
+</li>
+<li>
+<p><strong>Interactive support</strong> — <code>os.execvp()</code> bisa ngasih SSH session interaktif penuh. <code>paramiko</code> gak bisa seamless.</p>
+</li>
+<li>
+<p><strong>Already configured</strong> — User pasti udah setup SSH key di system-nya.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- Gak bisa parse SSH output secara real-time.<br />
+- Error handling terbatas (cuma exit code).</p>
+<hr />
+<h2>7️⃣ Kenapa file-based state, bukan daemon?</h2>
+<h3>Konteks</h3>
+<p>Beberapa tool pake background daemon yang nyimpen state di memory.</p>
+<h3>Keputusan: ✅ File-based (no daemon)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Zero resource</strong> — Gak ada background process. Gak consume RAM/CPU kalo gak dipake.</p>
+</li>
+<li>
+<p><strong>Crash-proof</strong> — Kalo terminal kill, data gak ilang. Semua di file.</p>
+</li>
+<li>
+<p><strong>Transparent</strong> — User bisa buka config langsung, edit pake editor teks.</p>
+</li>
+<li>
+<p><strong>Simple</strong> — Gak perlu manage process lifecycle, signal handling, lock files.</p>
+</li>
+</ol>
+<p><strong>Trade-off:</strong><br />
+- State dibaca dari disk setiap kali command → overhead dikit (&lt;10ms).<br />
+- Gak bisa ada "real-time" notification.</p>
+<hr />
+<h2>8️⃣ Kenapa vault optional?</h2>
+<h3>Konteks</h3>
+<p>Vault butuh <code>cryptography</code> yang gak ada di stdlib.</p>
+<h3>Keputusan: ✅ Optional — <code>cryptography</code> recommended, fallback tersedia</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Zero dep tetap berlaku</strong> — Fitur dasar OpsTerm jalan tanpa vault.</p>
+</li>
+<li>
+<p><strong>Security tetap prioritas</strong> — Vault pake AES via cryptography. Fallback XOR + HMAC kalo gak ada.</p>
+</li>
+<li>
+<p><strong>Progressive enhancement</strong> — User bisa mulai tanpa vault, install cryptography kalo butuh.</p>
+</li>
+</ol>
+<hr />
+<h2>9️⃣ Kenapa generated completion?</h2>
+<h3>Konteks</h3>
+<p>Completion bisa ditulis manual atau di-generate.</p>
+<h3>Keputusan: ✅ Generated (embedded in script)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Always up-to-date</strong> — Kalo ada subcommand baru, completion otomatis update karena di-generate dari kode.</p>
+</li>
+<li>
+<p><strong>Zero additional file</strong> — <code>ai completion bash</code> langsung print ke stdout. Gak perlu file terpisah.</p>
+</li>
+<li>
+<p><strong>Works out of box</strong> — <code>source &lt;(ai completion bash)</code> — 1 command, langsung jadi.</p>
+</li>
+</ol>
+<hr />
+<h2>🔟 Kenapa Zsh plugin terpisah?</h2>
+<h3>Konteks</h3>
+<p>Shell integration bisa jadi bagian dari main script atau file terpisah.</p>
+<h3>Keputusan: ✅ File terpisah (<code>zsh/opsterm.plugin.zsh</code>)</h3>
+<p><strong>Alasan:</strong></p>
+<ol>
+<li>
+<p><strong>Bahasa berbeda</strong> — Zsh plugin pake Zsh script, bukan Python. Gabungin di file Python bakal campur aduk.</p>
+</li>
+<li>
+<p><strong>Zsh-only</strong> — Fitur shell hooks (<code>preexec</code>, <code>precmd</code>) cuma ada di Zsh.</p>
+</li>
+<li>
+<p><strong>Lazy loading</strong> — Plugin cuma di-load kalo user source di <code>.zshrc</code>. Gak nambah weight.</p>
+</li>
+<li>
+<p><strong>Familiar pattern</strong> — Zsh plugin format udah standar (oh-my-zsh, antigen, zplug).</p>
+</li>
+</ol>
+<hr />
+<h2>💡 Saran untuk Improvement</h2>
+<p>Berdasarkan design decisions di atas, beberapa saran:</p>
+<ol>
+<li>
+<p><strong>Python → Rust (masa depan)</strong> — Kalo performa &amp; distribution jadi masalah, rewrite ke Rust buat single binary.</p>
+</li>
+<li>
+<p><strong>YAML → TOML</strong> — Kalo butuh config yang lebih strict (type safety), TOML lebih cocok. Tapi butuh library eksternal.</p>
+</li>
+<li>
+<p><strong>Add plugin system</strong> — Biar komunitas bisa nambah fitur tanpa edit core script.</p>
+</li>
+<li>
+<p><strong>Support Fish shell</strong> — Populer di kalangan developer modern.</p>
+</li>
+</ol>
+<hr />
+<h2>🔗 Referensi</h2>
+<ul>
+<li><a href="https://docs.python.org/3/library/argparse.html">Python Argparse Docs</a></li>
+<li><a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat Completions API</a></li>
+<li><a href="https://man.openai.com/man/ssh/ssh/">SSH ProxyJump (-J)</a></li>
+<li><a href="https://cryptography.io/en/latest/fernet/">Fernet (symmetric encryption)</a></li>
+<li><a href="https://docs.python.org/3/library/hashlib.html#hashlib.pbkdf2_hmac">PBKDF2 Key Derivation</a></li>
+</ul>
+
+<div class="footer">
+  <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+</div>
+
+</div>
+</body>
+</html>
