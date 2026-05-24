@@ -1,0 +1,863 @@
+#!/usr/bin/env python3
+"""
+OpsTerm — AI Terminal Assistant
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Zero-dependency CLI tool: custom AI provider + saved servers & workflows.
+
+Usage:
+  ai <prompt>              Ask AI anything (default mode)
+  ai ssh <server-name>     SSH ke server tersimpan
+  ai run <workflow-name>   Jalanin multi-step workflow
+  ai servers               List / add / edit / hapus server
+  ai workflows             List / add / edit / hapus workflow
+  ai config                Lihat / set konfigurasi
+  ai history               Riwayat command
+  ai init                  Setup konfigurasi awal
+  <cmd> | ai <prompt>      Pipe mode: kirim output ke AI
+"""
+
+import argparse
+import json
+import os
+import shlex
+import sqlite3
+import subprocess
+import sys
+import textwrap
+import time
+import urllib.request
+import urllib.error
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+# ── Paths ──────────────────────────────────────────────────
+HOME = Path.home()
+CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".ai-workflows"))
+CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+CONFIG_FILE = CONFIG_DIR / "config.yaml"
+SERVERS_FILE = CONFIG_DIR / "servers.yaml"
+WORKFLOWS_FILE = CONFIG_DIR / "workflows.yaml"
+HISTORY_DB = CONFIG_DIR / "history.db"
+
+# ── Minimal YAML Parser ────────────────────────────────────
+def _parse_yaml(text: str) -> Any:
+    """Parse a subset of YAML: scalars, mappings, lists, nesting via indent."""
+    lines = text.split("\n")
+    # Strip trailing whitespace, keep blank lines as None
+    cleaned = []
+    for line in lines:
+        stripped = line.rstrip()
+        # Strip comments (but not inside quotes — simplified: no inline comments on data lines)
+        if "#" in stripped:
+            idx = stripped.index("#")
+            # Check if # is inside a quoted string (basic check)
+            before = stripped[:idx]
+            if before.count('"') % 2 == 0 and before.count("'") % 2 == 0:
+                stripped = before.rstrip()
+        cleaned.append(stripped)
+
+    # Remove leading empty lines, find base indent
+    while cleaned and cleaned[0] == "":
+        cleaned.pop(0)
+    if not cleaned:
+        return {}
+
+    # Recursive parser
+    def _parse_block(lines: List[str], start: int, base_indent: int) -> Tuple[Any, int]:
+        """Parse a block starting at lines[start], return (value, next_line_index)."""
+        if start >= len(lines):
+            return None, start
+
+        line = lines[start]
+        if line.strip() == "":
+            return None, start + 1
+
+        indent = len(line) - len(line.lstrip())
+        content = line.strip()
+
+        # List item
+        if content.startswith("- "):
+            items = []
+            i = start
+            while i < len(lines):
+                l = lines[i]
+                if l.strip() == "":
+                    i += 1
+                    continue
+                indent_i = len(l) - len(l.lstrip())
+                if indent_i < indent:
+                    break
+                if l.strip().startswith("- "):
+                    item_text = l.strip()[2:]
+                    # Check if this is a nested mapping: - key: value
+                    if ": " in item_text and not item_text.startswith('"') and not item_text.startswith("'"):
+                        # Nested object under list item
+                        key, val = item_text.split(": ", 1)
+                        obj = {key.strip(): _parse_scalar(val.strip())}
+                        # Look ahead for more keys at same level under this item
+                        j = i + 1
+                        while j < len(lines):
+                            l2 = lines[j]
+                            if l2.strip() == "":
+                                j += 1
+                                continue
+                            indent_j = len(l2) - len(l2.lstrip())
+                            if indent_j <= indent:
+                                break
+                            if indent_j == indent + 2 and ": " in l2.strip():
+                                k, v = l2.strip().split(": ", 1)
+                                obj[k.strip()] = _parse_scalar(v.strip())
+                                j += 1
+                            else:
+                                break
+                        items.append(obj)
+                        i = j
+                    else:
+                        items.append(_parse_scalar(item_text))
+                        i += 1
+                else:
+                    break
+            return items, i
+
+        # Mapping (key: value)
+        if ": " in content or content.endswith(":"):
+            result = {}
+            i = start
+            while i < len(lines):
+                l = lines[i]
+                if l.strip() == "":
+                    i += 1
+                    continue
+                indent_i = len(l) - len(l.lstrip())
+                if indent_i < base_indent:
+                    break
+                if ": " in l.strip() or l.strip().endswith(":"):
+                    k, v = (l.strip().split(": ", 1) if ": " in l.strip() else (l.strip()[:-1], ""))
+                    k = k.strip()
+                    if v == "":
+                        # Value is nested block
+                        v, i = _parse_block(lines, i + 1, indent_i + 2)
+                        if v is None:
+                            v = {}
+                        result[k] = v
+                    else:
+                        result[k] = _parse_scalar(v.strip())
+                        i += 1
+                else:
+                    break
+            return result, i
+
+        # Scalar value at top level
+        return _parse_scalar(content), start + 1
+
+    val, _ = _parse_block(cleaned, 0, 0)
+    return val if val is not None else {}
+
+def _parse_scalar(text: str) -> Any:
+    """Parse a YAML scalar value."""
+    if not text:
+        return ""
+    # Quoted strings
+    if (text.startswith('"') and text.endswith('"')) or \
+       (text.startswith("'") and text.endswith("'")):
+        return text[1:-1]
+    # Numbers
+    try:
+        if "." in text:
+            return float(text)
+        return int(text)
+    except ValueError:
+        pass
+    # Booleans
+    if text.lower() in ("true", "yes", "on"):
+        return True
+    if text.lower() in ("false", "no", "off"):
+        return False
+    if text.lower() in ("null", "~"):
+        return None
+    return text
+
+def _dump_yaml(obj: Any, indent: int = 0) -> str:
+    """Serialize Python object to our YAML subset."""
+    prefix = "  " * indent
+    if isinstance(obj, dict):
+        lines = []
+        for k, v in obj.items():
+            if isinstance(v, (dict, list)):
+                if v:
+                    lines.append(f"{prefix}{k}:")
+                    lines.append(_dump_yaml(v, indent + 1))
+                else:
+                    lines.append(f"{prefix}{k}: {{}}")
+            else:
+                lines.append(f"{prefix}{k}: {_dump_scalar(v)}")
+        return "\n".join(lines)
+    elif isinstance(obj, list):
+        lines = []
+        for item in obj:
+            if isinstance(item, dict):
+                if item:
+                    first = True
+                    for k, v in item.items():
+                        if first:
+                            lines.append(f"{prefix}- {k}: {_dump_scalar(v)}")
+                            first = False
+                        else:
+                            lines.append(f"{prefix}  {k}: {_dump_scalar(v)}")
+                else:
+                    lines.append(f"{prefix}- {{}}")
+            else:
+                lines.append(f"{prefix}- {_dump_scalar(item)}")
+        return "\n".join(lines)
+    else:
+        return f"{prefix}{_dump_scalar(obj)}"
+
+def _dump_scalar(val: Any) -> str:
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if val is None:
+        return "~"
+    if isinstance(val, str) and (val.startswith(" ") or val.endswith(" ") or
+                                  val.startswith("#") or val == "" or
+                                  ":" in val or val.lower() in ("true", "false", "yes", "no", "null")):
+        return f'"{val}"'
+    return str(val)
+
+# ── Config Loader ──────────────────────────────────────────
+def load_yaml(path: Path) -> dict:
+    """Load a YAML file, return dict (empty if not found)."""
+    if path.exists():
+        text = path.read_text(encoding="utf-8")
+        val = _parse_yaml(text)
+        return val if isinstance(val, dict) else {}
+    return {}
+
+def save_yaml(path: Path, data: dict):
+    """Save dict to YAML file."""
+    path.write_text(_dump_yaml(data) + "\n", encoding="utf-8")
+
+def load_config() -> dict:
+    """Load config.yaml with env var overrides."""
+    cfg = load_yaml(CONFIG_FILE)
+
+    # Default values
+    defaults = {
+        "ai": {
+            "api_url": "https://api.deepseek.com/v1/chat/completions",
+            "model": "deepseek-chat",
+            "temperature": 0.3,
+            "max_tokens": 1024,
+        },
+        "shell": {
+            "confirm_before_exec": True,
+            "auto_exec_patterns": ["^ssh ", "^kubectl ", "^docker ", "^cd "],
+        },
+    }
+
+    ai = cfg.get("ai", {})
+    for k, v in defaults.get("ai", {}).items():
+        ai.setdefault(k, v)
+    cfg["ai"] = ai
+
+    shell = cfg.get("shell", {})
+    for k, v in defaults.get("shell", {}).items():
+        shell.setdefault(k, v)
+    cfg["shell"] = shell
+
+    # Env override for API key
+    env_key = os.environ.get("OPSTERM_API_KEY", "")
+    if env_key:
+        ai["api_key"] = env_key
+
+    return cfg
+
+def get_servers() -> dict:
+    return load_yaml(SERVERS_FILE).get("servers", {})
+
+def save_servers(servers: dict):
+    save_yaml(SERVERS_FILE, {"servers": servers})
+
+def get_workflows() -> dict:
+    return load_yaml(WORKFLOWS_FILE).get("workflows", {})
+
+def save_workflows(workflows: dict):
+    save_yaml(WORKFLOWS_FILE, {"workflows": workflows})
+
+# ── SQLite History ─────────────────────────────────────────
+def init_db():
+    conn = sqlite3.connect(str(HISTORY_DB))
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT DEFAULT (datetime('now','localtime')),
+            mode TEXT,
+            input TEXT,
+            output TEXT
+        )
+    """)
+    conn.commit()
+    return conn
+
+def add_history(mode: str, inp: str, out: str = ""):
+    try:
+        conn = init_db()
+        conn.execute("INSERT INTO history (mode, input, output) VALUES (?, ?, ?)",
+                     (mode, inp[:500], out[:2000]))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+def show_history(limit: int = 20):
+    conn = init_db()
+    rows = conn.execute(
+        "SELECT id, timestamp, mode, input FROM history ORDER BY id DESC LIMIT ?",
+        (limit,)
+    ).fetchall()
+    conn.close()
+    if not rows:
+        print("📭 Belum ada riwayat.")
+        return
+    for rid, ts, mode, inp in reversed(rows):
+        icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻", "pipe": "🔗"}.get(mode, "❓")
+        inp_short = inp[:60] + "..." if len(inp) > 60 else inp
+        print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
+
+# ── AI Client ──────────────────────────────────────────────
+def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None) -> str:
+    """Call OpenAI-compatible API. Returns response text."""
+    cfg = config or load_config()
+    ai_cfg = cfg["ai"]
+
+    api_key = ai_cfg.get("api_key", "")
+    if not api_key:
+        return "❌ API key belum di-set. Set di config.yaml atau export OPSTERM_API_KEY."
+
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": ai_cfg.get("model", "deepseek-chat"),
+        "messages": messages,
+        "temperature": ai_cfg.get("temperature", 0.3),
+        "max_tokens": ai_cfg.get("max_tokens", 1024),
+        "stream": False,
+    }
+
+    req = urllib.request.Request(
+        ai_cfg["api_url"],
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        return result["choices"][0]["message"]["content"].strip()
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        return f"❌ HTTP {e.code}: {body[:300]}"
+    except Exception as e:
+        return f"❌ Error: {e}"
+
+# ── SSH Runner ─────────────────────────────────────────────
+def ssh_connect(server_name: str, servers: dict) -> Optional[List[str]]:
+    """Resolve server config to SSH command list. Returns None if not found."""
+    if server_name in servers:
+        s = servers[server_name]
+    else:
+        # Try fuzzy match
+        matches = [k for k in servers if server_name in k]
+        if len(matches) == 1:
+            s = servers[matches[0]]
+        elif len(matches) > 1:
+            print(f"❌ Banyak server cocok '{server_name}': {', '.join(matches)}")
+            return None
+        else:
+            print(f"❌ Server '{server_name}' tidak ditemukan.")
+            print(f"   Gunakan: ai servers list")
+            return None
+
+    host = s.get("host", "")
+    user = s.get("user", "root")
+    port = s.get("port", 22)
+    key = s.get("key", "")
+
+    cmd = ["ssh"]
+    if key:
+        cmd.extend(["-i", os.path.expanduser(key)])
+    if port != 22:
+        cmd.extend(["-p", str(port)])
+    cmd.append(f"{user}@{host}")
+    cmd.append("-t")  # Force PTY
+    return cmd
+
+def run_ssh(cmd: List[str]):
+    """Replace current process with SSH (interactive)."""
+    os.execvp("ssh", cmd)
+
+# ── Workflow Executor ──────────────────────────────────────
+def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
+    """Execute a saved workflow step by step."""
+    if name not in workflows:
+        # Fuzzy match
+        matches = [k for k in workflows if name in k]
+        if len(matches) == 1:
+            name = matches[0]
+        elif len(matches) > 1:
+            print(f"❌ Banyak workflow cocok '{name}': {', '.join(matches)}")
+            return
+        else:
+            print(f"❌ Workflow '{name}' tidak ditemukan.")
+            return
+
+    wf = workflows[name]
+    steps = wf.get("steps", [])
+    total = len(steps)
+
+    if not steps:
+        print(f"⚠️ Workflow '{name}' tidak punya steps.")
+        return
+
+    print(f"⚡ Workflow: {name}")
+    print(f"   {wf.get('desc', '')}")
+    print(f"   {total} step(s)\n")
+
+    for i, step in enumerate(steps, 1):
+        desc = step.get("desc", "")
+        command = step.get("command", "")
+        ssh_target = step.get("ssh", "")
+        need_confirm = step.get("confirm", False)
+        wait_sec = step.get("wait", 0)
+
+        print(f"  [{i}/{total}] {desc or command[:60]}")
+
+        if need_confirm:
+            resp = input("    Lanjut? [Y/n] ").strip().lower()
+            if resp in ("n", "no"):
+                print("    ⏭️ Skipped.")
+                continue
+
+        # SSH step
+        if ssh_target:
+            ssh_cmd = ssh_connect(ssh_target, servers)
+            if ssh_cmd is None:
+                return
+            # Build: ssh [args] "command"
+            full_cmd = ssh_cmd[:-1]  # Remove -t
+            full_cmd.append(f"cd /home/ubuntu && {command}")
+            print(f"    🔑 {ssh_target} $ {command}")
+            result = subprocess.run(full_cmd, capture_output=False)
+            if result.returncode != 0:
+                print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
+                if i < total:
+                    cont = input("    Lanjut ke step selanjutnya? [y/N] ").strip().lower()
+                    if cont not in ("y", "yes"):
+                        print("⛔ Workflow dihentikan.")
+                        return
+        # Local command
+        elif command:
+            print(f"    $ {command}")
+            result = subprocess.run(
+                command, shell=True, capture_output=False
+            )
+            if result.returncode != 0:
+                print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
+                if i < total:
+                    cont = input("    Lanjut? [y/N] ").strip().lower()
+                    if cont not in ("y", "yes"):
+                        print("⛔ Workflow dihentikan.")
+                        return
+
+        # Wait
+        if wait_sec > 0:
+            print(f"    ⏳ Menunggu {wait_sec}s...")
+            time.sleep(wait_sec)
+
+    print(f"\n✅ Workflow '{name}' selesai!")
+
+# ── Shell Command Generator ────────────────────────────────
+SHELL_SYSTEM_PROMPT = """Kamu adalah asisten terminal yang membantu user dengan perintah shell.
+Jawab dengan SINGKAT dan PADAT. 
+
+Jika user minta command, berikan command yang siap pakai.
+Jika command dimulai dengan $, user bisa langsung copy-paste.
+
+KAPAN MENGGUNAKAN FORMAT:
+- Untuk command shell: langsung tulis command-nya, diawali dengan $
+  Contoh: $ find /var/log -type f -size +1G
+- Untuk penjelasan: berikan penjelasan singkat 1-2 kalimat
+- Untuk file content: mulai dengan path file di baris pertama
+- Jangan pernah kasih markdown code blocks — langsung tulis commandnya"""
+
+def generate_command(prompt: str, config: dict, stdin_data: str = "") -> str:
+    """Ask AI for a shell command. Returns AI response."""
+    full_prompt = prompt
+    if stdin_data:
+        full_prompt = f"Output dari command sebelumnya:\n```\n{stdin_data[:3000]}\n```\n\nPertanyaan: {prompt}"
+
+    system = SHELL_SYSTEM_PROMPT
+    system += "\n\nLingkungan: Linux, shell bash, user ubuntu."
+
+    return ai_chat(full_prompt, system, config)
+
+# ── Config Display Helpers ─────────────────────────────────
+def print_server_table(servers: dict):
+    if not servers:
+        print("📭 Belum ada server tersimpan.")
+        return
+    print(f"\n{'NAMA':<20} {'HOST':<22} {'USER':<12} {'PORT':<6} DESKRIPSI")
+    print("-" * 90)
+    for name, s in servers.items():
+        print(f"{name:<20} {s.get('host',''):<22} {s.get('user',''):<12} {s.get('port',22):<6} {s.get('desc','')}")
+
+def print_workflow_table(workflows: dict):
+    if not workflows:
+        print("📭 Belum ada workflow tersimpan.")
+        return
+    for name, w in workflows.items():
+        steps = len(w.get("steps", []))
+        print(f"  ⚡ {name}")
+        print(f"     {w.get('desc', '')} ({steps} step{'s' if steps != 1 else ''})")
+
+# ── Interactive Add / Edit ─────────────────────────────────
+def interactive_add_server():
+    print("== Tambah Server Baru ==")
+    name = input("  Nama: ").strip()
+    if not name:
+        print("❌ Nama wajib diisi.")
+        return
+    servers = get_servers()
+    if name in servers:
+        ov = input(f"⚠️ Server '{name}' sudah ada. Timpa? [y/N] ").strip().lower()
+        if ov not in ("y", "yes"):
+            return
+    host = input("  Host/IP: ").strip()
+    user = input("  User [root]: ").strip() or "root"
+    port_str = input("  Port [22]: ").strip()
+    port = int(port_str) if port_str else 22
+    key = input("  SSH key path [~/.ssh/id_ed25519]: ").strip() or "~/.ssh/id_ed25519"
+    desc = input("  Deskripsi: ").strip()
+    servers[name] = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
+    save_servers(servers)
+    print(f"✅ Server '{name}' ditambahkan!")
+
+def interactive_add_workflow():
+    print("== Tambah Workflow Baru ==")
+    name = input("  Nama workflow: ").strip()
+    if not name:
+        print("❌ Nama wajib diisi.")
+        return
+    workflows = get_workflows()
+    if name in workflows:
+        ov = input(f"⚠️ Workflow '{name}' sudah ada. Timpa? [y/N] ").strip().lower()
+        if ov not in ("y", "yes"):
+            return
+    desc = input("  Deskripsi: ").strip()
+    print("  Tambah steps (kosongkan nama untuk selesai):")
+    steps = []
+    while True:
+        print(f"    Step {len(steps)+1}:")
+        step_type = input("      Tipe [local/ssh] (local): ").strip().lower() or "local"
+        step_desc = input("      Deskripsi: ").strip()
+        if not step_desc:
+            break
+        if step_type == "ssh":
+            ssh_target = input("      Nama server: ").strip()
+            step_cmd = input("      Command: ").strip()
+            steps.append({"ssh": ssh_target, "command": step_cmd, "desc": step_desc})
+        else:
+            step_cmd = input("      Command: ").strip()
+            steps.append({"command": step_cmd, "desc": step_desc})
+    if not steps:
+        print("❌ Minimal 1 step.")
+        return
+    workflows[name] = {"desc": desc, "steps": steps}
+    save_workflows(workflows)
+    print(f"✅ Workflow '{name}' ditambahkan! ({len(steps)} steps)")
+
+# ── Init ────────────────────────────────────────────────────
+EXAMPLE_SERVERS = {
+    "vps-utama": {
+        "host": "your-server-ip",
+        "user": "root",
+        "port": 22,
+        "key": "~/.ssh/id_ed25519",
+        "desc": "Ganti dengan server lu",
+    }
+}
+
+EXAMPLE_WORKFLOWS = {
+    "cek-server": {
+        "desc": "Cek status server — uptime, disk, memory, docker",
+        "steps": [
+            {
+                "ssh": "vps-utama",
+                "command": "echo '=== UPTIME ===' && uptime && echo '=== DISK ===' && df -h / && echo '=== MEMORY ===' && free -h",
+                "desc": "Cek system health"
+            }
+        ]
+    },
+    "deploy-app": {
+        "desc": "Git pull + restart container",
+        "steps": [
+            {
+                "ssh": "vps-utama",
+                "command": "cd /home/ubuntu/myapp && git pull && docker compose restart",
+                "desc": "Pull & restart"
+            },
+            {
+                "command": "echo '✅ Deploy selesai!'",
+                "desc": "Done"
+            }
+        ]
+    }
+}
+
+def do_init():
+    """Create default config files."""
+    if not CONFIG_FILE.exists():
+        save_yaml(CONFIG_FILE, {
+            "ai": {
+                "provider": "deepseek",
+                "api_url": "https://api.deepseek.com/v1/chat/completions",
+                "api_key": "",
+                "model": "deepseek-chat",
+                "temperature": 0.3,
+                "max_tokens": 1024,
+            },
+            "shell": {
+                "confirm_before_exec": True,
+                "auto_exec_patterns": ["^ssh ", "^kubectl ", "^docker ", "^cd "],
+            },
+        })
+        print(f"✅ Config created: {CONFIG_FILE}")
+
+    if not SERVERS_FILE.exists():
+        save_yaml(SERVERS_FILE, {"servers": EXAMPLE_SERVERS})
+        print(f"✅ Servers file created: {SERVERS_FILE}")
+        print("   📌 Edit contoh server di file tersebut dengan data lu.")
+
+    if not WORKFLOWS_FILE.exists():
+        save_yaml(WORKFLOWS_FILE, {"workflows": EXAMPLE_WORKFLOWS})
+        print(f"✅ Workflows file created: {WORKFLOWS_FILE}")
+        print("   📌 Edit contoh workflow di file tersebut.")
+
+    print(f"""
+📁 Config dir: {CONFIG_DIR}
+🔑 Set API key:  export OPSTERM_API_KEY='sk-...'
+   Atau edit:     {CONFIG_FILE}
+📖 Lihat help:    ai --help
+⚡ Coba:          ai ssh vps-utama
+                  ai run cek-server
+                  ai how to check disk
+""")
+
+# ── Main CLI ───────────────────────────────────────────────
+def main():
+    # Check for stdin pipe
+    stdin_data = ""
+    if not sys.stdin.isatty():
+        try:
+            stdin_data = sys.stdin.read()
+        except Exception:
+            pass
+
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        prog="ai",
+        description="OpsTerm — AI Terminal Assistant. Custom AI provider + saved servers & workflows.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent("""\
+            Contoh:
+              ai how to find large files
+              ai ssh vps-utama
+              ai run deploy-app
+              ai servers add
+              docker ps | ai "ada yang error?"
+              echo "hello" | ai translate to indonesian
+        """),
+    )
+    parser.add_argument("args", nargs="*", help="Command or prompt")
+
+    # Subcommand detection must happen before parse_args due to nargs
+    # We'll parse manually for subcommands
+    args = parser.parse_args()
+
+    raw_args = args.args
+    if not raw_args and not stdin_data:
+        parser.print_help()
+        return
+
+    subcmd = raw_args[0] if raw_args else ""
+
+    # ── init ──
+    if subcmd == "init":
+        do_init()
+
+    # ── config ──
+    elif subcmd == "config":
+        cfg = load_config()
+        if len(raw_args) == 1:
+            print(_dump_yaml(cfg))
+        elif raw_args[1] == "list":
+            print(_dump_yaml(cfg))
+        elif raw_args[1] == "get" and len(raw_args) > 2:
+            key = raw_args[2]
+            parts = key.split(".")
+            val = cfg
+            for p in parts:
+                val = val.get(p, {}) if isinstance(val, dict) else "❌ Key not found"
+            print(val)
+        elif raw_args[1] == "set" and len(raw_args) > 3:
+            key = raw_args[2]
+            val = raw_args[3]
+            # Update nested key
+            current = load_yaml(CONFIG_FILE)
+            parts = key.split(".")
+            d = current
+            for p in parts[:-1]:
+                d = d.setdefault(p, {})
+            d[parts[-1]] = _parse_scalar(val)
+            save_yaml(CONFIG_FILE, current)
+            print(f"✅ {key} = {val}")
+        else:
+            print("Usage: ai config [list|get <key>|set <key> <value>]")
+
+    # ── servers ──
+    elif subcmd == "servers":
+        servers = get_servers()
+        if len(raw_args) == 1:
+            print_server_table(servers)
+            print(f"\n  Total: {len(servers)} server(s)")
+            print("  Gunakan: ai servers [add|edit|rm|list]")
+        elif raw_args[1] == "list":
+            print_server_table(servers)
+        elif raw_args[1] == "add":
+            interactive_add_server()
+        elif raw_args[1] == "edit" and len(raw_args) > 2:
+            target = raw_args[2]
+            if target not in servers:
+                print(f"❌ Server '{target}' tidak ditemukan.")
+                return
+            print(f"Edit server '{target}' (kosongkan untuk skip):")
+            s = servers[target]
+            host = input(f"  Host [{s.get('host','')}]: ").strip() or s.get('host','')
+            user = input(f"  User [{s.get('user','')}]: ").strip() or s.get('user','')
+            port_str = input(f"  Port [{s.get('port',22)}]: ").strip()
+            port = int(port_str) if port_str else s.get('port',22)
+            key = input(f"  SSH key [{s.get('key','')}]: ").strip() or s.get('key','')
+            desc = input(f"  Deskripsi [{s.get('desc','')}]: ").strip() or s.get('desc','')
+            servers[target] = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
+            save_servers(servers)
+            print(f"✅ Server '{target}' diupdate!")
+        elif raw_args[1] == "rm" and len(raw_args) > 2:
+            target = raw_args[2]
+            if target in servers:
+                confirm = input(f"Hapus server '{target}'? [y/N] ").strip().lower()
+                if confirm in ("y", "yes"):
+                    del servers[target]
+                    save_servers(servers)
+                    print(f"✅ Server '{target}' dihapus.")
+            else:
+                print(f"❌ Server '{target}' tidak ditemukan.")
+        else:
+            print("Usage: ai servers [list|add|edit <name>|rm <name>]")
+
+    # ── workflows ──
+    elif subcmd == "workflows":
+        workflows = get_workflows()
+        if len(raw_args) == 1:
+            print_workflow_table(workflows)
+            print(f"\n  Total: {len(workflows)} workflow(s)")
+            print("  Gunakan: ai workflows [list|add|edit|rm]")
+        elif raw_args[1] == "list":
+            print_workflow_table(workflows)
+        elif raw_args[1] == "add":
+            interactive_add_workflow()
+        elif raw_args[1] == "edit" and len(raw_args) > 2:
+            target = raw_args[2]
+            if target not in workflows:
+                print(f"❌ Workflow '{target}' tidak ditemukan.")
+                return
+            print(f"📝 Edit workflow '{target}' — langsung edit filenya:")
+            print(f"   {WORKFLOWS_FILE}")
+            subprocess.run([os.environ.get("EDITOR", "nano"), str(WORKFLOWS_FILE)])
+        elif raw_args[1] == "rm" and len(raw_args) > 2:
+            target = raw_args[2]
+            if target in workflows:
+                confirm = input(f"Hapus workflow '{target}'? [y/N] ").strip().lower()
+                if confirm in ("y", "yes"):
+                    workflows = get_workflows()
+                    del workflows[target]
+                    save_workflows(workflows)
+                    print(f"✅ Workflow '{target}' dihapus.")
+            else:
+                print(f"❌ Workflow '{target}' tidak ditemukan.")
+        else:
+            print("Usage: ai workflows [list|add|edit <name>|rm <name>]")
+
+    # ── ssh ──
+    elif subcmd == "ssh" and len(raw_args) > 1:
+        server_name = raw_args[1]
+        servers = get_servers()
+        cmd = ssh_connect(server_name, servers)
+        if cmd:
+            add_history("ssh", f"ssh {server_name}")
+            run_ssh(cmd)
+
+    # ── run ──
+    elif subcmd == "run" and len(raw_args) > 1:
+        wf_name = raw_args[1]
+        config = load_config()
+        servers = get_servers()
+        workflows = get_workflows()
+        add_history("workflow", f"run {wf_name}")
+        run_workflow(wf_name, workflows, servers, config)
+
+    # ── history ──
+    elif subcmd == "history":
+        limit = int(raw_args[1]) if len(raw_args) > 1 and raw_args[1].isdigit() else 20
+        show_history(limit)
+
+    # ── AI mode (default) ──
+    else:
+        prompt = " ".join(raw_args) if raw_args else ""
+        if not prompt and stdin_data:
+            prompt = "Jelaskan output ini"
+        if not prompt:
+            print("❌ Masukkan pertanyaan.")
+            return
+
+        config = load_config()
+        response = generate_command(prompt, config, stdin_data)
+
+        add_history("pipe" if stdin_data else "ai", prompt, response)
+        print(response)
+
+        # Auto-exec? Check if response starts with known patterns
+        if config.get("shell", {}).get("confirm_before_exec", True):
+            lines = response.strip().split("\n")
+            exec_candidates = []
+            for line in lines:
+                line_s = line.strip()
+                if line_s.startswith("$ "):
+                    exec_candidates.append(line_s[2:])
+
+            if exec_candidates:
+                print()  # Blank line before prompt
+                for candidate in exec_candidates:
+                    resp = input(f"💻 Jalanin: {candidate}? [y/N] ").strip().lower()
+                    if resp in ("y", "yes"):
+                        subprocess.run(candidate, shell=True)
+                        add_history("shell", candidate)
+
+if __name__ == "__main__":
+    main()
