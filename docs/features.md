@@ -1,13 +1,13 @@
-# 🎯 Fitur OpsTerm — Lengkap
+# 🎯 OpsTerm Features — Complete
 
-Dokumen ini menjelaskan **semua fitur** yang tersedia di OpsTerm, lengkap dengan contoh penggunaan dan penjelasan.
+This document explains **all features** available in OpsTerm, complete with usage examples and explanations.
 
 ---
 
-## 📋 Daftar Semua Fitur
+## 📋 Feature Overview
 
-| # | Fitur | CLI Command | Kategori |
-|---|-------|------------|----------|
+| # | Feature | CLI Command | Category |
+|---|---------|-------------|----------|
 | 1 | 🤖 **AI Chat** | `ai <prompt>` | Core |
 | 2 | 🔑 **Smart SSH** | `ai ssh <server>` | Core |
 | 3 | 🔗 **Multi-hop SSH** | `ai ssh <srv> --via <proxy>` | Core |
@@ -27,85 +27,85 @@ Dokumen ini menjelaskan **semua fitur** yang tersedia di OpsTerm, lengkap dengan
 
 ## 1️⃣ 🤖 AI Chat
 
-Bertanya apa pun ke AI langsung dari terminal.
+Ask anything to AI directly from your terminal.
 
 ```bash
-# Minta command shell
-ai cari file log lebih dari 1GB
+# Ask for a shell command
+ai find log files larger than 1GB
 # Output: $ find /var/log -type f -size +1G
 
-# Minta penjelasan
-ai explain apa itu reverse proxy
+# Ask for an explanation
+ai explain what is a reverse proxy
 
-# Generate docker compose
-ai buat docker compose untuk nginx + postgres
+# Generate a docker compose
+ai create docker compose for nginx + postgres
 
-# Tanya general
+# General question
 ai how to check disk usage in linux
 ```
 
-**Cara kerja:**
-1. Load config (API key, model, URL dari config.yaml)
+**How it works:**
+1. Load config (API key, model, URL from config.yaml)
 2. Build prompt + system message
-3. HTTP POST ke AI provider (OpenAI-compatible API)
+3. HTTP POST to AI provider (OpenAI-compatible API)
 4. Parse response JSON
-5. Print ke terminal
-6. Simpan ke history (SQLite)
-7. Deteksi `$` prefix → offer auto-exec
+5. Print to terminal
+6. Save to history (SQLite)
+7. Detect `$` prefix → offer auto-exec
 
-**Provider support:** DeepSeek, OpenAI, OpenRouter, Ollama, vLLM, atau apapun yang OpenAI-compatible.
+**Provider support:** DeepSeek, OpenAI, OpenRouter, Ollama, vLLM, or anything that is OpenAI-compatible.
 
 ---
 
 ## 2️⃣ 🔑 Smart SSH
 
-SSH ke server tanpa perlu hafal IP address.
+SSH into servers without memorizing IP addresses.
 
 ```bash
-# Langsung connect
-ai ssh vps-utama
+# Direct connect
+ai ssh vps-main
 
-# Fuzzy match — cukup sebagian nama
+# Fuzzy match — partial name is enough
 ai ssh vps
 
-# Lihat daftar server dulu
+# List servers first
 ai servers list
 ```
 
-**Konfigurasi server di `~/.ai-workflows/servers.yaml`:**
+**Server configuration in `~/.ai-workflows/servers.yaml`:**
 ```yaml
 servers:
-  vps-utama:
+  vps-main:
     host: "203.0.113.1"
     user: "ubuntu"
     port: 22
     key: "~/.ssh/id_ed25519"
-    desc: "Tencent Cloud VPS utama"
+    desc: "Main Tencent Cloud VPS"
 ```
 
-**Yang bisa di-configure:**
-- `host` — IP atau domain
+**Configurable fields:**
+- `host` — IP or domain
 - `user` — SSH username
-- `port` — port SSH (default: 22)
-- `key` — path ke private key
-- `proxy` — jump host (lihat fitur multi-hop)
-- `desc` — deskripsi
+- `port` — SSH port (default: 22)
+- `key` — path to private key
+- `proxy` — jump host (see multi-hop feature)
+- `desc` — description
 
 ---
 
 ## 3️⃣ 🔗 Multi-hop SSH
 
-SSH ke server internal yang cuma bisa diakses lewat jump host/bastion.
+SSH into internal servers that are only accessible through a jump host / bastion.
 
 ```bash
 # Via CLI (per-call)
 ai ssh internal-server --via bastion
 
-# Via config (permanen)
-ai ssh internal-server  # otomatis lewat bastion
+# Via config (permanent)
+ai ssh internal-server  # automatically routes through bastion
 ```
 
-**Config permanen di servers.yaml:**
+**Permanent config in servers.yaml:**
 ```yaml
 servers:
   bastion:
@@ -117,166 +117,166 @@ servers:
     host: "10.0.0.5"
     user: "ubuntu"
     key: "~/.ssh/internal-key"
-    proxy: "bastion"           # <-- otomatis lewat bastion
+    proxy: "bastion"           # <-- automatically routes through bastion
 ```
 
-**Cara kerja:**
-- Pake SSH `-J` (ProxyJump) flag
-- Chain bisa panjang: `ssh -J jump1,jump2 server`
-- Proxy server di-resolve dari servers.yaml juga
+**How it works:**
+- Uses SSH `-J` (ProxyJump) flag
+- Chains can be long: `ssh -J jump1,jump2 server`
+- Proxy servers are resolved from servers.yaml as well
 
 ---
 
 ## 4️⃣ 📁 SCP File Transfer
 
-Upload/download file antara lokal dan server — pakai syntax `server:path`.
+Upload/download files between local and remote servers using `server:path` syntax.
 
 ```bash
-# Upload dari lokal ke server
-ai scp ./config.yaml vps-utama:/home/ubuntu/
+# Upload from local to server
+ai scp ./config.yaml vps-main:/home/ubuntu/
 
-# Download dari server ke lokal
-ai scp vps-utama:logs/app.log .
+# Download from server to local
+ai scp vps-main:logs/app.log .
 
-# Lewat jump host
+# Through a jump host
 ai scp file.txt internal-server:/tmp/ --via bastion
 ```
 
-**Cara kerja:**
-- Parse `server:path` → resolve ke user@host:path
-- Sama kaya SSH: support proxy jump, key file, custom port
-- Pake `scp` system command via subprocess
+**How it works:**
+- Parse `server:path` → resolve to `user@host:path`
+- Same as SSH: supports proxy jump, key file, custom port
+- Uses the system `scp` command via subprocess
 
 ---
 
 ## 5️⃣ ⚡ Workflow
 
-Multi-step automation yang jalanin beberapa command secara berurutan.
+Multi-step automation that runs several commands sequentially.
 
 ```bash
-# Jalanin workflow
+# Run a workflow
 ai run deploy-app
 
-# Lihat daftar workflow
+# List workflows
 ai workflows list
 ```
 
-**Contoh workflow:**
+**Example workflow:**
 ```yaml
 workflows:
   deploy-full:
-    desc: "Full deployment dengan file transfer"
+    desc: "Full deployment with file transfer"
     steps:
       - scp: "./docker-compose.yml"
         to: "/home/ubuntu/app/docker-compose.yml"
-        ssh: vps-utama
+        ssh: vps-main
         desc: "Upload compose file"
-      - ssh: vps-utama
+      - ssh: vps-main
         command: "cd /home/ubuntu/app && docker compose pull && docker compose up -d"
         desc: "Pull images & restart"
-      - command: "echo '✅ Deploy selesai!'"
-        desc: "Notifikasi"
+      - command: "echo '✅ Deploy complete!'"
+        desc: "Notification"
 ```
 
 **Step types:**
-| Type | Format | Fungsi |
-|------|--------|--------|
-| `ssh` | `ssh: <server>` + `command:` | Jalanin command di server remote |
-| `scp` | `scp: <src>` + `to: <dst>` + `ssh: <server>` | Transfer file ke server |
-| `command` | `command:` | Jalanin command lokal |
-| `confirm` | `confirm: true` | Minta konfirmasi user sebelum lanjut |
-| `wait` | `wait: <detik>` | Tunggu beberapa detik |
+| Type | Format | Function |
+|------|--------|----------|
+| `ssh` | `ssh: <server>` + `command:` | Run command on remote server |
+| `scp` | `scp: <src>` + `to: <dst>` + `ssh: <server>` | Transfer file to server |
+| `command` | `command:` | Run local command |
+| `confirm` | `confirm: true` | Request user confirmation before proceeding |
+| `wait` | `wait: <seconds>` | Wait for a specified number of seconds |
 
 ---
 
 ## 6️⃣ 🔐 Vault — Encrypted Credentials
 
-Nyimpen credentials (API key, password, token) secara terenkripsi.
+Store credentials (API keys, passwords, tokens) in encrypted form.
 
 ```bash
 # Init vault (set master password)
 ai vault init
 
-# Simpan credential
+# Store a credential
 ai vault set db_password "supersecret"
 ai vault set github_token "ghp_..."
 
-# Ambil credential
+# Retrieve a credential
 ai vault get db_password    # Output: supersecret
 
 # List keys
 ai vault list
 
-# Hapus key
+# Delete a key
 ai vault rm db_password
 
-# Kunci vault (clear password dari memory)
+# Lock vault (clear password from memory)
 ai vault lock
 ```
 
-**Teknis:**
+**Technical details:**
 - **Encryption:** AES-128-CBC via `cryptography.fernet.Fernet`
-- **Key derivation:** PBKDF2-HMAC-SHA256, 600.000 iterasi
-- **Master password:** dari `OPSTERM_VAULT_PASSWORD` env atau prompt
-- **Fallback:** kalo `cryptography` gak terinstall → HMAC + XOR (kurang aman)
-- **Data:** encrypted JSON di `~/.ai-workflows/vault.json`
+- **Key derivation:** PBKDF2-HMAC-SHA256, 600,000 iterations
+- **Master password:** from `OPSTERM_VAULT_PASSWORD` env or prompt
+- **Fallback:** if `cryptography` is not installed → HMAC + XOR (less secure)
+- **Storage:** encrypted JSON at `~/.ai-workflows/vault.json`
 
 ---
 
 ## 7️⃣ 🔗 Pipe Mode
 
-Kirim output command ke AI untuk dianalisa.
+Send command output to AI for analysis.
 
 ```bash
 # Explain output
-kubectl get pods | ai "ada yang error?"
-docker logs webapp --tail 100 | ai "analisa error ini"
-free -h | ai "apakah memory cukup?"
-netstat -tlnp | ai "port apa aja yang terbuka?"
+kubectl get pods | ai "are there any errors?"
+docker logs webapp --tail 100 | ai "analyze these errors"
+free -h | ai "is there enough memory?"
+netstat -tlnp | ai "what ports are open?"
 
-# Pipe tanpa prompt spesifik
+# Pipe without a specific prompt
 df -h | ai
-# AI otomatis: "Jelaskan output ini"
+# AI auto-prompt: "Explain this output"
 ```
 
-**Cara kerja:**
-1. Deteksi stdin (`sys.stdin.isatty() == False`)
-2. Baca stdin → simpen sebagai `stdin_data`
-3. Build prompt: "Output dari command:\n```\n{stdin_data}\n```\nPertanyaan: {prompt}"
-4. Kirim ke AI → print response
+**How it works:**
+1. Detect stdin (`sys.stdin.isatty() == False`)
+2. Read stdin → store as `stdin_data`
+3. Build prompt: "Output from command:\n```\n{stdin_data}\n```\nQuestion: {prompt}"
+4. Send to AI → print response
 
 ---
 
 ## 8️⃣ 💻 Shell Integration (Zsh Plugin)
 
-Integrasi dengan Zsh shell untuk ngeliat & explain output command terakhir.
+Integration with Zsh shell for viewing and explaining the last command's output.
 
 ```bash
-# Load di .zshrc
+# Load in .zshrc
 source ~/opsterm/zsh/opsterm.plugin.zsh
 
-# Lihat output command terakhir
+# View last command output
 ai last
 
-# Explain output command terakhir pake AI
+# Explain last command output using AI
 ai explain-last
 ```
 
-**Fitur:**
-- **`ai-last`** — alias ke `ai last`
-- **`ai-explain`** — alias ke `ai explain-last`
-- **`ai-ti`** — AI + Terminal Integration: tanya AI, extract command, auto-execute
+**Features:**
+- **`ai-last`** — alias for `ai last`
+- **`ai-explain`** — alias for `ai explain-last`
+- **`ai-ti`** — AI + Terminal Integration: ask AI, extract command, auto-execute
 
-**Cara kerja:**
-- Zsh `preexec` hook → simpen command sebelum jalan
-- Output command terakhir disimpan di `~/.ai-workflows/last_output.txt`
-- `ai explain-last` → baca file → kirim ke AI
+**How it works:**
+- Zsh `preexec` hook → saves command before it runs
+- Last command output is stored in `~/.ai-workflows/last_output.txt`
+- `ai explain-last` → reads file → sends to AI
 
 ---
 
 ## 9️⃣ ⌨️ Tab Completion
 
-Auto-complete buat bash dan zsh — ga perlu hafal nama server/workflow.
+Auto-complete for bash and zsh — no need to memorize server/workflow names.
 
 ```bash
 # Bash
@@ -285,115 +285,115 @@ source <(ai completion bash)
 # Zsh
 source <(ai completion zsh)
 
-# Atau permanen:
+# Or permanently:
 echo 'source <(ai completion bash)' >> ~/.bashrc
 echo 'source <(ai completion zsh)' >> ~/.zshrc
 ```
 
-**Yang bisa di-complete:**
+**Completion contexts:**
 | Context | Completion |
-|---------|-----------|
-| `ai [Tab]` | Semua subcommand |
-| `ai ssh [Tab]` | Nama server |
-| `ai run [Tab]` | Nama workflow |
+|---------|------------|
+| `ai [Tab]` | All subcommands |
+| `ai ssh [Tab]` | Server names |
+| `ai run [Tab]` | Workflow names |
 | `ai scp [Tab]` | `server:` prefix |
 | `ai servers [Tab]` | `add`, `edit`, `rm`, `list` |
 | `ai vault [Tab]` | `init`, `set`, `get`, `list`, `rm`, `lock` |
-| `ai --via [Tab]` | Nama proxy server |
+| `ai --via [Tab]` | Proxy server names |
 
 ---
 
 ## 🔟 🛠️ Server Manager
 
-CRUD untuk server — simpan, edit, hapus konfigurasi server.
+CRUD for servers — save, edit, and delete server configurations.
 
 ```bash
-# Lihat semua server (dengan kolom PROXY)
+# List all servers (with PROXY column)
 ai servers list
 # Output:
-# NAMA       HOST            USER    PORT  PROXY  DESKRIPSI
-# vps-utama  203.0.113.1  ubuntu  22    —      Tencent Cloud VPS
+# NAME       HOST            USER    PORT  PROXY  DESCRIPTION
+# vps-main   203.0.113.1  ubuntu  22    —      Tencent Cloud VPS
 
-# Tambah server baru (interaktif)
+# Add a new server (interactive)
 ai servers add
 
-# Edit server
-ai servers edit vps-utama
+# Edit a server
+ai servers edit vps-main
 
-# Hapus server
-ai servers rm vps-utama
+# Delete a server
+ai servers rm vps-main
 ```
 
-Data disimpan di `~/.ai-workflows/servers.yaml`.
+Data stored in `~/.ai-workflows/servers.yaml`.
 
 ---
 
 ## 1️⃣1️⃣ 📋 Workflow Manager
 
-CRUD untuk workflow — simpan, edit, hapus workflow.
+CRUD for workflows — save, edit, and delete workflows.
 
 ```bash
-# Lihat semua workflow
+# List all workflows
 ai workflows list
 
-# Tambah workflow baru (interaktif)
+# Add a new workflow (interactive)
 ai workflows add
 
-# Edit workflow (buka editor)
+# Edit a workflow (opens editor)
 ai workflows edit deploy-app
 
-# Hapus workflow
+# Delete a workflow
 ai workflows rm deploy-app
 ```
 
-Data disimpan di `~/.ai-workflows/workflows.yaml`.
+Data stored in `~/.ai-workflows/workflows.yaml`.
 
 ---
 
 ## 1️⃣2️⃣ ⚙️ Config Manager
 
-Lihat dan set konfigurasi OpsTerm.
+View and set OpsTerm configuration.
 
 ```bash
-# Lihat semua config
+# View all config
 ai config list
 
-# Set nilai
+# Set a value
 ai config set ai.model deepseek-chat
 ai config set ai.api_url https://api.deepseek.com/v1/chat/completions
 ai config set ai.temperature 0.3
 ai config set shell.confirm_before_exec true
 
-# Get nilai spesifik
+# Get a specific value
 ai config get ai.model
 ```
 
-Data disimpan di `~/.ai-workflows/config.yaml`.
+Data stored in `~/.ai-workflows/config.yaml`.
 
 ---
 
 ## 1️⃣3️⃣ 📖 History
 
-Riwayat semua command yang pernah dijalanin.
+History of all commands that have been run.
 
 ```bash
-# Lihat 20 riwayat terakhir
+# View last 20 entries
 ai history
 
-# Lihat 50 riwayat terakhir
+# View last 50 entries
 ai history 50
 ```
 
 **Output:**
 ```
   [1] 🤖 2026-05-24 15:30 [ai] how to check disk usage
-  [2] 🔑 2026-05-24 15:35 [ssh] vps-utama
+  [2] 🔑 2026-05-24 15:35 [ssh] vps-main
   [3] ⚡ 2026-05-24 15:40 [workflow] deploy-app
   [4] 🔗 2026-05-24 15:45 [pipe] docker ps | ai error
 ```
 
-**Ikon mode:**
-| Ikon | Mode |
+**Mode icons:**
+| Icon | Mode |
 |------|------|
 | 🤖 | AI chat |
 | 🔑 | SSH |
@@ -403,51 +403,51 @@ ai history 50
 | 📁 | SCP transfer |
 | 🔐 | Vault |
 
-Data disimpan di SQLite: `~/.ai-workflows/history.db`.
+Data stored in SQLite: `~/.ai-workflows/history.db`.
 
 ---
 
 ## 1️⃣4️⃣ 🚀 Init
 
-Setup awal — bikin file konfigurasi default.
+First-time setup — creates default configuration files.
 
 ```bash
 ai init
 ```
 
-**Yang dibuat:**
-- `~/.ai-workflows/config.yaml` — template AI provider
-- `~/.ai-workflows/servers.yaml` — contoh server
-- `~/.ai-workflows/workflows.yaml` — contoh workflow
+**Created files:**
+- `~/.ai-workflows/config.yaml` — AI provider template
+- `~/.ai-workflows/servers.yaml` — example server config
+- `~/.ai-workflows/workflows.yaml` — example workflow config
 
 ---
 
 ## 🎯 Use Case Matrix
 
-| Yang Mau Dilakuin | Command |
-|-------------------|---------|
-| **SSH ke server** | `ai ssh vps-utama` |
-| **SSH lewat bastion** | `ai ssh internal --via bastion` |
-| **Upload file** | `ai scp file.txt server:/path/` |
-| **Download file** | `ai scp server:log.txt .` |
-| **Deploy app** | `ai run deploy-app` |
-| **Cek server health** | `ai run cek-server` |
-| **Tanya command** | `ai how to check disk` |
-| **Explain error** | `docker logs -n50 \| ai "error?"` |
+| What You Want To Do | Command |
+|---------------------|---------|
+| **SSH into a server** | `ai ssh vps-main` |
+| **SSH through a bastion** | `ai ssh internal --via bastion` |
+| **Upload a file** | `ai scp file.txt server:/path/` |
+| **Download a file** | `ai scp server:log.txt .` |
+| **Deploy an app** | `ai run deploy-app` |
+| **Check server health** | `ai run check-server` |
+| **Ask for a command** | `ai how to check disk` |
+| **Explain an error** | `docker logs -n50 \| ai "error?"` |
 | **Explain last command** | `ai explain-last` |
-| **Simpan password** | `ai vault set db_pass` |
-| **Ambil password** | `ai vault get db_pass` |
+| **Store a password** | `ai vault set db_pass` |
+| **Retrieve a password** | `ai vault get db_pass` |
 | **Auto-complete** | `ai [Tab]` |
-| **Lihat riwayat** | `ai history` |
-| **Setup dari awal** | `ai init` |
+| **View history** | `ai history` |
+| **Setup from scratch** | `ai init` |
 
 ---
 
-## 🔜 Fitur Mendatang (Roadmap)
+## 🔜 Future Roadmap
 
-- [ ] **Tmux/screen session manager** — manage multi-session dari OpsTerm
-- [ ] **Docker exec shortcut** — `ai exec <container>` langsung masuk container
-- [ ] **SSH config parser** — import dari `~/.ssh/config`
-- [ ] **Fish shell support** — completion & plugin buat Fish
+- [ ] **Tmux/screen session manager** — manage multi-sessions from OpsTerm
+- [ ] **Docker exec shortcut** — `ai exec <container>` to jump directly into a container
+- [ ] **SSH config parser** — import from `~/.ssh/config`
+- [ ] **Fish shell support** — completion & plugin for Fish
 - [ ] **Multi-hop chain** — `ai ssh server --via jump1,jump2`
-- [ ] **Vault auto-unlock** — unlock vault pake fingerprint/keychain
+- [ ] **Vault auto-unlock** — unlock vault using fingerprint/keychain

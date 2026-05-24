@@ -1,10 +1,10 @@
-# 📐 Architecture & System Design
+# 📐 Arsitektur & System Design
 
-This document explains in detail how OpsTerm works — from when the user types a command until the output is displayed.
+Dokumen ini menjelaskan secara detail gimana OpsTerm bekerja — dari mulai user ngetik command sampai hasilnya keluar.
 
 ---
 
-## 🏗️ Overall Architecture
+## 🏗️ Arsitektur Umum
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -68,7 +68,7 @@ This document explains in detail how OpsTerm works — from when the user types 
 
 ---
 
-## 🔄 Execution Flows
+## 🔄 Alur Eksekusi
 
 ### Flow 1: AI Chat (`ai how to check disk`)
 
@@ -93,7 +93,7 @@ User input: "ai how to check disk"
              ▼
     ┌──────────────────────────────────┐
     │ 4. AI Chat (ai_chat())          │
-    │    POST to /v1/chat/completions  │
+    │    POST ke /v1/chat/completions  │
     │    Headers: Authorization Bearer │
     └────────┬─────────────────────────┘
              │
@@ -109,7 +109,7 @@ User input: "ai how to check disk"
              │
              ▼
     ┌─────────────────┐
-    │ 7. Auto-exec?    │ ← If response contains $, prompt user
+    │ 7. Auto-exec?    │ ← Kalo response ada $, tanya user
     └────────┬─────────┘
              │
              ▼
@@ -156,7 +156,7 @@ User input: "ai ssh vps-utama --via bastion"
                │
                ▼
     ┌───────────────────────┐
-    │ 6. execvp()            │ ← Replace process with interactive SSH
+    │ 6. execvp()            │ ← Replace proses dengan SSH interaktif
     │    → Interactive SSH   │
     └───────────────────────┘
 ```
@@ -182,8 +182,8 @@ User input: "ai run deploy-app"
     ┌──────────────────────┐
     │ 3. Iterate steps     │
     │                       │
-    │  Step 1: ssh          │────→ SSH to server + execute command
-    │  Step 2: scp          │────→ SCP file to server
+    │  Step 1: ssh          │────→ SSH ke server + execute command
+    │  Step 2: scp          │────→ SCP file ke server
     │  Step 3: local        │────→ Local shell command
     │  Step 4: confirm      │────→ Prompt user Y/n
     │  Step 5: wait         │────→ time.sleep(n)
@@ -192,7 +192,7 @@ User input: "ai run deploy-app"
                │
                ▼
     ┌──────────────────────┐
-    │ 4. Done              │ ← "✅ Workflow complete!"
+    │ 4. Done              │ ← "✅ Workflow selesai!"
     └──────────────────────┘
 ```
 
@@ -208,23 +208,23 @@ User input: "docker ps | ai any errors?"
                    │
                    ▼
     ┌──────────────────────────────────┐
-    │ 2. stdin_data = "CONTAINER ID..."│ ← docker ps output
+    │ 2. stdin_data = "CONTAINER ID..."│ ← Output docker ps
     └──────────────┬───────────────────┘
                    │
                    ▼
     ┌──────────────────────────────────┐
     │ 3. Build prompt:                 │
-    │    "Output of command:           │
+    │    "Output dari command:         │
     │     ```                          │
     │     CONTAINER ID IMAGE...        │
     │     ```                          │
     │                                 │
-    │     Question: any errors?"      │
+    │     Pertanyaan: any errors?"    │
     └──────────────┬───────────────────┘
                    │
                    ▼
     ┌──────────────────────────────────┐
-    │ 4. Send to AI           ← same as AI Chat flow
+    │ 4. Kirim ke AI           ← sama kayak AI Chat flow
     └──────────────────────────────────┘
 ```
 
@@ -236,8 +236,8 @@ User input: "ai vault set db_password"
              ▼
     ┌──────────────────────────────┐
     │ 1. Unlock vault              │
-    │    - Check OPSTERM_VAULT_PASSWORD│ ← env var
-    │    - Or prompt for password   │ ← getpass()
+    │    - Cek OPSTERM_VAULT_PASSWORD│ ← env var
+    │    - Atau prompt password     │ ← getpass()
     │    - Derive key via PBKDF2    │ ← 600k iterations, SHA256
     └──────────────┬───────────────┘
                    │
@@ -245,12 +245,12 @@ User input: "ai vault set db_password"
     ┌──────────────────────────────┐
     │ 2. Encrypt value             │
     │    - cryptography.Fernet     │ ← AES-128-CBC
-    │    - or HMAC+XOR fallback    │
+    │    - atau fallback HMAC+XOR   │
     └──────────────┬───────────────┘
                    │
                    ▼
     ┌──────────────────────────────┐
-    │ 3. Save to vault.json        │
+    │ 3. Simpan ke vault.json      │
     │    {"keys": {                │
     │      "db_password": {        │
     │        "data": "<encrypted>" │
@@ -261,87 +261,87 @@ User input: "ai vault set db_password"
 
 ---
 
-## 📁 State Management
+## 📁 Manajemen State
 
-OpsTerm **has no daemon or background process**. All state is stored in files:
+OpsTerm **tidak punya daemon atau background process**. Semua state disimpan di file:
 
-| File | Format | Contents |
-|------|--------|----------|
+| File | Format | Isi |
+|------|--------|-----|
 | `config.yaml` | YAML | AI provider, model, api_url, shell settings |
-| `servers.yaml` | YAML | Server list: host, user, port, key, proxy |
-| `workflows.yaml` | YAML | Workflow list: steps (ssh/scp/local) |
-| `vault.json` | JSON (encrypted) | Encrypted credentials (AES-128) |
-| `history.db` | SQLite | Command history (mode, input, output) |
-| `last_output.txt` | Text | Last command output (for explain-last) |
-| `last_command.txt` | Text | Last command |
+| `servers.yaml` | YAML | Daftar server: host, user, port, key, proxy |
+| `workflows.yaml` | YAML | Daftar workflow: steps (ssh/scp/local) |
+| `vault.json` | JSON (encrypted) | Credential terenkripsi (AES-128) |
+| `history.db` | SQLite | Riwayat command (mode, input, output) |
+| `last_output.txt` | Text | Output command terakhir (buat explain-last) |
+| `last_command.txt` | Text | Command terakhir |
 
 **Data flow:**
 
 ```
-Config is read every time a command runs → no in-memory caching
-History is written after command finishes → append-only
-Vault is unlocked with password → stored in memory UNTIL ai vault lock
-Last output is written by the zsh plugin → read by ai last/explain-last
+Config dibaca setiap kali command jalan → tidak ada caching di memory
+History ditulis setelah command selesai → append-only
+Vault dibuka pake password → disimpan di memory SAMPAI ai vault lock
+Last output ditulis oleh zsh plugin → dibaca oleh ai last/explain-last
 ```
 
 ---
 
-## 🔒 Security
+## 🔒 Keamanan
 
 ### API Key
-- Can be set via **env var** (`OPSTERM_API_KEY`) — recommended
-- Or stored in **config.yaml** — but be careful if shared
-- Gitignored (`config.yaml` is in `.gitignore`)
+- Bisa dari **env var** (`OPSTERM_API_KEY`) — recommended
+- Atau di **config.yaml** — tapi hati-hati kalo di-share
+- Gitignored (`config.yaml` ada di `.gitignore`)
 
 ### Vault
 - **AES-128-CBC** via `cryptography.fernet.Fernet`
-- **PBKDF2** with 600,000 iterations SHA-256 for key derivation
-- Master password is **never stored** — only in memory during session
-- Can be unlocked via env var `OPSTERM_VAULT_PASSWORD`
-- Fallback encryption (HMAC + XOR) if cryptography is not installed
+- **PBKDF2** dengan 600.000 iterasi SHA-256 untuk key derivation
+- Master password **tidak pernah disimpan** — cuma di memory selama sesi
+- Bisa di-unlock via env var `OPSTERM_VAULT_PASSWORD`
+- Fallback encryption (HMAC + XOR) kalo cryptography gak terinstall
 
 ### SSH
-- Uses **SSH key** from local filesystem (not password)
+- Pake **SSH key** dari local filesystem (bukan password)
 - ProxyJump via `-J` flag (secure, encrypted)
-- Server config can specify key path per-server
+- Config server bisa specify key path per-server
 
 ---
 
 ## 🧪 Testing & Error Handling
 
-### Error recovery in workflows:
+### Error recovery di workflow:
 ```python
 if result.returncode != 0:
-    print(f"❌ Step {i} failed")
-    # Ask user: continue or stop?
-    cont = input("Continue? [y/N] ")
+    print(f"❌ Step {i} gagal")
+    # Tanya user: lanjut atau stop?
+    cont = input("Lanjut? [y/N] ")
     if cont not in ("y", "yes"):
-        print("⛔ Workflow aborted.")
+        print("⛔ Workflow dihentikan.")
         return
 ```
 
 ### Fallback strategy:
-- **AI call fails** → print error message, don't crash
-- **Config file corrupted** → return empty dict, don't crash
-- **Wrong vault password** → retry, don't crash
-- **SSH server unreachable** → SSH itself handles the error
+- **AI call gagal** → print error message, jangan crash
+- **File config rusak** → return empty dict, jangan crash
+- **Vault password salah** → retry, jangan crash
+- **SSH server gak reachable** → SSH sendiri yang handle error
 
 ---
 
 ## 🚀 Performance
 
-| Operation | Time (approx) | Notes |
-|-----------|---------------|-------|
-| AI Chat (DeepSeek) | 1-3 sec | Depends on provider & network |
-| SSH Connect | < 1 sec | Direct execvp, no overhead |
-| SCP Transfer | Varies | Depends on file size & bandwidth |
-| Workflow (3 steps) | 5-15 sec | Depends on step complexity |
-| Vault encrypt | < 100ms | PBKDF2 600k iterations ~50ms |
-| Config load | < 10ms | Minimal YAML parsing |
+| Operasi | Waktu (approx) | Catatan |
+|---------|----------------|---------|
+| AI Chat (DeepSeek) | 1-3 detik | Tergantung provider & network |
+| SSH Connect | < 1 detik | Langsung execvp, ga ada overhead |
+| SCP Transfer | Varies | Tergantung ukuran file & bandwidth |
+| Workflow (3 steps) | 5-15 detik | Tergantung step complexity |
+| Vault encrypt | < 100ms | PBKDF2 600k iterasi ~50ms |
+| Config load | < 10ms | YAML parsing minimal |
 | History write | < 5ms | SQLite append |
 
-**Memory footprint:** ~15-30MB (Python interpreter) + overhead per operation.
+**Memory footprint:** ~15-30MB (Python interpreter) + overhead sesuai operasi.
 
 ---
 
-Next: [🔧 Tech Stack →](tech-stack.md)
+Selanjutnya: [🔧 Tech Stack →](tech-stack.id.md)

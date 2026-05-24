@@ -1,19 +1,19 @@
-# 📚 Dokumentasi OpsTerm
+# 📚 OpsTerm Documentation
 
-Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bekerja, teknologi yang dipake, dan kenapa dirancang seperti ini.
+Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, the technologies it uses, and why it's designed the way it is.
 
 ---
 
-## 📖 Daftar Dokumen
+## 📖 Document Index
 
-| Dokumen | Deskripsi |
-|---------|-----------|
-| [📐 Arsitektur & System Design](architecture.md) | **Cara kerja OpsTerm** — alur dari user ngetik command sampai eksekusi |
-| [🔧 Tech Stack](tech-stack.md) | **Teknologi yang dipake** — bahasa, library, protocol, format |
-| [🤔 Design Decisions](design-decisions.md) | **Kenapa dirancang seperti ini** — alasan di balik setiap keputusan teknis |
-| [🎯 Fitur Lengkap](features.md) | **Semua fitur** — daftar lengkap + contoh penggunaan + use case matrix |
-| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Diagram Excalidraw** — buka di [excalidraw.com](https://excalidraw.com) |
-| [🖼️ Architecture Diagram (PNG)](ops-term-architecture.png) | **Diagram versi gambar** — langsung liat tanpa perlu buka excalidraw |
+| Document | Description | Also available in |
+|----------|-------------|-------------------|
+| [📐 Architecture & System Design](architecture.md) | **How OpsTerm works** — the flow from user typing a command to execution | [🇮🇩 Bahasa Indonesia](architecture.id.md) |
+| [🔧 Tech Stack](tech-stack.md) | **Technologies used** — languages, libraries, protocols, formats | [🇮🇩 Bahasa Indonesia](tech-stack.id.md) |
+| [🤔 Design Decisions](design-decisions.md) | **Why it's designed this way** — rationale behind every technical decision | [🇮🇩 Bahasa Indonesia](design-decisions.id.md) |
+| [🎯 Features](features.md) | **All features** — complete list with usage examples and use-case matrix | [🇮🇩 Bahasa Indonesia](features.id.md) |
+| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Excalidraw diagram** — open at [excalidraw.com](https://excalidraw.com) | — |
+| [🖼️ Architecture Diagram (PNG)](ops-term-architecture.png) | **Image version** — view directly without opening Excalidraw | — |
 
 ---
 
@@ -44,63 +44,70 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
      └────────┘ └────────┘ └────────┘ └────────────┘
 ```
 
-**Prinsip utama:** OpsTerm jalan di **laptop lokal**. AI-nya nempel di terminal, bukan di server remote. Jadi pas SSH ke server mana pun, AI tetep bisa dipake.
+**Core principle:** OpsTerm runs on your **local laptop**. The AI lives in your terminal, not on the remote server. So when you SSH into any server, the AI is still available.
 
 ---
 
-## 📁 Struktur Project
+## 📁 Project Structure
 
 ```
 ~/opsterm/
 ├── bin/
-│   └── ai                    ← Main script (single file, ~1500 baris)
+│   └── ai                    ← Main script (single file, ~1500 lines)
 ├── completions/
 │   ├── opsterm.bash          ← Bash tab completion
 │   └── opsterm.zsh           ← Zsh tab completion
 ├── zsh/
 │   └── opsterm.plugin.zsh    ← Zsh shell integration plugin
-├── docs/                     ← Dokumentasi ini
-│   ├── README.md             ← Index dokumentasi
-│   ├── architecture.md       ← Arsitektur & system design
-│   ├── tech-stack.md         ← Tech stack detail
-│   ├── design-decisions.md   ← Design rationale
-│   └── ops-term-architecture.excalidraw ← Diagram Excalidraw
+├── docs/                     ← This documentation
+│   ├── README.md             ← Documentation index (English)
+│   ├── README.id.md          ← Documentation index (Indonesian)
+│   ├── architecture.md       ← Architecture & system design (English)
+│   ├── architecture.id.md    ← Architecture & system design (Indonesian)
+│   ├── tech-stack.md         ← Tech stack details (English)
+│   ├── tech-stack.id.md      ← Tech stack details (Indonesian)
+│   ├── design-decisions.md   ← Design rationale (English)
+│   ├── design-decisions.id.md← Design rationale (Indonesian)
+│   ├── features.md           ← All features (English)
+│   ├── features.id.md        ← All features (Indonesian)
+│   ├── ops-term-architecture.excalidraw ← Excalidraw diagram
+│   └── ops-term-architecture.png        ← PNG architecture diagram
 ├── setup.sh                  ← Install script
 ├── README.md                 ← English README
 ├── README.id.md              ← Indonesian README
 └── .gitignore
 ```
 
-**Config user** (gitignored, di ~/.ai-workflows/):
+**User config** (gitignored, stored at `~/.ai-workflows/`):
 ```
 ~/.ai-workflows/
 ├── config.yaml       ← AI provider settings
-├── servers.yaml      ← Daftar server + proxy
-├── workflows.yaml    ← Daftar workflow
-├── vault.json        ← Credential terenkripsi
-├── history.db        ← Riwayat SQLite
-└── last_*.txt        ← Output command terakhir
+├── servers.yaml      ← Server list + proxy config
+├── workflows.yaml    ← Workflow definitions
+├── vault.json        ← Encrypted credentials
+├── history.db        ← SQLite history
+└── last_*.txt        ← Last command output
 ```
 
 ---
 
-## 🧠 Filosofi Design
+## 🧠 Design Philosophy
 
-1. **Zero dependencies** — cukup Python 3 stdlib, ga perlu `pip install` apa-apa (kecuali vault)
-2. **Single file** — `bin/ai` bisa dicopy ke server mana pun dan langsung jalan
-3. **Local-first** — AI di terminal lokal, bukan di server. Bisa SSH tanpa kehilangan AI
-4. **Config as code** — server & workflow config pake YAML, bisa di-version control
-5. **Progressive disclosure** — fitur sederhana gampang dipake, fitur kompleks available kalo butuh
+1. **Zero dependencies** — just Python 3 stdlib, no `pip install` needed (except vault encryption)
+2. **Single file** — `bin/ai` can be copied to any server and run immediately
+3. **Local-first** — AI runs on your local terminal, not on the server. SSH without losing AI access
+4. **Config as code** — server & workflow configs use YAML, version-control friendly
+5. **Progressive disclosure** — simple features are easy to use, complex features are available when needed
 
 ---
 
 ## 🎯 Recommended Reading Order
 
-1. [📐 Arsitektur & System Design](architecture.md) — paham alur kerja
-2. [🔧 Tech Stack](tech-stack.md) — teknologi yang dipake
-3. [🤔 Design Decisions](design-decisions.md) — kenapa milih ini
-4. [📊 Architecture Diagram](ops-term-architecture.excalidraw) — visual overview (buka di excalidraw.com)
+1. [📐 Architecture & System Design](architecture.md) — understand the workflow flow
+2. [🔧 Tech Stack](tech-stack.md) — technologies used
+3. [🤔 Design Decisions](design-decisions.md) — why these choices were made
+4. [📊 Architecture Diagram](ops-term-architecture.excalidraw) — visual overview (open at excalidraw.com)
 
 ---
 
-Selanjutnya: [📐 Arsitektur & System Design →](architecture.md)
+Next: [📐 Architecture & System Design →](architecture.md)

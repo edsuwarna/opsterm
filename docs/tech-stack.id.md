@@ -1,14 +1,14 @@
 # 🔧 Tech Stack
 
-This document explains the technology used in OpsTerm — from the programming language to the communication protocol.
+Dokumen ini menjelaskan teknologi yang dipake di OpsTerm — dari bahasa pemrograman sampai protocol komunikasi.
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| **Language** | Python 3 | >= 3.7+ |
+| Layer | Teknologi | Versi |
+|-------|-----------|-------|
+| **Bahasa** | Python 3 | >= 3.7+ |
 | **CLI Parser** | `argparse` (stdlib) | Built-in |
 | **Config Format** | YAML (custom parser) | Zero dep |
 | **HTTP Client** | `urllib` (stdlib) | Built-in |
@@ -17,44 +17,44 @@ This document explains the technology used in OpsTerm — from the programming l
 | **SSH/SCP** | System `ssh` / `scp` | OS default |
 | **Shell** | Zsh plugin (zsh hooks) | Zsh only |
 
-> **Zero mandatory dependencies** — just Python 3 stdlib. Everything is built-in.
-> The only optional dependency: `pip install cryptography` (for vault).
+> **Zero dependencies wajib** — cukup Python 3 stdlib. Semuanya built-in.
+> Satu-satunya optional dep: `pip install cryptography` (buat vault).
 
 ---
 
-## 🐍 Language: Python 3
+## 🐍 Bahasa: Python 3
 
-### Why Python?
+### Kenapa Python?
 
-| Factor | Reason |
+| Faktor | Alasan |
 |--------|--------|
-| **Availability** | Present on every Linux/macOS, no installation needed |
-| **Full stdlib** | JSON, SQLite, HTTP, argparse, hashlib — all built-in |
-| **Cross-platform** | Works on Linux & macOS without changes |
-| **Rapid development** | Fast to prototype and build new features |
+| **Availability** | Ada di setiap Linux/macOS, ga perlu install |
+| **Stdlib lengkap** | JSON, SQLite, HTTP, argparse, hashlib — semua built-in |
+| **Cross-platform** | Works on Linux & macOS tanpa perubahan |
+| **Rapid development** | Cepet bikin prototype & fitur baru |
 
-### Why NOT Go / Rust?
+### Kenapa BUKAN Go / Rust?
 
-| Language | Issue |
+| Bahasa | Masalah |
 |--------|---------|
-| **Go** | Needs cross-platform compilation, binary size >10MB |
-| **Rust** | High learning curve, slow compilation times |
-| **Node.js** | Heavy dependency (node_modules), not available on default systems |
-| **Bash** | Hard to maintain beyond 1000 lines, painful JSON parsing |
+| **Go** | Perlu compile cross-platform, binary size >10MB |
+| **Rust** | Learning curve tinggi, compile time lama |
+| **Node.js** | Heavy dependency (node_modules), ga ada di default system |
+| **Bash** | Susah maintain >1000 baris, parsing JSON susah |
 
-Python is the **most practical** choice for a CLI tool that must be zero-dependency and portable.
+Python adalah **paling praktis** untuk CLI tool yang harus zero-dep dan portable.
 
 ---
 
 ## 📦 Zero-Dependency Strategy
 
-This is **OpsTerm's main selling point**. How is it done?
+Ini adalah **nilai jual utama** OpsTerm. Gimana caranya?
 
-### What Typically Uses Third-Party Libraries:
+### Yang Biasanya Pake Library Pihak Ketiga:
 
-| Requirement | Typical Library | OpsTerm Solution |
+| Kebutuhan | Lib Pilihan | Solusi OpsTerm |
 |-----------|------------|----------------|
-| **YAML Parsing** | PyYAML | Custom minimal parser (~80 lines) |
+| **YAML Parsing** | PyYAML | Custom minimal parser (~80 baris) |
 | **HTTP Requests** | requests | `urllib.request` (stdlib) |
 | **Arg Parsing** | click, typer | `argparse` (stdlib) |
 | **Database** | SQLAlchemy | `sqlite3` (stdlib) |
@@ -62,11 +62,11 @@ This is **OpsTerm's main selling point**. How is it done?
 
 ### Custom YAML Parser
 
-OpsTerm's YAML parser is **minimal — it only supports the YAML subset that OpsTerm uses**:
+Parser YAML di OpsTerm itu **minimal — cuma support subset YAML yang dipake**:
 
 **Supported:**
 - Key-value: `key: value`
-- Nested mapping via indentation
+- Nested mapping via indent
 - Lists: `- item`
 - Nested objects in lists
 - Comments (`#`)
@@ -78,10 +78,10 @@ OpsTerm's YAML parser is **minimal — it only supports the YAML subset that Ops
 - Inline JSON (`{key: value}`)
 - Complex types (timestamps, sets)
 
-**Why not use PyYAML?**
-1. **Dependency** — users would need to `pip install` it first
-2. **Overkill** — we only use a small YAML subset
-3. **Maintainable** — the parser is only ~80 lines, easy to understand
+**Kenapa ga pake PyYAML?**
+1. **Dependency** — user harus `pip install` dulu
+2. **Overkill** — kita cuma pake subset kecil YAML
+3. **Maintainable** — parser cuma 80 baris, mudah dipahami
 
 ---
 
@@ -93,34 +93,34 @@ CREATE TABLE IF NOT EXISTS history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT DEFAULT (datetime('now','localtime')),
     mode TEXT,        -- 'ai', 'ssh', 'workflow', 'pipe', 'shell', 'scp', 'vault'
-    input TEXT,       -- command/question (max 500 chars)
+    input TEXT,       -- command/pertanyaan (max 500 chars)
     output TEXT       -- response (max 2000 chars)
 );
 ```
 
-### Why SQLite?
-- **Built into Python** (`import sqlite3`)
-- **Zero config** — database file created automatically
-- **Permanent** — history persists even after closing the terminal
-- **Searchable** — can be queried using SQL
+### Kenapa SQLite?
+- **Built-in Python** (`import sqlite3`)
+- **Zero config** — file db otomatis dibuat
+- **Permanent** — riwayat gak ilang meski terminal ditutup
+- **Searchable** — bisa query pake SQL
 
 ---
 
 ## 🔗 Protocol: OpenAI-Compatible API
 
-The AI client uses a format that is **compatible with OpenAI**.
+AI Client pake format yang **kompatibel dengan OpenAI**.
 
 ### Request:
 ```json
 POST /v1/chat/completions
-Authorization: Bearer ***
+Authorization: Bearer <api_key>
 Content-Type: application/json
 
 {
     "model": "deepseek-chat",
     "messages": [
-        {"role": "system", "content": "You are a terminal assistant..."},
-        {"role": "user", "content": "how to check disk usage"}
+        {"role": "system", "content": "Kamu adalah asisten terminal..."},
+        {"role": "user", "content": "cara check disk usage"}
     ],
     "temperature": 0.3,
     "max_tokens": 1024
@@ -140,19 +140,19 @@ Content-Type: application/json
 }
 ```
 
-### Supported Providers:
-| Provider | Base URL | Auth |
+### Provider yang Didukung:
+| Provider | URL Base | Auth |
 |----------|----------|------|
 | **DeepSeek** | `https://api.deepseek.com/v1` | API Key |
 | **OpenAI** | `https://api.openai.com/v1` | API Key |
 | **OpenRouter** | `https://openrouter.ai/api/v1` | API Key |
 | **Ollama** (local) | `http://localhost:11434/v1` | None |
-| **vLLM** (self-hosted) | `http://your-server:8000/v1` | Optional |
+| **vLLM** (self-host) | `http://your-server:8000/v1` | Optional |
 | **Any OpenAI-compat** | Configurable | API Key / None |
 
 ---
 
-## 🔐 Vault Encryption
+## 🔐 Enkripsi Vault
 
 ### Primary (recommended): `cryptography.fernet.Fernet`
 
@@ -174,16 +174,16 @@ Master Password
 
 ### Fallback (no cryptography): HMAC + XOR
 
-If `cryptography` is not installed, OpsTerm uses a fallback encryption:
+Kalo `cryptography` gak terinstall, OpsTerm pake fallback encryption:
 1. **Key derivation**: PBKDF2 from `hashlib` (stdlib)
-2. **Encryption**: XOR cipher with random IV
+2. **Encryption**: XOR cipher dengan random IV
 3. **Integrity**: HMAC-SHA256
 
-⚠️ This fallback is **less secure** than AES. Recommended: `pip install cryptography`
+⚠️ Fallback ini **kurang aman** dibanding AES. Recommended: `pip install cryptography`
 
 ---
 
-## 📡 SSH/SCP Communication
+## 📡 Komunikasi SSH/SCP
 
 ### SSH Command Building:
 
@@ -209,20 +209,20 @@ scp -o ProxyJump=ubuntu@bastion:22 file.txt ubuntu@internal:/path/
 ```
 
 ### Interaction:
-- **SSH**: `os.execvp()` → replaces the process, interactive
-- **SCP**: `subprocess.run()` → blocking until complete
+- **SSH**: `os.execvp()` → replace proses, interactive
+- **SCP**: `subprocess.run()` → blocking sampai selesai
 - **Workflow SSH**: `subprocess.run()` → non-interactive, command via SSH
 
 ---
 
 ## 🐚 Zsh Plugin Integration
 
-### Hooks Used:
+### Hooks yang dipake:
 
-| Hook | Timing | Function |
+| Hook | Timing | Fungsi |
 |------|--------|--------|
-| `preexec` | Before command runs | Save command to `last_command.txt` |
-| `precmd` | After command finishes | (reserved for future use) |
+| `preexec` | Sebelum command jalan | Simpan command ke `last_command.txt` |
+| `precmd` | Setelah command selesai | (reserved untuk future use) |
 
 ### Aliases:
 
@@ -231,26 +231,26 @@ alias ai-last='ai last'
 alias ai-explain='ai explain-last'
 ```
 
-### How `ai-ti` (AI + Terminal Integration) works:
+### Cara kerja `ai-ti` (AI + Terminal Integration):
 ```zsh
 ai-ti() {
-    # 1. Ask AI
+    # 1. Tanya AI
     ai "$*"
     
-    # 2. Extract command from response (lines starting with $)
-    # 3. Ask user: run it?
-    # 4. If yes, execute
+    # 2. Ekstrak command dari response (yang mulai dengan $)
+    # 3. Tanya user: jalanin?
+    # 4. Kalo ya, execute
 }
 ```
 
 ---
 
-## 🎯 Comparison with Alternatives
+## 🎯 Perbandingan dengan Alternatif
 
-| Aspect | OpsTerm | Warp.dev | ShellGPT | Claude Code |
+| Aspek | OpsTerm | Warp.dev | ShellGPT | Claude Code |
 |-------|---------|----------|----------|-------------|
 | **Dependencies** | ✅ Zero | ❌ Binary | ⚠️ pip | ❌ Binary |
-| **Custom AI** | ✅ Any provider | ❌ Vendor lock | ✅ Many providers | ❌ Claude only |
+| **Custom AI** | ✅ Bebas | ❌ Vendor lock | ✅ Banyak | ❌ Claude only |
 | **SSH Multi-hop** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
 | **Workflow** | ✅ Multi-step | ❌ No | ❌ No | ❌ No |
 | **Vault** | ✅ Encrypted | ❌ No | ❌ No | ❌ No |
@@ -261,4 +261,4 @@ ai-ti() {
 
 ---
 
-Next: [🤔 Design Decisions →](design-decisions.md)
+Selanjutnya: [🤔 Design Decisions →](design-decisions.id.md)
