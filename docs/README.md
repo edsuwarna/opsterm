@@ -11,7 +11,9 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 | [📐 Arsitektur & System Design](architecture.md) | **Cara kerja OpsTerm** — alur dari user ngetik command sampai eksekusi |
 | [🔧 Tech Stack](tech-stack.md) | **Teknologi yang dipake** — bahasa, library, protocol, format |
 | [🤔 Design Decisions](design-decisions.md) | **Kenapa dirancang seperti ini** — alasan di balik setiap keputusan teknis |
-| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Diagram visual** — buka di [excalidraw.com](https://excalidraw.com) |
+| [🎯 Fitur Lengkap](features.md) | **Semua fitur** — daftar lengkap + contoh penggunaan + use case matrix |
+| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Diagram Excalidraw** — buka di [excalidraw.com](https://excalidraw.com) |
+| [🖼️ Architecture Diagram (PNG)](ops-term-architecture.png) | **Diagram versi gambar** — langsung liat tanpa perlu buka excalidraw |
 
 ---
 
