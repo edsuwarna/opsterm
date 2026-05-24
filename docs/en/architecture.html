@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📐 Architecture &amp; System Design — OpsTerm</title>
+<title>Architecture — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -73,7 +73,7 @@ blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 .nav-back {
   display: inline-block;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-size: 14px;
   color: #888;
 }
@@ -87,6 +87,72 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
   margin-top: 40px;
 }
 .footer a { color: #1971c2; }
+
+/* ── Table of Contents ── */
+.page-toc {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #1971c2;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 0 30px 0;
+}
+.page-toc .toc-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1971c2;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.page-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.page-toc li {
+  margin: 3px 0;
+  line-height: 1.5;
+}
+.page-toc li.toc-h1 { padding-left: 0; }
+.page-toc li.toc-h2 { padding-left: 18px; }
+.page-toc li.toc-h3 { padding-left: 36px; }
+.page-toc li a {
+  font-size: 14px;
+  color: #495057;
+  text-decoration: none;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.page-toc li a:hover {
+  background: #e8f4fd;
+  color: #1971c2;
+}
+/* Sticky ToC for wide screens */
+@media (min-width: 1200px) {
+  .page-toc {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 240px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    z-index: 100;
+    margin: 0;
+    background: rgba(255,255,255,0.97);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .container { max-width: 800px; }
+}
+@media (min-width: 1400px) {
+  .page-toc { width: 280px; }
+}
+@media (max-width: 1199px) {
+  .page-toc { position: static; width: auto; }
+}
+
 </style>
 </head>
 <body>
@@ -94,10 +160,33 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 
 <p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
 
-<h1>📐 Architecture &amp; System Design</h1>
+<nav class="page-toc">
+<div class="toc-title">📑 On this page</div>
+<ul>
+<li class="toc-h1"><a href="#architecture-amp-system-design">📐 Architecture &amp; System Design</a></li>
+  <li class="toc-h2"><a href="#overall-architecture">🏗 Overall Architecture</a></li>
+  <li class="toc-h2"><a href="#execution-flows">🔄 Execution Flows</a></li>
+    <li class="toc-h3"><a href="#flow-1-ai-chat-ai-how-to-check-disk">Flow 1: AI Chat (ai how to check disk)</a></li>
+    <li class="toc-h3"><a href="#flow-2-ssh-ai-ssh-vps-utama-via-bastion">Flow 2: SSH (ai ssh vps-utama --via bastion)</a></li>
+    <li class="toc-h3"><a href="#flow-3-workflow-ai-run-deploy-app">Flow 3: Workflow (ai run deploy-app)</a></li>
+    <li class="toc-h3"><a href="#flow-4-pipe-mode-docker-ps-ai-any-errors">Flow 4: Pipe Mode (docker ps | ai "any errors?")</a></li>
+    <li class="toc-h3"><a href="#flow-5-vault-ai-vault-set-db-password">Flow 5: Vault (ai vault set db_password)</a></li>
+  <li class="toc-h2"><a href="#state-management">State Management</a></li>
+  <li class="toc-h2"><a href="#security">🔒 Security</a></li>
+    <li class="toc-h3"><a href="#api-key">API Key</a></li>
+    <li class="toc-h3"><a href="#vault">Vault</a></li>
+    <li class="toc-h3"><a href="#ssh">SSH</a></li>
+  <li class="toc-h2"><a href="#testing-amp-error-handling">🧪 Testing &amp; Error Handling</a></li>
+    <li class="toc-h3"><a href="#error-recovery-in-workflows">Error recovery in workflows:</a></li>
+    <li class="toc-h3"><a href="#fallback-strategy">Fallback strategy:</a></li>
+  <li class="toc-h2"><a href="#performance">Performance</a></li>
+</ul>
+</nav>
+
+<1 id="architecture-amp-system-design">📐 Architecture &amp; System Design</1>
 <p>This document explains in detail how OpsTerm works — from when the user types a command until the output is displayed.</p>
 <hr />
-<h2>🏗️ Overall Architecture</h2>
+<2 id="overall-architecture">🏗️ Overall Architecture</2>
 <div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
 │<span class="w">                     </span><span class="nv">USER</span><span class="w"> </span><span class="nv">INTERFACE</span><span class="w">                          </span>│
 │<span class="w">                                                             </span>│
@@ -158,8 +247,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </code></pre></div>
 
 <hr />
-<h2>🔄 Execution Flows</h2>
-<h3>Flow 1: AI Chat (<code>ai how to check disk</code>)</h3>
+<2 id="execution-flows">🔄 Execution Flows</2>
+<3 id="flow-1-ai-chat-ai-how-to-check-disk">Flow 1: AI Chat (<code>ai how to check disk</code>)</3>
 <div class="codehilite"><pre><span></span><code><span class="nx">User</span><span class="w"> </span><span class="nx">input</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ai how to check disk&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
@@ -205,7 +294,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span><span class="err">└──────────────────┘</span>
 </code></pre></div>
 
-<h3>Flow 2: SSH (<code>ai ssh vps-utama --via bastion</code>)</h3>
+<3 id="flow-2-ssh-ai-ssh-vps-utama-via-bastion">Flow 2: SSH (<code>ai ssh vps-utama --via bastion</code>)</3>
 <div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;ai ssh vps-utama --via bastion&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
@@ -246,7 +335,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span><span class="err">└───────────────────────┘</span>
 </code></pre></div>
 
-<h3>Flow 3: Workflow (<code>ai run deploy-app</code>)</h3>
+<3 id="flow-3-workflow-ai-run-deploy-app">Flow 3: Workflow (<code>ai run deploy-app</code>)</3>
 <div class="codehilite"><pre><span></span><code><span class="nv">User</span><span class="w"> </span><span class="nv">input</span>:<span class="w"> </span><span class="s2">&quot;ai run deploy-app&quot;</span>
 <span class="w">             </span>│
 <span class="w">             </span>▼
@@ -279,7 +368,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span>└──────────────────────┘
 </code></pre></div>
 
-<h3>Flow 4: Pipe Mode (<code>docker ps | ai "any errors?"</code>)</h3>
+<3 id="flow-4-pipe-mode-docker-ps-ai-any-errors">Flow 4: Pipe Mode (<code>docker ps | ai "any errors?"</code>)</3>
 <div class="codehilite"><pre><span></span><code>User input: &quot;docker ps | ai any errors?&quot;
              │
              ▼
@@ -309,7 +398,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
     └──────────────────────────────────┘
 </code></pre></div>
 
-<h3>Flow 5: Vault (<code>ai vault set db_password</code>)</h3>
+<3 id="flow-5-vault-ai-vault-set-db-password">Flow 5: Vault (<code>ai vault set db_password</code>)</3>
 <div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ai vault set db_password&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
@@ -339,7 +428,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </code></pre></div>
 
 <hr />
-<h2>📁 State Management</h2>
+<2 id="state-management">📁 State Management</2>
 <p>OpsTerm <strong>has no daemon or background process</strong>. All state is stored in files:</p>
 <table>
 <thead>
@@ -395,14 +484,14 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </code></pre></div>
 
 <hr />
-<h2>🔒 Security</h2>
-<h3>API Key</h3>
+<2 id="security">🔒 Security</2>
+<3 id="api-key">API Key</3>
 <ul>
 <li>Can be set via <strong>env var</strong> (<code>OPSTERM_API_KEY</code>) — recommended</li>
 <li>Or stored in <strong>config.yaml</strong> — but be careful if shared</li>
 <li>Gitignored (<code>config.yaml</code> is in <code>.gitignore</code>)</li>
 </ul>
-<h3>Vault</h3>
+<3 id="vault">Vault</3>
 <ul>
 <li><strong>AES-128-CBC</strong> via <code>cryptography.fernet.Fernet</code></li>
 <li><strong>PBKDF2</strong> with 600,000 iterations SHA-256 for key derivation</li>
@@ -410,15 +499,15 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <li>Can be unlocked via env var <code>OPSTERM_VAULT_PASSWORD</code></li>
 <li>Fallback encryption (HMAC + XOR) if cryptography is not installed</li>
 </ul>
-<h3>SSH</h3>
+<3 id="ssh">SSH</3>
 <ul>
 <li>Uses <strong>SSH key</strong> from local filesystem (not password)</li>
 <li>ProxyJump via <code>-J</code> flag (secure, encrypted)</li>
 <li>Server config can specify key path per-server</li>
 </ul>
 <hr />
-<h2>🧪 Testing &amp; Error Handling</h2>
-<h3>Error recovery in workflows:</h3>
+<2 id="testing-amp-error-handling">🧪 Testing &amp; Error Handling</2>
+<3 id="error-recovery-in-workflows">Error recovery in workflows:</3>
 <div class="codehilite"><pre><span></span><code><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> failed&quot;</span><span class="p">)</span>
     <span class="c1"># Ask user: continue or stop?</span>
@@ -428,7 +517,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
         <span class="k">return</span>
 </code></pre></div>
 
-<h3>Fallback strategy:</h3>
+<3 id="fallback-strategy">Fallback strategy:</3>
 <ul>
 <li><strong>AI call fails</strong> → print error message, don't crash</li>
 <li><strong>Config file corrupted</strong> → return empty dict, don't crash</li>
@@ -436,7 +525,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <li><strong>SSH server unreachable</strong> → SSH itself handles the error</li>
 </ul>
 <hr />
-<h2>🚀 Performance</h2>
+<2 id="performance">🚀 Performance</2>
 <table>
 <thead>
 <tr>

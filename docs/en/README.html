@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📚 OpsTerm Documentation — OpsTerm</title>
+<title>Readme — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -73,7 +73,7 @@ blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 .nav-back {
   display: inline-block;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-size: 14px;
   color: #888;
 }
@@ -87,6 +87,72 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
   margin-top: 40px;
 }
 .footer a { color: #1971c2; }
+
+/* ── Table of Contents ── */
+.page-toc {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #1971c2;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 0 30px 0;
+}
+.page-toc .toc-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1971c2;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.page-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.page-toc li {
+  margin: 3px 0;
+  line-height: 1.5;
+}
+.page-toc li.toc-h1 { padding-left: 0; }
+.page-toc li.toc-h2 { padding-left: 18px; }
+.page-toc li.toc-h3 { padding-left: 36px; }
+.page-toc li a {
+  font-size: 14px;
+  color: #495057;
+  text-decoration: none;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.page-toc li a:hover {
+  background: #e8f4fd;
+  color: #1971c2;
+}
+/* Sticky ToC for wide screens */
+@media (min-width: 1200px) {
+  .page-toc {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 240px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    z-index: 100;
+    margin: 0;
+    background: rgba(255,255,255,0.97);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .container { max-width: 800px; }
+}
+@media (min-width: 1400px) {
+  .page-toc { width: 280px; }
+}
+@media (max-width: 1199px) {
+  .page-toc { position: static; width: auto; }
+}
+
 </style>
 </head>
 <body>
@@ -94,10 +160,22 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 
 <p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
 
-<h1>📚 OpsTerm Documentation</h1>
+<nav class="page-toc">
+<div class="toc-title">📑 On this page</div>
+<ul>
+<li class="toc-h1"><a href="#opsterm-documentation">📚 OpsTerm Documentation</a></li>
+  <li class="toc-h2"><a href="#document-index">Document Index</a></li>
+  <li class="toc-h2"><a href="#quick-overview">Quick Overview</a></li>
+  <li class="toc-h2"><a href="#project-structure">Project Structure</a></li>
+  <li class="toc-h2"><a href="#design-philosophy">Design Philosophy</a></li>
+  <li class="toc-h2"><a href="#recommended-reading-order">Recommended Reading Order</a></li>
+</ul>
+</nav>
+
+<1 id="opsterm-documentation">📚 OpsTerm Documentation</1>
 <p>Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, the technologies it uses, and why it's designed the way it is.</p>
 <hr />
-<h2>📖 Document Index</h2>
+<2 id="document-index">📖 Document Index</2>
 <table>
 <thead>
 <tr>
@@ -140,7 +218,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </tbody>
 </table>
 <hr />
-<h2>🚀 Quick Overview</h2>
+<2 id="quick-overview">🚀 Quick Overview</2>
 <div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
 │                  USER LAPTOP                         │
 │  ┌───────────────────────────────────────────────┐  │
@@ -167,7 +245,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 
 <p><strong>Core principle:</strong> OpsTerm runs on your <strong>local laptop</strong>. The AI lives in your terminal, not on the remote server. So when you SSH into any server, the AI is still available.</p>
 <hr />
-<h2>📁 Project Structure</h2>
+<2 id="project-structure">📁 Project Structure</2>
 <div class="codehilite"><pre><span></span><code>~/opsterm/
 ├── bin/
 │   └── ai                    ← Main script (single file, ~1500 lines)
@@ -208,7 +286,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </code></pre></div>
 
 <hr />
-<h2>🧠 Design Philosophy</h2>
+<2 id="design-philosophy">🧠 Design Philosophy</2>
 <ol>
 <li><strong>Zero dependencies</strong> — just Python 3 stdlib, no <code>pip install</code> needed (except vault encryption)</li>
 <li><strong>Single file</strong> — <code>bin/ai</code> can be copied to any server and run immediately</li>
@@ -217,7 +295,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <li><strong>Progressive disclosure</strong> — simple features are easy to use, complex features are available when needed</li>
 </ol>
 <hr />
-<h2>🎯 Recommended Reading Order</h2>
+<2 id="recommended-reading-order">🎯 Recommended Reading Order</2>
 <ol>
 <li><a href="architecture.html">📐 Architecture &amp; System Design</a> — understand the workflow flow</li>
 <li><a href="tech-stack.html">🔧 Tech Stack</a> — technologies used</li>

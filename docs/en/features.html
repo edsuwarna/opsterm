@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎯 OpsTerm Features — Complete — OpsTerm</title>
+<title>Features — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -73,7 +73,7 @@ blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 .nav-back {
   display: inline-block;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   font-size: 14px;
   color: #888;
 }
@@ -87,6 +87,72 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
   margin-top: 40px;
 }
 .footer a { color: #1971c2; }
+
+/* ── Table of Contents ── */
+.page-toc {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-left: 4px solid #1971c2;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 0 30px 0;
+}
+.page-toc .toc-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1971c2;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.page-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.page-toc li {
+  margin: 3px 0;
+  line-height: 1.5;
+}
+.page-toc li.toc-h1 { padding-left: 0; }
+.page-toc li.toc-h2 { padding-left: 18px; }
+.page-toc li.toc-h3 { padding-left: 36px; }
+.page-toc li a {
+  font-size: 14px;
+  color: #495057;
+  text-decoration: none;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.page-toc li a:hover {
+  background: #e8f4fd;
+  color: #1971c2;
+}
+/* Sticky ToC for wide screens */
+@media (min-width: 1200px) {
+  .page-toc {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 240px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    z-index: 100;
+    margin: 0;
+    background: rgba(255,255,255,0.97);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .container { max-width: 800px; }
+}
+@media (min-width: 1400px) {
+  .page-toc { width: 280px; }
+}
+@media (max-width: 1199px) {
+  .page-toc { position: static; width: auto; }
+}
+
 </style>
 </head>
 <body>
@@ -94,10 +160,34 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 
 <p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
 
-<h1>🎯 OpsTerm Features — Complete</h1>
+<nav class="page-toc">
+<div class="toc-title">📑 On this page</div>
+<ul>
+<li class="toc-h1"><a href="#opsterm-features-complete">OpsTerm Features — Complete</a></li>
+  <li class="toc-h2"><a href="#feature-overview">📋 Feature Overview</a></li>
+  <li class="toc-h2"><a href="#1-ai-chat">1⃣ 🤖 AI Chat</a></li>
+  <li class="toc-h2"><a href="#2-smart-ssh">2⃣  Smart SSH</a></li>
+  <li class="toc-h2"><a href="#3-multi-hop-ssh">3⃣  Multi-hop SSH</a></li>
+  <li class="toc-h2"><a href="#4-scp-file-transfer">4⃣  SCP File Transfer</a></li>
+  <li class="toc-h2"><a href="#5-workflow">5⃣ ⚡ Workflow</a></li>
+  <li class="toc-h2"><a href="#6-vault-encrypted-credentials">6⃣  Vault — Encrypted Credentials</a></li>
+  <li class="toc-h2"><a href="#7-pipe-mode">7⃣  Pipe Mode</a></li>
+  <li class="toc-h2"><a href="#8-shell-integration-zsh-plugin">8⃣ 💻 Shell Integration (Zsh Plugin)</a></li>
+  <li class="toc-h2"><a href="#9-tab-completion">9⃣  Tab Completion</a></li>
+  <li class="toc-h2"><a href="#server-manager">🔟 🛠 Server Manager</a></li>
+  <li class="toc-h2"><a href="#1-1-workflow-manager">1⃣1⃣ 📋 Workflow Manager</a></li>
+  <li class="toc-h2"><a href="#1-2-config-manager">1⃣2⃣  Config Manager</a></li>
+  <li class="toc-h2"><a href="#1-3-history">1⃣3⃣  History</a></li>
+  <li class="toc-h2"><a href="#1-4-init">1⃣4⃣  Init</a></li>
+  <li class="toc-h2"><a href="#use-case-matrix">Use Case Matrix</a></li>
+  <li class="toc-h2"><a href="#future-roadmap">🔜 Future Roadmap</a></li>
+</ul>
+</nav>
+
+<1 id="opsterm-features-complete">🎯 OpsTerm Features — Complete</1>
 <p>This document explains <strong>all features</strong> available in OpsTerm, complete with usage examples and explanations.</p>
 <hr />
-<h2>📋 Feature Overview</h2>
+<2 id="feature-overview">📋 Feature Overview</2>
 <table>
 <thead>
 <tr>
@@ -195,7 +285,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 </tbody>
 </table>
 <hr />
-<h2>1️⃣ 🤖 AI Chat</h2>
+<2 id="1-ai-chat">1️⃣ 🤖 AI Chat</2>
 <p>Ask anything to AI directly from your terminal.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Ask for a shell command</span>
 ai<span class="w"> </span>find<span class="w"> </span>log<span class="w"> </span>files<span class="w"> </span>larger<span class="w"> </span>than<span class="w"> </span>1GB
@@ -221,7 +311,7 @@ ai<span class="w"> </span>how<span class="w"> </span>to<span class="w"> </span>c
 7. Detect <code>$</code> prefix → offer auto-exec</p>
 <p><strong>Provider support:</strong> DeepSeek, OpenAI, OpenRouter, Ollama, vLLM, or anything that is OpenAI-compatible.</p>
 <hr />
-<h2>2️⃣ 🔑 Smart SSH</h2>
+<2 id="2-smart-ssh">2️⃣ 🔑 Smart SSH</2>
 <p>SSH into servers without memorizing IP addresses.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Direct connect</span>
 ai<span class="w"> </span>ssh<span class="w"> </span>vps-main
@@ -251,7 +341,7 @@ ai<span class="w"> </span>servers<span class="w"> </span>list
 - <code>proxy</code> — jump host (see multi-hop feature)<br />
 - <code>desc</code> — description</p>
 <hr />
-<h2>3️⃣ 🔗 Multi-hop SSH</h2>
+<2 id="3-multi-hop-ssh">3️⃣ 🔗 Multi-hop SSH</2>
 <p>SSH into internal servers that are only accessible through a jump host / bastion.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Via CLI (per-call)</span>
 ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w"> </span>--via<span class="w"> </span>bastion
@@ -279,7 +369,7 @@ ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class=
 - Chains can be long: <code>ssh -J jump1,jump2 server</code><br />
 - Proxy servers are resolved from servers.yaml as well</p>
 <hr />
-<h2>4️⃣ 📁 SCP File Transfer</h2>
+<2 id="4-scp-file-transfer">4️⃣ 📁 SCP File Transfer</2>
 <p>Upload/download files between local and remote servers using <code>server:path</code> syntax.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Upload from local to server</span>
 ai<span class="w"> </span>scp<span class="w"> </span>./config.yaml<span class="w"> </span>vps-main:/home/ubuntu/
@@ -296,7 +386,7 @@ ai<span class="w"> </span>scp<span class="w"> </span>file.txt<span class="w"> </
 - Same as SSH: supports proxy jump, key file, custom port<br />
 - Uses the system <code>scp</code> command via subprocess</p>
 <hr />
-<h2>5️⃣ ⚡ Workflow</h2>
+<2 id="5-workflow">5️⃣ ⚡ Workflow</2>
 <p>Multi-step automation that runs several commands sequentially.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Run a workflow</span>
 ai<span class="w"> </span>run<span class="w"> </span>deploy-app
@@ -330,7 +420,7 @@ ai<span class="w"> </span>workflows<span class="w"> </span>list
 | <code>confirm</code> | <code>confirm: true</code> | Request user confirmation before proceeding |<br />
 | <code>wait</code> | <code>wait: &lt;seconds&gt;</code> | Wait for a specified number of seconds |</p>
 <hr />
-<h2>6️⃣ 🔐 Vault — Encrypted Credentials</h2>
+<2 id="6-vault-encrypted-credentials">6️⃣ 🔐 Vault — Encrypted Credentials</2>
 <p>Store credentials (API keys, passwords, tokens) in encrypted form.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Init vault (set master password)</span>
 ai<span class="w"> </span>vault<span class="w"> </span>init
@@ -359,7 +449,7 @@ ai<span class="w"> </span>vault<span class="w"> </span>lock
 - <strong>Fallback:</strong> if <code>cryptography</code> is not installed → HMAC + XOR (less secure)<br />
 - <strong>Storage:</strong> encrypted JSON at <code>~/.ai-workflows/vault.json</code></p>
 <hr />
-<h2>7️⃣ 🔗 Pipe Mode</h2>
+<2 id="7-pipe-mode">7️⃣ 🔗 Pipe Mode</2>
 <p>Send command output to AI for analysis.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Explain output</span>
 kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;are there any errors?&quot;</span>
@@ -378,7 +468,7 @@ df<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><spa
 3. Build prompt: "Output from command:\n<code>\n{stdin_data}\n</code>\nQuestion: {prompt}"<br />
 4. Send to AI → print response</p>
 <hr />
-<h2>8️⃣ 💻 Shell Integration (Zsh Plugin)</h2>
+<2 id="8-shell-integration-zsh-plugin">8️⃣ 💻 Shell Integration (Zsh Plugin)</2>
 <p>Integration with Zsh shell for viewing and explaining the last command's output.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Load in .zshrc</span>
 <span class="nb">source</span><span class="w"> </span>~/opsterm/zsh/opsterm.plugin.zsh
@@ -399,7 +489,7 @@ ai<span class="w"> </span>explain-last
 - Last command output is stored in <code>~/.ai-workflows/last_output.txt</code><br />
 - <code>ai explain-last</code> → reads file → sends to AI</p>
 <hr />
-<h2>9️⃣ ⌨️ Tab Completion</h2>
+<2 id="9-tab-completion">9️⃣ ⌨️ Tab Completion</2>
 <p>Auto-complete for bash and zsh — no need to memorize server/workflow names.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Bash</span>
 <span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>ai<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
@@ -423,7 +513,7 @@ ai<span class="w"> </span>explain-last
 | <code>ai vault [Tab]</code> | <code>init</code>, <code>set</code>, <code>get</code>, <code>list</code>, <code>rm</code>, <code>lock</code> |<br />
 | <code>ai --via [Tab]</code> | Proxy server names |</p>
 <hr />
-<h2>🔟 🛠️ Server Manager</h2>
+<2 id="server-manager">🔟 🛠️ Server Manager</2>
 <p>CRUD for servers — save, edit, and delete server configurations.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># List all servers (with PROXY column)</span>
 ai<span class="w"> </span>servers<span class="w"> </span>list
@@ -443,7 +533,7 @@ ai<span class="w"> </span>servers<span class="w"> </span>rm<span class="w"> </sp
 
 <p>Data stored in <code>~/.ai-workflows/servers.yaml</code>.</p>
 <hr />
-<h2>1️⃣1️⃣ 📋 Workflow Manager</h2>
+<2 id="1-1-workflow-manager">1️⃣1️⃣ 📋 Workflow Manager</2>
 <p>CRUD for workflows — save, edit, and delete workflows.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># List all workflows</span>
 ai<span class="w"> </span>workflows<span class="w"> </span>list
@@ -460,7 +550,7 @@ ai<span class="w"> </span>workflows<span class="w"> </span>rm<span class="w"> </
 
 <p>Data stored in <code>~/.ai-workflows/workflows.yaml</code>.</p>
 <hr />
-<h2>1️⃣2️⃣ ⚙️ Config Manager</h2>
+<2 id="1-2-config-manager">1️⃣2️⃣ ⚙️ Config Manager</2>
 <p>View and set OpsTerm configuration.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># View all config</span>
 ai<span class="w"> </span>config<span class="w"> </span>list
@@ -477,7 +567,7 @@ ai<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </sp
 
 <p>Data stored in <code>~/.ai-workflows/config.yaml</code>.</p>
 <hr />
-<h2>1️⃣3️⃣ 📖 History</h2>
+<2 id="1-3-history">1️⃣3️⃣ 📖 History</2>
 <p>History of all commands that have been run.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># View last 20 entries</span>
 ai<span class="w"> </span><span class="nb">history</span>
@@ -505,7 +595,7 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 | 🔐 | Vault |</p>
 <p>Data stored in SQLite: <code>~/.ai-workflows/history.db</code>.</p>
 <hr />
-<h2>1️⃣4️⃣ 🚀 Init</h2>
+<2 id="1-4-init">1️⃣4️⃣ 🚀 Init</2>
 <p>First-time setup — creates default configuration files.</p>
 <div class="codehilite"><pre><span></span><code>ai<span class="w"> </span>init
 </code></pre></div>
@@ -515,7 +605,7 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 - <code>~/.ai-workflows/servers.yaml</code> — example server config<br />
 - <code>~/.ai-workflows/workflows.yaml</code> — example workflow config</p>
 <hr />
-<h2>🎯 Use Case Matrix</h2>
+<2 id="use-case-matrix">🎯 Use Case Matrix</2>
 <table>
 <thead>
 <tr>
@@ -583,7 +673,7 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 </tbody>
 </table>
 <hr />
-<h2>🔜 Future Roadmap</h2>
+<2 id="future-roadmap">🔜 Future Roadmap</2>
 <ul>
 <li>[ ] <strong>Tmux/screen session manager</strong> — manage multi-sessions from OpsTerm</li>
 <li>[ ] <strong>Docker exec shortcut</strong> — <code>ai exec &lt;container&gt;</code> to jump directly into a container</li>
