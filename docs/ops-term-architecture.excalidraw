@@ -1,0 +1,797 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "hermes-agent",
+  "elements": [
+    {
+      "type": "rectangle",
+      "id": "bg-layer-ui",
+      "x": 60, "y": 60, "width": 1280, "height": 120,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "opacity": 20,
+      "strokeColor": "#a5d8ff",
+      "roughness": 0
+    },
+    {
+      "type": "rectangle",
+      "id": "bg-layer-router",
+      "x": 60, "y": 210, "width": 1280, "height": 80,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#d0bfff",
+      "fillStyle": "solid",
+      "opacity": 20,
+      "strokeColor": "#d0bfff",
+      "roughness": 0
+    },
+    {
+      "type": "rectangle",
+      "id": "bg-layer-engines",
+      "x": 60, "y": 320, "width": 1280, "height": 250,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "opacity": 20,
+      "strokeColor": "#b2f2bb",
+      "roughness": 0
+    },
+    {
+      "type": "rectangle",
+      "id": "bg-layer-data",
+      "x": 60, "y": 600, "width": 1280, "height": 90,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#fff3bf",
+      "fillStyle": "solid",
+      "opacity": 20,
+      "strokeColor": "#fff3bf",
+      "roughness": 0
+    },
+    {
+      "type": "rectangle",
+      "id": "bg-layer-external",
+      "x": 60, "y": 720, "width": 1280, "height": 110,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#ffd8a8",
+      "fillStyle": "solid",
+      "opacity": 20,
+      "strokeColor": "#ffd8a8",
+      "roughness": 0
+    },
+
+    {
+      "type": "text",
+      "id": "layer-label-ui",
+      "x": 80, "y": 70, "width": 200, "height": 20,
+      "text": "LAYER 1: USER INTERFACE",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1971c2",
+      "originalText": "LAYER 1: USER INTERFACE",
+      "autoResize": true
+    },
+    {
+      "type": "text",
+      "id": "layer-label-router",
+      "x": 80, "y": 220, "width": 200, "height": 20,
+      "text": "LAYER 2: COMMAND ROUTER",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#6741d9",
+      "originalText": "LAYER 2: COMMAND ROUTER",
+      "autoResize": true
+    },
+    {
+      "type": "text",
+      "id": "layer-label-engines",
+      "x": 80, "y": 330, "width": 200, "height": 20,
+      "text": "LAYER 3: ENGINES",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#2b8a3e",
+      "originalText": "LAYER 3: ENGINES",
+      "autoResize": true
+    },
+    {
+      "type": "text",
+      "id": "layer-label-data",
+      "x": 80, "y": 610, "width": 200, "height": 20,
+      "text": "LAYER 4: DATA & STATE",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#e67700",
+      "originalText": "LAYER 4: DATA & STATE",
+      "autoResize": true
+    },
+    {
+      "type": "text",
+      "id": "layer-label-external",
+      "x": 80, "y": 730, "width": 200, "height": 20,
+      "text": "LAYER 5: EXTERNAL SYSTEMS",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#c92a2a",
+      "originalText": "LAYER 5: EXTERNAL SYSTEMS",
+      "autoResize": true
+    },
+
+    {
+      "type": "text",
+      "id": "title",
+      "x": 420, "y": 15, "width": 560, "height": 30,
+      "text": "OpsTerm Architecture — System Design Overview",
+      "fontSize": 24,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "OpsTerm Architecture — System Design Overview",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-cli",
+      "x": 120, "y": 100, "width": 320, "height": 65,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeColor": "#1971c2",
+      "boundElements": [{ "id": "t-box-cli", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-cli",
+      "x": 125, "y": 107, "width": 310, "height": 50,
+      "text": "CLI Terminal\nein ai <command>",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-cli",
+      "originalText": "CLI Terminal\nein ai <command>",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-zsh",
+      "x": 540, "y": 100, "width": 320, "height": 65,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeColor": "#1971c2",
+      "boundElements": [{ "id": "t-box-zsh", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-zsh",
+      "x": 545, "y": 107, "width": 310, "height": 50,
+      "text": "Zsh Plugin\nein ai-last / ai-explain",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-zsh",
+      "originalText": "Zsh Plugin\nein ai-last / ai-explain",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-pipe",
+      "x": 960, "y": 100, "width": 320, "height": 65,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeColor": "#1971c2",
+      "boundElements": [{ "id": "t-box-pipe", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-pipe",
+      "x": 965, "y": 107, "width": 310, "height": 50,
+      "text": "Pipe Mode (stdin)\nein cmd | ai <prompt>",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-pipe",
+      "originalText": "Pipe Mode (stdin)\nein cmd | ai <prompt>",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-router",
+      "x": 400, "y": 235, "width": 600, "height": 45,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#d0bfff",
+      "fillStyle": "solid",
+      "strokeColor": "#6741d9",
+      "boundElements": [{ "id": "t-box-router", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-router",
+      "x": 405, "y": 240, "width": 590, "height": 35,
+      "text": "CLI Router (argparse) — route ke subcommand yang sesuai",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-router",
+      "originalText": "CLI Router (argparse) — route ke subcommand yang sesuai",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-ai-client",
+      "x": 80, "y": 365, "width": 280, "height": 85,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e",
+      "boundElements": [{ "id": "t-box-ai-client", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-ai-client",
+      "x": 85, "y": 372, "width": 270, "height": 70,
+      "text": "AI Client\nein urllib -> OpenAI API\nein Custom provider",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-ai-client",
+      "originalText": "AI Client\nein urllib -> OpenAI API\nein Custom provider",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-ssh",
+      "x": 390, "y": 365, "width": 280, "height": 85,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e",
+      "boundElements": [{ "id": "t-box-ssh", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-ssh",
+      "x": 395, "y": 372, "width": 270, "height": 70,
+      "text": "SSH Runner\nein subprocess + execvp\nein Multi-hop via -J",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-ssh",
+      "originalText": "SSH Runner\nein subprocess + execvp\nein Multi-hop via -J",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-scp",
+      "x": 700, "y": 365, "width": 280, "height": 85,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e",
+      "boundElements": [{ "id": "t-box-scp", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-scp",
+      "x": 705, "y": 372, "width": 270, "height": 70,
+      "text": "SCP Transfer\nein subprocess + scp\nein Server:path syntax",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-scp",
+      "originalText": "SCP Transfer\nein subprocess + scp\nein Server:path syntax",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-vault",
+      "x": 1010, "y": 365, "width": 280, "height": 85,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e",
+      "boundElements": [{ "id": "t-box-vault", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-vault",
+      "x": 1015, "y": 372, "width": 270, "height": 70,
+      "text": "Vault\nein AES-128 + PBKDF2\nein cryptography (optional)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-vault",
+      "originalText": "Vault\nein AES-128 + PBKDF2\nein cryptography (optional)",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-workflow",
+      "x": 250, "y": 480, "width": 900, "height": 70,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e",
+      "boundElements": [{ "id": "t-box-workflow", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-workflow",
+      "x": 255, "y": 487, "width": 890, "height": 55,
+      "text": "Workflow Executor — Orchestrate multi-step: SSH -> SCP -> Local -> Confirm -> Wait",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-workflow",
+      "originalText": "Workflow Executor — Orchestrate multi-step: SSH -> SCP -> Local -> Confirm -> Wait",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-config",
+      "x": 200, "y": 625, "width": 420, "height": 55,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#fff3bf",
+      "fillStyle": "solid",
+      "strokeColor": "#e67700",
+      "boundElements": [{ "id": "t-box-config", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-config",
+      "x": 205, "y": 630, "width": 410, "height": 45,
+      "text": "Config Loader — YAML parsing (config, servers, workflows)",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-config",
+      "originalText": "Config Loader — YAML parsing (config, servers, workflows)",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-history",
+      "x": 780, "y": 625, "width": 420, "height": 55,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#fff3bf",
+      "fillStyle": "solid",
+      "strokeColor": "#e67700",
+      "boundElements": [{ "id": "t-box-history", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-history",
+      "x": 785, "y": 630, "width": 410, "height": 45,
+      "text": "History — SQLite (mode, input, output, timestamp)",
+      "fontSize": 15,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-history",
+      "originalText": "History — SQLite (mode, input, output, timestamp)",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-ai-provider",
+      "x": 80, "y": 745, "width": 350, "height": 70,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#ffd8a8",
+      "fillStyle": "solid",
+      "strokeColor": "#c92a2a",
+      "boundElements": [{ "id": "t-box-ai-provider", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-ai-provider",
+      "x": 85, "y": 752, "width": 340, "height": 55,
+      "text": "AI Provider API\nein DeepSeek / OpenAI / Ollama / OpenRouter",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-ai-provider",
+      "originalText": "AI Provider API\nein DeepSeek / OpenAI / Ollama / OpenRouter",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-ssh-servers",
+      "x": 500, "y": 745, "width": 350, "height": 70,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#ffd8a8",
+      "fillStyle": "solid",
+      "strokeColor": "#c92a2a",
+      "boundElements": [{ "id": "t-box-ssh-servers", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-ssh-servers",
+      "x": 505, "y": 752, "width": 340, "height": 55,
+      "text": "SSH Servers\nein VPS / Cloud instances / Internal",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-ssh-servers",
+      "originalText": "SSH Servers\nein VPS / Cloud instances / Internal",
+      "autoResize": true
+    },
+
+    {
+      "type": "rectangle",
+      "id": "box-filesystem",
+      "x": 920, "y": 745, "width": 350, "height": 70,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#ffd8a8",
+      "fillStyle": "solid",
+      "strokeColor": "#c92a2a",
+      "boundElements": [{ "id": "t-box-filesystem", "type": "text" }]
+    },
+    {
+      "type": "text",
+      "id": "t-box-filesystem",
+      "x": 925, "y": 752, "width": 340, "height": 55,
+      "text": "Local Filesystem\nein ~/.ai-workflows/ (config, vault, history)",
+      "fontSize": 16,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "box-filesystem",
+      "originalText": "Local Filesystem\nein ~/.ai-workflows/ (config, vault, history)",
+      "autoResize": true
+    },
+
+    {
+      "type": "text",
+      "id": "legend-title",
+      "x": 100, "y": 870, "width": 200, "height": 20,
+      "text": "Legend:",
+      "fontSize": 18,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "Legend:",
+      "autoResize": true
+    },
+    {
+      "type": "rectangle",
+      "id": "legend-ui",
+      "x": 100, "y": 895, "width": 30, "height": 15,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#a5d8ff",
+      "fillStyle": "solid",
+      "strokeColor": "#1971c2"
+    },
+    {
+      "type": "text",
+      "id": "legend-ui-t",
+      "x": 140, "y": 892, "width": 120, "height": 20,
+      "text": "User Interface",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "User Interface",
+      "autoResize": true
+    },
+    {
+      "type": "rectangle",
+      "id": "legend-router",
+      "x": 320, "y": 895, "width": 30, "height": 15,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#d0bfff",
+      "fillStyle": "solid",
+      "strokeColor": "#6741d9"
+    },
+    {
+      "type": "text",
+      "id": "legend-router-t",
+      "x": 360, "y": 892, "width": 120, "height": 20,
+      "text": "Command Router",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "Command Router",
+      "autoResize": true
+    },
+    {
+      "type": "rectangle",
+      "id": "legend-engine",
+      "x": 540, "y": 895, "width": 30, "height": 15,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#b2f2bb",
+      "fillStyle": "solid",
+      "strokeColor": "#2b8a3e"
+    },
+    {
+      "type": "text",
+      "id": "legend-engine-t",
+      "x": 580, "y": 892, "width": 100, "height": 20,
+      "text": "Engine",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "Engine",
+      "autoResize": true
+    },
+    {
+      "type": "rectangle",
+      "id": "legend-data",
+      "x": 720, "y": 895, "width": 30, "height": 15,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#fff3bf",
+      "fillStyle": "solid",
+      "strokeColor": "#e67700"
+    },
+    {
+      "type": "text",
+      "id": "legend-data-t",
+      "x": 760, "y": 892, "width": 120, "height": 20,
+      "text": "Data & State",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "Data & State",
+      "autoResize": true
+    },
+    {
+      "type": "rectangle",
+      "id": "legend-ext",
+      "x": 920, "y": 895, "width": 30, "height": 15,
+      "roundness": { "type": 3 },
+      "backgroundColor": "#ffd8a8",
+      "fillStyle": "solid",
+      "strokeColor": "#c92a2a"
+    },
+    {
+      "type": "text",
+      "id": "legend-ext-t",
+      "x": 960, "y": 892, "width": 120, "height": 20,
+      "text": "External System",
+      "fontSize": 14,
+      "fontFamily": 1,
+      "strokeColor": "#1e1e1e",
+      "originalText": "External System",
+      "autoResize": true
+    },
+
+    {
+      "type": "text",
+      "id": "arrows-ref",
+      "x": 100, "y": 930, "width": 1100, "height": 50,
+      "text": "Arrows: Data flow direction. Solid = direct call. Layer 4 (Data & State) provides config/history to all engines above it.\nConfig is loaded fresh on each command. History is written after each command completes.",
+      "fontSize": 13,
+      "fontFamily": 1,
+      "strokeColor": "#757575",
+      "originalText": "Arrows: Data flow direction. Solid = direct call. Layer 4 (Data & State) provides config/history to all engines above it.\nConfig is loaded fresh on each command. History is written after each command completes.",
+      "autoResize": true
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-cli-router",
+      "x": 280, "y": 165, "width": 220, "height": 70,
+      "points": [[0,0],[220,70]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-cli", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-router", "fixedPoint": [0.3, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-zsh-router",
+      "x": 700, "y": 165, "width": 0, "height": 70,
+      "points": [[0,0],[0,70]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-zsh", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-router", "fixedPoint": [0.5, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-pipe-router",
+      "x": 1120, "y": 165, "width": -220, "height": 70,
+      "points": [[0,0],[-220,70]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-pipe", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-router", "fixedPoint": [0.7, 0] }
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-router-ai",
+      "x": 420, "y": 280, "width": -120, "height": 85,
+      "points": [[0,0],[-120,85]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-router", "fixedPoint": [0.1, 1] },
+      "endBinding": { "elementId": "box-ai-client", "fixedPoint": [0.5, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-router-ssh",
+      "x": 580, "y": 280, "width": -70, "height": 85,
+      "points": [[0,0],[-70,85]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-router", "fixedPoint": [0.4, 1] },
+      "endBinding": { "elementId": "box-ssh", "fixedPoint": [0.5, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-router-scp",
+      "x": 780, "y": 280, "width": 30, "height": 85,
+      "points": [[0,0],[30,85]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-router", "fixedPoint": [0.7, 1] },
+      "endBinding": { "elementId": "box-scp", "fixedPoint": [0.5, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-router-vault",
+      "x": 980, "y": 280, "width": 150, "height": 85,
+      "points": [[0,0],[150,85]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-router", "fixedPoint": [0.95, 1] },
+      "endBinding": { "elementId": "box-vault", "fixedPoint": [0.5, 0] }
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-router-workflow",
+      "x": 650, "y": 280, "width": 50, "height": 200,
+      "points": [[0,0],[50,200]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-router", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-workflow", "fixedPoint": [0.45, 0] }
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-ai-provider",
+      "x": 220, "y": 450, "width": 0, "height": 295,
+      "points": [[0,0],[0,295]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-ai-client", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-ai-provider", "fixedPoint": [0.4, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-ssh-servers",
+      "x": 530, "y": 450, "width": 0, "height": 295,
+      "points": [[0,0],[0,295]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-ssh", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-ssh-servers", "fixedPoint": [0.4, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-scp-servers",
+      "x": 840, "y": 450, "width": -140, "height": 295,
+      "points": [[0,0],[-140,295]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-scp", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-ssh-servers", "fixedPoint": [0.7, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-vault-fs",
+      "x": 1150, "y": 450, "width": -80, "height": 295,
+      "points": [[0,0],[-80,295]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#1e1e1e",
+      "startBinding": { "elementId": "box-vault", "fixedPoint": [0.5, 1] },
+      "endBinding": { "elementId": "box-filesystem", "fixedPoint": [0.3, 0] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-workflow-ssh",
+      "x": 400, "y": 480, "width": 30, "height": 5,
+      "points": [[0,0],[30,-5]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#868e96",
+      "startBinding": { "elementId": "box-workflow", "fixedPoint": [0.17, 0] },
+      "endBinding": { "elementId": "box-ssh", "fixedPoint": [0.08, 1] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-workflow-scp",
+      "x": 780, "y": 480, "width": -30, "height": -5,
+      "points": [[0,0],[-30,-5]],
+      "endArrowhead": "arrow",
+      "strokeColor": "#868e96",
+      "startBinding": { "elementId": "box-workflow", "fixedPoint": [0.59, 0] },
+      "endBinding": { "elementId": "box-scp", "fixedPoint": [0.55, 1] }
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-config-ai",
+      "x": 310, "y": 625, "width": -50, "height": -260,
+      "points": [[0,0],[-50,-260]],
+      "endArrowhead": "arrow",
+      "strokeStyle": "dashed",
+      "strokeColor": "#e67700",
+      "startBinding": { "elementId": "box-config", "fixedPoint": [0.4, 0] },
+      "endBinding": { "elementId": "box-ai-client", "fixedPoint": [0.6, 1] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-config-ssh",
+      "x": 450, "y": 625, "width": 60, "height": -260,
+      "points": [[0,0],[60,-260]],
+      "endArrowhead": "arrow",
+      "strokeStyle": "dashed",
+      "strokeColor": "#e67700",
+      "startBinding": { "elementId": "box-config", "fixedPoint": [0.6, 0] },
+      "endBinding": { "elementId": "box-ssh", "fixedPoint": [0.3, 1] }
+    },
+    {
+      "type": "arrow",
+      "id": "arrow-config-workflow",
+      "x": 500, "y": 625, "width": 190, "height": -145,
+      "points": [[0,0],[190,-145]],
+      "endArrowhead": "arrow",
+      "strokeStyle": "dashed",
+      "strokeColor": "#e67700",
+      "startBinding": { "elementId": "box-config", "fixedPoint": [0.72, 0] },
+      "endBinding": { "elementId": "box-workflow", "fixedPoint": [0.2, 1] }
+    },
+
+    {
+      "type": "arrow",
+      "id": "arrow-history-ai",
+      "x": 900, "y": 625, "width": -590, "height": -260,
+      "points": [[0,0],[-590,-260]],
+      "endArrowhead": "arrow",
+      "strokeStyle": "dashed",
+      "strokeColor": "#e67700",
+      "startBinding": { "elementId": "box-history", "fixedPoint": [0.4, 0] },
+      "endBinding": { "elementId": "box-ai-client", "fixedPoint": [0.9, 1] }
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  }
+}
