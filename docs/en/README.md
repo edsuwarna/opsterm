@@ -8,12 +8,12 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 
 | Document | Description | Also available in |
 |----------|-------------|-------------------|
-| [📐 Architecture & System Design](architecture.md) | **How OpsTerm works** — the flow from user typing a command to execution | [🇮🇩 Bahasa Indonesia](architecture.id.md) |
-| [🔧 Tech Stack](tech-stack.md) | **Technologies used** — languages, libraries, protocols, formats | [🇮🇩 Bahasa Indonesia](tech-stack.id.md) |
-| [🤔 Design Decisions](design-decisions.md) | **Why it's designed this way** — rationale behind every technical decision | [🇮🇩 Bahasa Indonesia](design-decisions.id.md) |
-| [🎯 Features](features.md) | **All features** — complete list with usage examples and use-case matrix | [🇮🇩 Bahasa Indonesia](features.id.md) |
-| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Excalidraw diagram** — open at [excalidraw.com](https://excalidraw.com) | — |
-| [🖼️ Architecture Diagram (PNG)](ops-term-architecture.png) | **Image version** — view directly without opening Excalidraw | — |
+| [📐 Architecture & System Design](architecture.md) | **How OpsTerm works** — the flow from user typing a command to execution | [🇮🇩 Bahasa Indonesia](../id/architecture.md) |
+| [🔧 Tech Stack](tech-stack.md) | **Technologies used** — languages, libraries, protocols, formats | [🇮🇩 Bahasa Indonesia](../id/tech-stack.md) |
+| [🤔 Design Decisions](design-decisions.md) | **Why it's designed this way** — rationale behind every technical decision | [🇮🇩 Bahasa Indonesia](../id/design-decisions.md) |
+| [🎯 Features](features.md) | **All features** — complete list with usage examples and use-case matrix | [🇮🇩 Bahasa Indonesia](../id/features.md) |
+| [📊 Architecture Diagram](../ops-term-architecture.excalidraw) | **Excalidraw diagram** — open at [excalidraw.com](https://excalidraw.com) | — |
+| [🖼️ Architecture Diagram (PNG)](../ops-term-architecture.png) | **Image version** — view directly without opening Excalidraw | — |
 
 ---
 
@@ -60,16 +60,18 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ├── zsh/
 │   └── opsterm.plugin.zsh    ← Zsh shell integration plugin
 ├── docs/                     ← This documentation
-│   ├── README.md             ← Documentation index (English)
-│   ├── README.id.md          ← Documentation index (Indonesian)
-│   ├── architecture.md       ← Architecture & system design (English)
-│   ├── architecture.id.md    ← Architecture & system design (Indonesian)
-│   ├── tech-stack.md         ← Tech stack details (English)
-│   ├── tech-stack.id.md      ← Tech stack details (Indonesian)
-│   ├── design-decisions.md   ← Design rationale (English)
-│   ├── design-decisions.id.md← Design rationale (Indonesian)
-│   ├── features.md           ← All features (English)
-│   ├── features.id.md        ← All features (Indonesian)
+│   ├── en/                   ← English documentation
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Architecture & system design
+│   │   ├── tech-stack.md     ← Tech stack details
+│   │   ├── design-decisions.md← Design rationale
+│   │   └── features.md       ← All features
+│   ├── id/                   ← Indonesian documentation
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Arsitektur & system design
+│   │   ├── tech-stack.md     ← Tech stack
+│   │   ├── design-decisions.md← Design decisions
+│   │   └── features.md       ← Fitur lengkap
 │   ├── ops-term-architecture.excalidraw ← Excalidraw diagram
 │   └── ops-term-architecture.png        ← PNG architecture diagram
 ├── setup.sh                  ← Install script
@@ -106,7 +108,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 1. [📐 Architecture & System Design](architecture.md) — understand the workflow flow
 2. [🔧 Tech Stack](tech-stack.md) — technologies used
 3. [🤔 Design Decisions](design-decisions.md) — why these choices were made
-4. [📊 Architecture Diagram](ops-term-architecture.excalidraw) — visual overview (open at excalidraw.com)
+4. [📊 Architecture Diagram](../ops-term-architecture.excalidraw) — visual overview (open at excalidraw.com)
 
 ---
 
