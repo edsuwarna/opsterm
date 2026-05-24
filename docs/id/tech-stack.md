@@ -261,4 +261,4 @@ ai-ti() {
 
 ---
 
-Selanjutnya: [🤔 Design Decisions →](design-decisions.id.md)
+Selanjutnya: [🤔 Design Decisions →](design-decisions.md)

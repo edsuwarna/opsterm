@@ -8,12 +8,12 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 
 | Dokumen | Deskripsi | Juga tersedia dalam |
 |---------|-----------|---------------------|
-| [📐 Arsitektur & System Design](architecture.id.md) | **Cara kerja OpsTerm** — alur dari user ngetik command sampai eksekusi | [🇬🇧 English](architecture.md) |
-| [🔧 Tech Stack](tech-stack.id.md) | **Teknologi yang dipake** — bahasa, library, protocol, format | [🇬🇧 English](tech-stack.md) |
-| [🤔 Design Decisions](design-decisions.id.md) | **Kenapa dirancang seperti ini** — alasan di balik setiap keputusan teknis | [🇬🇧 English](design-decisions.md) |
-| [🎯 Fitur Lengkap](features.id.md) | **Semua fitur** — daftar lengkap + contoh penggunaan + use case matrix | [🇬🇧 English](features.md) |
-| [📊 Architecture Diagram](ops-term-architecture.excalidraw) | **Diagram Excalidraw** — buka di [excalidraw.com](https://excalidraw.com) | — |
-| [🖼️ Architecture Diagram (PNG)](ops-term-architecture.png) | **Diagram versi gambar** — langsung liat | — |
+| [📐 Arsitektur & System Design](architecture.md) | **Cara kerja OpsTerm** — alur dari user ngetik command sampai eksekusi | [🇬🇧 English](../en/architecture.md) |
+| [🔧 Tech Stack](tech-stack.md) | **Teknologi yang dipake** — bahasa, library, protocol, format | [🇬🇧 English](../en/tech-stack.md) |
+| [🤔 Design Decisions](design-decisions.md) | **Kenapa dirancang seperti ini** — alasan di balik setiap keputusan teknis | [🇬🇧 English](../en/design-decisions.md) |
+| [🎯 Fitur Lengkap](features.md) | **Semua fitur** — daftar lengkap + contoh penggunaan + use case matrix | [🇬🇧 English](../en/features.md) |
+| [📊 Architecture Diagram](../ops-term-architecture.excalidraw) | **Diagram Excalidraw** — buka di [excalidraw.com](https://excalidraw.com) | — |
+| [🖼️ Architecture Diagram (PNG)](../ops-term-architecture.png) | **Diagram versi gambar** — langsung liat | — |
 
 ---
 
@@ -60,11 +60,20 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 ├── zsh/
 │   └── opsterm.plugin.zsh    ← Zsh shell integration plugin
 ├── docs/                     ← Dokumentasi ini
-│   ├── README.md             ← Index dokumentasi
-│   ├── architecture.md       ← Arsitektur & system design
-│   ├── tech-stack.md         ← Tech stack detail
-│   ├── design-decisions.md   ← Design rationale
-│   └── ops-term-architecture.excalidraw ← Diagram Excalidraw
+│   ├── en/                   ← Dokumentasi English
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Architecture & system design
+│   │   ├── tech-stack.md     ← Tech stack details
+│   │   ├── design-decisions.md← Design rationale
+│   │   └── features.md       ← All features
+│   ├── id/                   ← Dokumentasi Indonesia
+│   │   ├── README.md         ← Index
+│   │   ├── architecture.md   ← Arsitektur & system design
+│   │   ├── tech-stack.md     ← Tech stack
+│   │   ├── design-decisions.md← Design decisions
+│   │   └── features.md       ← Fitur lengkap
+│   ├── ops-term-architecture.excalidraw ← Diagram Excalidraw
+│   └── ops-term-architecture.png        ← Diagram versi gambar
 ├── setup.sh                  ← Install script
 ├── README.md                 ← English README
 ├── README.id.md              ← Indonesian README
@@ -96,11 +105,11 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 
 ## 🎯 Recommended Reading Order
 
-1. [📐 Arsitektur & System Design](architecture.id.md) — paham alur kerja
-2. [🔧 Tech Stack](tech-stack.id.md) — teknologi yang dipake
-3. [🤔 Design Decisions](design-decisions.id.md) — kenapa milih ini
-4. [📊 Architecture Diagram](ops-term-architecture.excalidraw) — visual overview (buka di excalidraw.com)
+1. [📐 Arsitektur & System Design](architecture.md) — paham alur kerja
+2. [🔧 Tech Stack](tech-stack.md) — teknologi yang dipake
+3. [🤔 Design Decisions](design-decisions.md) — kenapa milih ini
+4. [📊 Architecture Diagram](../ops-term-architecture.excalidraw) — visual overview (buka di excalidraw.com)
 
 ---
 
-Selanjutnya: [📐 Arsitektur & System Design →](architecture.id.md)
+Selanjutnya: [📐 Arsitektur & System Design →](architecture.md)

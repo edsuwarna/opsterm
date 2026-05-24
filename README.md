@@ -319,6 +319,6 @@ MIT
 
 Untuk penjelasan detail tentang arsitektur, tech stack, dan design decisions:
 
-👉 [docs/](docs/README.md) — 📐 Arsitektur | 🔧 Tech Stack | 🤔 Design Decisions | 🎯 Fitur | 📊 Diagram
+👉 [docs/](docs/en/README.md) — 📐 Architecture | 🔧 Tech Stack | 🤔 Design Decisions | 🎯 Features | 📊 Diagram
 
 🖼️ **Architecture Diagram:** [docs/ops-term-architecture.png](docs/ops-term-architecture.png)

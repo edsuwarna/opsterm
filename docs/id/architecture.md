@@ -344,4 +344,4 @@ if result.returncode != 0:
 
 ---
 
-Selanjutnya: [🔧 Tech Stack →](tech-stack.id.md)
+Selanjutnya: [🔧 Tech Stack →](tech-stack.md)
