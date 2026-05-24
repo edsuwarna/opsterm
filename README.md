@@ -1,6 +1,6 @@
 # 🚀 OpsTerm — AI Terminal Assistant
 
-**OpsTerm** adalah AI terminal assistant lokal yang nempel di terminal laptop lu. 
+**OpsTerm** adalah AI terminal assistant lokal yang nempel di terminal laptop lu.
 Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di **terminal lokal**, bukan di server remote.
 
 > Mirip Warp.dev tapi **bebas pake custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, dll)
@@ -11,11 +11,15 @@ Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di
 
 | Fitur | Command | Description |
 |-------|---------|-------------|
-| 🤖 **AI Chat** | `ai how to check disk usage` | Tanya AI apa aja |
+| 🤖 **AI Chat** | `ai how to check disk` | Tanya AI apa aja |
 | 🔑 **Smart SSH** | `ai ssh vps-utama` | SSH tanpa hafal IP |
-| ⚡ **Workflow** | `ai run deploy-app` | Multi-step workflow otomatis |
-| 🔗 **Pipe Mode** | `docker ps \| ai "ada error?"` | Explain output command |
-| 💾 **Saved Servers** | `ai servers add` | Simpan config server |
+| 🔗 **Multi-hop SSH** | `ai ssh internal --via bastion` | SSH lewat jump host |
+| 📁 **SCP File Transfer** | `ai scp file.txt server:/path` | Upload/download via server |
+| ⚡ **Workflow** | `ai run deploy-app` | Multi-step auto (SSH/SCP/local) |
+| 🔐 **Vault** | `ai vault set db_pass` | Encrypted credentials (AES-128) |
+| 🔗 **Pipe Mode** | `docker ps \| ai "error?"` | Explain output command |
+| 💻 **Shell Integration** | `ai explain-last` | Explain output command sebelumnya |
+| ⌨️ **Tab Completion** | `source <(ai completion bash)` | Auto-complete nama server/workflow |
 | 📋 **History** | `ai history` | Riwayat semua command |
 | 🛠️ **Custom Provider** | `ai config set ai.model gpt-4` | Bebas pilih AI |
 
@@ -47,7 +51,19 @@ ai config set ai.api_key "sk-..."
 ai servers add
 ```
 
-### 4. Coba!
+Atau edit langsung file: `~/.ai-workflows/servers.yaml`
+
+### 4. Set Tab Completion (opsional)
+
+```bash
+# Bash
+echo 'source <(ai completion bash)' >> ~/.bashrc
+
+# Zsh
+echo 'source <(ai completion zsh)' >> ~/.zshrc
+```
+
+### 5. Coba!
 
 ```bash
 ai ssh vps-utama          # SSH tanpa hafal IP
@@ -73,35 +89,105 @@ ai explain what is kubernetes
 ai buat docker compose untuk nginx + postgres
 ```
 
-### 🔑 SSH ke Server
+### 🔑 SSH — Multi-hop Support
 ```bash
-ai ssh vps-utama          # Connect ke VPS utama
-ai ssh vps                # Fuzzy match — cukup "vps"
+ai ssh vps-utama                        # Direct SSH
+ai ssh internal-server --via bastion    # SSH via jump host
+ai ssh vps                              # Fuzzy match
 ```
 
-### ⚡ Workflow
+Proxy jump host bisa di-set permanent di config server:
+```yaml
+servers:
+  internal-server:
+    host: "10.0.0.5"
+    user: "ubuntu"
+    key: "~/.ssh/id_ed25519"
+    proxy: "bastion"        # Lewat server "bastion" dulu
+```
+
+### 📁 SCP File Transfer
 ```bash
-# Jalanin workflow tersimpan
-ai run deploy-app
+# Upload file ke server
+ai scp ./config.yaml vps-utama:/home/ubuntu/
 
-# Lihat daftar workflow
-ai workflows list
+# Download file dari server
+ai scp vps-utama:logs/app.log .
 
-# Tambah workflow baru
-ai workflows add
+# Lewat jump host
+ai scp file.txt internal-server:/tmp/ --via bastion
+```
+
+### ⚡ Workflow dengan SCP
+```yaml
+workflows:
+  deploy-full:
+    desc: "Upload config + deploy"
+    steps:
+      - scp: "deploy/config.yaml"
+        to: "/opt/app/config.yaml"
+        ssh: vps-utama
+        desc: "Upload config"
+      - ssh: vps-utama
+        command: "cd /opt/app && docker compose restart"
+        desc: "Restart container"
+```
+
+### 🔐 Vault — Encrypted Credentials
+```bash
+# Init vault (set master password)
+ai vault init
+
+# Simpan credential
+ai vault set db_password "supersecret"
+ai vault set api_key "sk-..."
+
+# Ambil credential
+ai vault get db_password    # Output: supersecret
+
+# List keys
+ai vault list
+
+# Hapus key
+ai vault rm db_password
+
+# Lock vault
+ai vault lock
+```
+
+Bisa pake env var biar ga perlu input password tiap kali:
+```bash
+export OPSTERM_VAULT_PASSWORD='master-password'
 ```
 
 ### 🔗 Pipe Mode
 ```bash
-# Kirim output command ke AI
 kubectl get pods | ai "ada yang error?"
 docker logs webapp --tail 50 | ai "analisa error ini"
 free -h | ai "apakah memory cukup?"
+netstat -tlnp | ai "port apa aja yang terbuka?"
+```
+
+### 💻 Shell Integration (Zsh Plugin)
+```bash
+# Load plugin di .zshrc
+source ~/opsterm/zsh/opsterm.plugin.zsh
+
+# Fitur:
+ai last               # Lihat output command terakhir
+ai explain-last       # Explain output pake AI
+```
+
+### ⌨️ Tab Completion
+```bash
+ai [Tab]        # List subcommands
+ai ssh [Tab]    # List server names
+ai run [Tab]    # List workflow names
 ```
 
 ### 🛠️ Manajemen Server
 ```bash
-ai servers list           # Lihat semua server
+ai servers list           # Lihat semua server (dengan kolom PROXY)
 ai servers add            # Tambah server baru
 ai servers edit vps       # Edit server
 ai servers rm vps         # Hapus server
@@ -124,34 +210,43 @@ Config disimpan di `~/.ai-workflows/`:
 ```
 ~/.ai-workflows/
 ├── config.yaml       # AI provider & shell settings
-├── servers.yaml      # Daftar server
-├── workflows.yaml    # Daftar workflow
-└── history.db        # Riwayat (SQLite, auto)
+├── servers.yaml      # Daftar server (+ proxy jump)
+├── workflows.yaml    # Daftar workflow (SSH/SCP/local)
+├── vault.json        # Encrypted credentials (AES-128)
+├── history.db        # Riwayat (SQLite, auto)
+├── last_output.txt   # Output command terakhir
+└── last_command.txt  # Command terakhir
 ```
 
-Atau bisa di-override dengan env var:
+Env vars:
 ```bash
-export OPSTERM_DIR="/path/to/custom/config"
-export OPSTERM_API_KEY="sk-..."
+export OPSTERM_DIR="/path/to/custom/config"   # Override config dir
+export OPSTERM_API_KEY="sk-..."                # AI API key
+export OPSTERM_VAULT_PASSWORD="..."            # Vault master password
 ```
 
 ---
 
 ## 🧪 Example Workflows
 
-### deploy-app
+### deploy-full — Full deployment with file transfer
 ```yaml
 workflows:
-  deploy-app:
-    desc: "Deploy ke VPS utama"
+  deploy-full:
+    desc: "Upload config + pull + restart"
     steps:
+      - scp: "./docker-compose.yml"
+        to: "/home/ubuntu/app/docker-compose.yml"
+        ssh: vps-utama
+        desc: "Upload compose file"
       - ssh: vps-utama
-        command: "cd /home/ubuntu/app && git pull && docker compose restart"
-        desc: "Pull & restart"
+        command: "cd /home/ubuntu/app && docker compose pull && docker compose up -d"
+        desc: "Pull images & restart"
       - command: "echo '✅ Deploy selesai!'"
+        desc: "Notifikasi"
 ```
 
-### cek-server
+### cek-server — Quick health check
 ```yaml
   cek-server:
     desc: "Cek status server"
@@ -160,8 +255,19 @@ workflows:
         command: |
           echo "=== UPTIME ===" && uptime
           echo "=== DISK ===" && df -h /
+          echo "=== MEMORY ===" && free -h
           echo "=== DOCKER ===" && docker ps
         desc: "System check"
+```
+
+### multi-hop-deploy — Deploy via bastion
+```yaml
+  internal-deploy:
+    desc: "Deploy ke internal server lewat bastion"
+    steps:
+      - ssh: internal-server
+        command: "cd /opt/app && git pull && systemctl restart app"
+        desc: "Restart app"
 ```
 
 ---
@@ -170,15 +276,17 @@ workflows:
 
 - [x] AI chat dengan custom provider
 - [x] Smart SSH connector
-- [x] Saved workflows
+- [x] Saved workflows (SSH/local/SCP)
 - [x] Pipe mode
 - [x] History & riwayat
-- [ ] Tab completion untuk server/workflow names
-- [ ] AI-aware shell integration (zsh plugin)
-- [ ] Multi-hop SSH (SSH lewat jump host)
-- [ ] SCP/file transfer via workflow
+- [x] Tab completion (bash + zsh)
+- [x] Shell integration (zsh plugin)
+- [x] Multi-hop SSH (jump host)
+- [x] SCP/file transfer via workflow
+- [x] Vault encrypted credentials (AES-128 + PBKDF2)
 - [ ] Tmux/screen session manager
-- [ ] Vault/encrypted credentials
+- [ ] Docker exec shortcut (`ai exec <container>`)
+- [ ] SSH config parser (import from ~/.ssh/config)
 
 ---
 
