@@ -27,49 +27,66 @@ Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di
 
 ## ⚡ Installasi
 
-### 1. Clone & Setup
+### 🐧 Linux
 
 ```bash
+# 1. Clone repo
 git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
 cd ~/opsterm
+
+# 2. Setup (bikin symlink + init config)
 ./setup.sh
-```
 
-### 2. Set API Key
-
-```bash
-# Export key (recommended — ga ke-track git)
+# 3. Set API key
 export OPSTERM_API_KEY='sk-deepseek-...'
 
-# Atau langsung di config
-ai config set ai.api_key "sk-..."
-```
-
-### 3. Tambah Server Pertama
-
-```bash
-ai servers add
-```
-
-Atau edit langsung file: `~/.ai-workflows/servers.yaml`
-
-### 4. Set Tab Completion (opsional)
-
-```bash
-# Bash
+# 4. Tab completion (bash)
 echo 'source <(ai completion bash)' >> ~/.bashrc
+source ~/.bashrc
 
-# Zsh
-echo 'source <(ai completion zsh)' >> ~/.zshrc
+# 5. Coba
+ai --help
 ```
 
-### 5. Coba!
+### 🍎 macOS
 
 ```bash
-ai ssh vps-utama          # SSH tanpa hafal IP
-ai "how to check disk"    # Tanya AI
-ai run cek-server         # Workflow cek server
-docker ps | ai explain    # Pipe output ke AI
+# 1. Clone repo
+git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
+cd ~/opsterm
+
+# 2. Setup (bikin symlink + init config)
+./setup.sh
+
+# 3. Set API key
+export OPSTERM_API_KEY='sk-deepseek-...'
+
+# 4. Tab completion — karena macOS default pakai Zsh
+echo 'source <(ai completion zsh)' >> ~/.zshrc
+source ~/.zshrc
+
+# 5. Zsh plugin (opsional — buat ai-last, ai-explain)
+echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
+
+# 6. Coba
+ai --help
+```
+
+> **Catatan macOS**: Pastikan Python 3 tersedia (`python3 --version`).
+> macOS Ventura/Sonoma/Sequoia sudah include Python 3.
+> Jika belum ada: `brew install python@3`
+
+### ⚙️ Setelah Install (Linux & macOS)
+
+```bash
+# Set API key permanen di ~/.bashrc atau ~/.zshrc
+echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
+
+# Tambah server pertama
+ai servers add
+
+# Atau langsung edit file config
+nano ~/.ai-workflows/servers.yaml
 ```
 
 ---
