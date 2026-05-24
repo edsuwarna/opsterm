@@ -1,5 +1,7 @@
 # 🚀 OpsTerm — AI Terminal Assistant
 
+> 🌍 [README.id.md](README.id.md) — Baca versi Bahasa Indonesia
+
 **OpsTerm** is a local AI terminal assistant that lives in your terminal.
 SSH into any server without losing AI access — because the AI runs on your **local terminal**, not on the remote server.
 
