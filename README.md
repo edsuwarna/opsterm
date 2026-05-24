@@ -1,31 +1,31 @@
 # 🚀 OpsTerm — AI Terminal Assistant
 
-**OpsTerm** adalah AI terminal assistant lokal yang nempel di terminal laptop lu.
-Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di **terminal lokal**, bukan di server remote.
+**OpsTerm** is a local AI terminal assistant that lives in your terminal.
+SSH into any server without losing AI access — because the AI runs on your **local terminal**, not on the remote server.
 
-> Mirip Warp.dev tapi **bebas pake custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, dll)
+> Think Warp.dev but **free to use any custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, etc.)
 
 ---
 
-## ✨ Fitur
+## ✨ Features
 
-| Fitur | Command | Description |
-|-------|---------|-------------|
-| 🤖 **AI Chat** | `ai how to check disk` | Tanya AI apa aja |
-| 🔑 **Smart SSH** | `ai ssh vps-utama` | SSH tanpa hafal IP |
-| 🔗 **Multi-hop SSH** | `ai ssh internal --via bastion` | SSH lewat jump host |
+| Feature | Command | Description |
+|---------|---------|-------------|
+| 🤖 **AI Chat** | `ai how to check disk` | Ask AI anything |
+| 🔑 **Smart SSH** | `ai ssh vps-utama` | SSH without remembering IPs |
+| 🔗 **Multi-hop SSH** | `ai ssh internal --via bastion` | SSH through jump host |
 | 📁 **SCP File Transfer** | `ai scp file.txt server:/path` | Upload/download via server |
-| ⚡ **Workflow** | `ai run deploy-app` | Multi-step auto (SSH/SCP/local) |
+| ⚡ **Workflow** | `ai run deploy-app` | Multi-step automation (SSH/SCP/local) |
 | 🔐 **Vault** | `ai vault set db_pass` | Encrypted credentials (AES-128) |
-| 🔗 **Pipe Mode** | `docker ps \| ai "error?"` | Explain output command |
-| 💻 **Shell Integration** | `ai explain-last` | Explain output command sebelumnya |
-| ⌨️ **Tab Completion** | `source <(ai completion bash)` | Auto-complete nama server/workflow |
-| 📋 **History** | `ai history` | Riwayat semua command |
-| 🛠️ **Custom Provider** | `ai config set ai.model gpt-4` | Bebas pilih AI |
+| 🔗 **Pipe Mode** | `docker ps \| ai "any errors?"` | Explain command output with AI |
+| 💻 **Shell Integration** | `ai explain-last` | Explain previous command output |
+| ⌨️ **Tab Completion** | `source <(ai completion bash)` | Auto-complete servers/workflows |
+| 📋 **History** | `ai history` | Command history |
+| 🛠️ **Custom Provider** | `ai config set ai.model gpt-4` | Choose any AI provider |
 
 ---
 
-## ⚡ Installasi
+## ⚡ Installation
 
 ### 🐧 Linux
 
@@ -34,7 +34,7 @@ Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di
 git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
 cd ~/opsterm
 
-# 2. Setup (bikin symlink + init config)
+# 2. Setup (creates symlink + init config)
 ./setup.sh
 
 # 3. Set API key
@@ -44,7 +44,7 @@ export OPSTERM_API_KEY='sk-deepseek-...'
 echo 'source <(ai completion bash)' >> ~/.bashrc
 source ~/.bashrc
 
-# 5. Coba
+# 5. Try it
 ai --help
 ```
 
@@ -55,37 +55,37 @@ ai --help
 git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
 cd ~/opsterm
 
-# 2. Setup (bikin symlink + init config)
+# 2. Setup (creates symlink + init config)
 ./setup.sh
 
 # 3. Set API key
 export OPSTERM_API_KEY='sk-deepseek-...'
 
-# 4. Tab completion — karena macOS default pakai Zsh
+# 4. Tab completion — macOS uses Zsh by default
 echo 'source <(ai completion zsh)' >> ~/.zshrc
 source ~/.zshrc
 
-# 5. Zsh plugin (opsional — buat ai-last, ai-explain)
+# 5. Zsh plugin (optional — for ai-last, ai-explain)
 echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
 
-# 6. Coba
+# 6. Try it
 ai --help
 ```
 
-> **Catatan macOS**: Pastikan Python 3 tersedia (`python3 --version`).
-> macOS Ventura/Sonoma/Sequoia sudah include Python 3.
-> Jika belum ada: `brew install python@3`
+> **macOS Note**: Make sure Python 3 is available (`python3 --version`).
+> macOS Ventura/Sonoma/Sequoia ships with Python 3 built-in.
+> If missing: `brew install python@3`
 
-### ⚙️ Setelah Install (Linux & macOS)
+### ⚙️ Post-Install (Linux & macOS)
 
 ```bash
-# Set API key permanen di ~/.bashrc atau ~/.zshrc
+# Set API key permanently in ~/.bashrc or ~/.zshrc
 echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
 
-# Tambah server pertama
+# Add your first server
 ai servers add
 
-# Atau langsung edit file config
+# Or edit the config file directly
 nano ~/.ai-workflows/servers.yaml
 ```
 
@@ -95,47 +95,47 @@ nano ~/.ai-workflows/servers.yaml
 
 ### 🤖 AI Mode (Default)
 ```bash
-# Tanya command
-ai cari file log lebih dari 1GB
+# Ask for a command
+ai find log files larger than 1GB
 # → $ find /var/log -type f -size +1G
 
-# Minta explain
+# Ask for an explanation
 ai explain what is kubernetes
 
-# Generate command
-ai buat docker compose untuk nginx + postgres
+# Generate a command
+ai create docker compose for nginx + postgres
 ```
 
 ### 🔑 SSH — Multi-hop Support
 ```bash
 ai ssh vps-utama                        # Direct SSH
 ai ssh internal-server --via bastion    # SSH via jump host
-ai ssh vps                              # Fuzzy match
+ai ssh vps                              # Fuzzy match — just "vps" is enough
 ```
 
-Proxy jump host bisa di-set permanent di config server:
+You can set a permanent jump host in the server config:
 ```yaml
 servers:
   internal-server:
     host: "10.0.0.5"
     user: "ubuntu"
     key: "~/.ssh/id_ed25519"
-    proxy: "bastion"        # Lewat server "bastion" dulu
+    proxy: "bastion"        # Route through "bastion" server
 ```
 
 ### 📁 SCP File Transfer
 ```bash
-# Upload file ke server
+# Upload file to server
 ai scp ./config.yaml vps-utama:/home/ubuntu/
 
-# Download file dari server
+# Download file from server
 ai scp vps-utama:logs/app.log .
 
-# Lewat jump host
+# Through jump host
 ai scp file.txt internal-server:/tmp/ --via bastion
 ```
 
-### ⚡ Workflow dengan SCP
+### ⚡ Workflow with SCP
 ```yaml
 workflows:
   deploy-full:
@@ -155,44 +155,44 @@ workflows:
 # Init vault (set master password)
 ai vault init
 
-# Simpan credential
+# Store credentials
 ai vault set db_password "supersecret"
 ai vault set api_key "sk-..."
 
-# Ambil credential
+# Retrieve credentials
 ai vault get db_password    # Output: supersecret
 
 # List keys
 ai vault list
 
-# Hapus key
+# Delete key
 ai vault rm db_password
 
 # Lock vault
 ai vault lock
 ```
 
-Bisa pake env var biar ga perlu input password tiap kali:
+Use env var to avoid re-entering password:
 ```bash
 export OPSTERM_VAULT_PASSWORD='master-password'
 ```
 
 ### 🔗 Pipe Mode
 ```bash
-kubectl get pods | ai "ada yang error?"
-docker logs webapp --tail 50 | ai "analisa error ini"
-free -h | ai "apakah memory cukup?"
-netstat -tlnp | ai "port apa aja yang terbuka?"
+kubectl get pods | ai "any errors?"
+docker logs webapp --tail 50 | ai "analyze these errors"
+free -h | ai "is memory sufficient?"
+netstat -tlnp | ai "what ports are open?"
 ```
 
 ### 💻 Shell Integration (Zsh Plugin)
 ```bash
-# Load plugin di .zshrc
+# Load plugin in .zshrc
 source ~/opsterm/zsh/opsterm.plugin.zsh
 
-# Fitur:
-ai last               # Lihat output command terakhir
-ai explain-last       # Explain output pake AI
+# Features:
+ai last               # View last command output
+ai explain-last       # Explain last output using AI
 ```
 
 ### ⌨️ Tab Completion
@@ -202,17 +202,17 @@ ai ssh [Tab]    # List server names
 ai run [Tab]    # List workflow names
 ```
 
-### 🛠️ Manajemen Server
+### 🛠️ Server Management
 ```bash
-ai servers list           # Lihat semua server (dengan kolom PROXY)
-ai servers add            # Tambah server baru
+ai servers list           # List all servers (with PROXY column)
+ai servers add            # Add new server
 ai servers edit vps       # Edit server
-ai servers rm vps         # Hapus server
+ai servers rm vps         # Remove server
 ```
 
-### ⚙️ Konfigurasi
+### ⚙️ Configuration
 ```bash
-ai config list            # Lihat semua config
+ai config list            # View all config
 ai config set ai.model deepseek-chat
 ai config set ai.api_url https://api.deepseek.com/v1/chat/completions
 ai config set shell.confirm_before_exec true
@@ -220,22 +220,22 @@ ai config set shell.confirm_before_exec true
 
 ---
 
-## 🔧 Konfigurasi File
+## 🔧 Config Files
 
-Config disimpan di `~/.ai-workflows/`:
+Config is stored in `~/.ai-workflows/`:
 
 ```
 ~/.ai-workflows/
 ├── config.yaml       # AI provider & shell settings
-├── servers.yaml      # Daftar server (+ proxy jump)
-├── workflows.yaml    # Daftar workflow (SSH/SCP/local)
+├── servers.yaml      # Server list (+ proxy jump)
+├── workflows.yaml    # Workflow list (SSH/SCP/local)
 ├── vault.json        # Encrypted credentials (AES-128)
-├── history.db        # Riwayat (SQLite, auto)
-├── last_output.txt   # Output command terakhir
-└── last_command.txt  # Command terakhir
+├── history.db        # History (SQLite, auto)
+├── last_output.txt   # Last command output
+└── last_command.txt  # Last command
 ```
 
-Env vars:
+Environment variables:
 ```bash
 export OPSTERM_DIR="/path/to/custom/config"   # Override config dir
 export OPSTERM_API_KEY="sk-..."                # AI API key
@@ -259,14 +259,14 @@ workflows:
       - ssh: vps-utama
         command: "cd /home/ubuntu/app && docker compose pull && docker compose up -d"
         desc: "Pull images & restart"
-      - command: "echo '✅ Deploy selesai!'"
-        desc: "Notifikasi"
+      - command: "echo '✅ Deploy complete!'"
+        desc: "Notification"
 ```
 
 ### cek-server — Quick health check
 ```yaml
   cek-server:
-    desc: "Cek status server"
+    desc: "Server health check"
     steps:
       - ssh: vps-utama
         command: |
@@ -280,7 +280,7 @@ workflows:
 ### multi-hop-deploy — Deploy via bastion
 ```yaml
   internal-deploy:
-    desc: "Deploy ke internal server lewat bastion"
+    desc: "Deploy to internal server via bastion"
     steps:
       - ssh: internal-server
         command: "cd /opt/app && git pull && systemctl restart app"
@@ -291,15 +291,15 @@ workflows:
 
 ## 🗺️ Roadmap
 
-- [x] AI chat dengan custom provider
+- [x] AI chat with custom provider
 - [x] Smart SSH connector
 - [x] Saved workflows (SSH/local/SCP)
 - [x] Pipe mode
-- [x] History & riwayat
+- [x] Command history
 - [x] Tab completion (bash + zsh)
 - [x] Shell integration (zsh plugin)
 - [x] Multi-hop SSH (jump host)
-- [x] SCP/file transfer via workflow
+- [x] SCP/file transfer in workflows
 - [x] Vault encrypted credentials (AES-128 + PBKDF2)
 - [ ] Tmux/screen session manager
 - [ ] Docker exec shortcut (`ai exec <container>`)
