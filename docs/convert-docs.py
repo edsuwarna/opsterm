@@ -72,8 +72,76 @@ def generate_toc(html):
     return html_fixed, "\n".join(toc_lines)
 
 
-# ── CSS ────────────────────────────────────────────────
+# ── Document Navigation Bar ────────────────────────────
+DOC_NAV_ITEMS = [
+    ("📖", "Overview", "README.html"),
+    ("📐", "Architecture", "architecture.html"),
+    ("🔧", "Tech Stack", "tech-stack.html"),
+    ("🤔", "Design Decisions", "design-decisions.html"),
+    ("🎯", "Features", "features.html"),
+]
+
+def generate_doc_nav(current_basename):
+    """Generate horizontal doc navigation bar with active highlight."""
+    items_html = []
+    for emoji, label, href in DOC_NAV_ITEMS:
+        # Extract basename without extension for matching
+        target_base = href.replace('.html', '')
+        active = ' active' if target_base == current_basename else ''
+        items_html.append(
+            f'<a href="{href}" class="doc-nav-item{active}">'
+            f'{emoji} {label}</a>'
+        )
+    # Add diagram link (external, no active state)
+    items_html.append(
+        '<a href="../ops-term-architecture.png" class="doc-nav-item diagram-link" target="_blank">'
+        '🖼️ Diagram</a>'
+    )
+    return '<nav class="doc-nav">' + "".join(items_html) + '</nav>'
+
+
+# ── CSS for Doc Nav ────────────────────────────────────
 TOC_CSS = '''
+/* ── Doc Nav ── */
+.doc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0 14px;
+  margin: 10px 0 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+.doc-nav-item {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.doc-nav-item:hover {
+  background: #e8f4fd;
+  color: #1971c2;
+}
+.doc-nav-item.active {
+  background: #1971c2;
+  color: white;
+  font-weight: 600;
+}
+.doc-nav-item.diagram-link {
+  margin-left: auto;
+  opacity: 0.7;
+}
+.doc-nav-item.diagram-link:hover {
+  opacity: 1;
+}
+@media (max-width: 600px) {
+  .doc-nav { gap: 4px; }
+  .doc-nav-item { font-size: 12px; padding: 4px 8px; }
+  .doc-nav-item.diagram-link { margin-left: 0; }
+}
+
 /* ── Table of Contents ── */
 .page-toc {
   background: #f8f9fa;
@@ -238,6 +306,8 @@ img {{ max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }}
 
 <p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
 
+{doc_nav}
+
 {toc}
 
 {content}
@@ -294,6 +364,9 @@ def convert_md_to_html(filepath):
     # Generate ToC from headings
     html_body, toc_html = generate_toc(html_body)
 
+    # Generate doc navigation bar
+    doc_nav_html = generate_doc_nav(basename)
+
     # Get title from first H1
     title_match = re.search(r'<h1[^>]*>(.*?)</h1>', html_body)
     title = title_match.group(1) if title_match else basename.replace('-', ' ').title()
@@ -304,6 +377,7 @@ def convert_md_to_html(filepath):
         lang=lang_code,
         title=title,
         toc=toc_html,
+        doc_nav=doc_nav_html,
         TOC_CSS=TOC_CSS,
         content=html_body
     )

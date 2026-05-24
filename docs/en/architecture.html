@@ -88,6 +88,46 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 }
 .footer a { color: #1971c2; }
 
+/* ── Doc Nav ── */
+.doc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0 14px;
+  margin: 10px 0 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+.doc-nav-item {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.doc-nav-item:hover {
+  background: #e8f4fd;
+  color: #1971c2;
+}
+.doc-nav-item.active {
+  background: #1971c2;
+  color: white;
+  font-weight: 600;
+}
+.doc-nav-item.diagram-link {
+  margin-left: auto;
+  opacity: 0.7;
+}
+.doc-nav-item.diagram-link:hover {
+  opacity: 1;
+}
+@media (max-width: 600px) {
+  .doc-nav { gap: 4px; }
+  .doc-nav-item { font-size: 12px; padding: 4px 8px; }
+  .doc-nav-item.diagram-link { margin-left: 0; }
+}
+
 /* ── Table of Contents ── */
 .page-toc {
   background: #f8f9fa;
@@ -159,6 +199,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <div class="container">
 
 <p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+
+<nav class="doc-nav"><a href="README.html" class="doc-nav-item">📖 Overview</a><a href="architecture.html" class="doc-nav-item active">📐 Architecture</a><a href="tech-stack.html" class="doc-nav-item">🔧 Tech Stack</a><a href="design-decisions.html" class="doc-nav-item">🤔 Design Decisions</a><a href="features.html" class="doc-nav-item">🎯 Features</a><a href="../ops-term-architecture.png" class="doc-nav-item diagram-link" target="_blank">🖼️ Diagram</a></nav>
 
 <nav class="page-toc">
 <div class="toc-title">📑 On this page</div>
