@@ -51,11 +51,11 @@ OpsTerm needed a language that is **portable, zero-dependency, and easy to maint
 ### Context
 OpsTerm could have been built as a Python package installable via `pip install`.
 
-### Decision: ✅ Single file (`bin/ai`)
+### Decision: ✅ Single file (`bin/opsterm`)
 
 **Reasons:**
 
-1. **Portable** — Copy one file to any server and it runs. `scp bin/ai server:~/.local/bin/`
+1. **Portable** — Copy one file to any server and it runs. `scp bin/opsterm server:~/.local/bin/`
 
 2. **Zero setup** — No `pip install`, no `python -m opsterm`. Just `./ai`.
 
@@ -219,12 +219,12 @@ Completion could be written manually or generated.
 
 1. **Always up-to-date** — When new subcommands are added, completion automatically updates because it's generated from the code.
 
-2. **Zero additional files** — `ai completion bash` prints directly to stdout. No separate file needed.
+2. **Zero additional files** — `opsterm completion bash` prints directly to stdout. No separate file needed.
 
-3. **Works out of the box** — `source <(ai completion bash)` — one command, done.
+3. **Works out of the box** — `source <(opsterm completion bash)` — one command, done.
 
 **Trade-offs:**
-- Requires the `ai` script to be installed before completion works.
+- Requires the `opsterm` script to be installed before completion works.
 - Generator logic adds ~50 lines to the script.
 
 ---

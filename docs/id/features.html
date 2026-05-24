@@ -243,85 +243,85 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <tr>
 <td>1</td>
 <td>🤖 <strong>AI Chat</strong></td>
-<td><code>ai &lt;prompt&gt;</code></td>
+<td><code>opsterm &lt;prompt&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>2</td>
 <td>🔑 <strong>Smart SSH</strong></td>
-<td><code>ai ssh &lt;server&gt;</code></td>
+<td><code>opsterm ssh &lt;server&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>3</td>
 <td>🔗 <strong>Multi-hop SSH</strong></td>
-<td><code>ai ssh &lt;srv&gt; --via &lt;proxy&gt;</code></td>
+<td><code>opsterm ssh &lt;srv&gt; --via &lt;proxy&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>4</td>
 <td>📁 <strong>SCP File Transfer</strong></td>
-<td><code>ai scp &lt;src&gt; &lt;dst&gt;</code></td>
+<td><code>opsterm scp &lt;src&gt; &lt;dst&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>5</td>
 <td>⚡ <strong>Workflow</strong></td>
-<td><code>ai run &lt;name&gt;</code></td>
+<td><code>opsterm run &lt;name&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>6</td>
 <td>🔐 <strong>Vault</strong></td>
-<td><code>ai vault</code></td>
+<td><code>opsterm vault</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>7</td>
 <td>🔗 <strong>Pipe Mode</strong></td>
-<td><code>cmd \| ai &lt;prompt&gt;</code></td>
+<td><code>cmd \| opsterm &lt;prompt&gt;</code></td>
 <td>Core</td>
 </tr>
 <tr>
 <td>8</td>
 <td>💻 <strong>Shell Integration</strong></td>
-<td><code>ai explain-last</code></td>
+<td><code>opsterm explain-last</code></td>
 <td>Shell</td>
 </tr>
 <tr>
 <td>9</td>
 <td>⌨️ <strong>Tab Completion</strong></td>
-<td><code>ai completion bash\|zsh</code></td>
+<td><code>opsterm completion bash\|zsh</code></td>
 <td>Utility</td>
 </tr>
 <tr>
 <td>10</td>
 <td>🛠️ <strong>Server Manager</strong></td>
-<td><code>ai servers</code></td>
+<td><code>opsterm servers</code></td>
 <td>Management</td>
 </tr>
 <tr>
 <td>11</td>
 <td>📋 <strong>Workflow Manager</strong></td>
-<td><code>ai workflows</code></td>
+<td><code>opsterm workflows</code></td>
 <td>Management</td>
 </tr>
 <tr>
 <td>12</td>
 <td>⚙️ <strong>Config Manager</strong></td>
-<td><code>ai config</code></td>
+<td><code>opsterm config</code></td>
 <td>Management</td>
 </tr>
 <tr>
 <td>13</td>
 <td>📖 <strong>History</strong></td>
-<td><code>ai history</code></td>
+<td><code>opsterm history</code></td>
 <td>Management</td>
 </tr>
 <tr>
 <td>14</td>
 <td>🚀 <strong>Init</strong></td>
-<td><code>ai init</code></td>
+<td><code>opsterm init</code></td>
 <td>Setup</td>
 </tr>
 </tbody>
@@ -330,17 +330,17 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <h2 id="1-ai-chat">1️⃣ 🤖 AI Chat</h2>
 <p>Bertanya apa pun ke AI langsung dari terminal.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Minta command shell</span>
-ai<span class="w"> </span>cari<span class="w"> </span>file<span class="w"> </span>log<span class="w"> </span>lebih<span class="w"> </span>dari<span class="w"> </span>1GB
+opsterm<span class="w"> </span>cari<span class="w"> </span>file<span class="w"> </span>log<span class="w"> </span>lebih<span class="w"> </span>dari<span class="w"> </span>1GB
 <span class="c1"># Output: $ find /var/log -type f -size +1G</span>
 
 <span class="c1"># Minta penjelasan</span>
-ai<span class="w"> </span>explain<span class="w"> </span>apa<span class="w"> </span>itu<span class="w"> </span>reverse<span class="w"> </span>proxy
+opsterm<span class="w"> </span>explain<span class="w"> </span>apa<span class="w"> </span>itu<span class="w"> </span>reverse<span class="w"> </span>proxy
 
 <span class="c1"># Generate docker compose</span>
-ai<span class="w"> </span>buat<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>untuk<span class="w"> </span>nginx<span class="w"> </span>+<span class="w"> </span>postgres
+opsterm<span class="w"> </span>buat<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>untuk<span class="w"> </span>nginx<span class="w"> </span>+<span class="w"> </span>postgres
 
 <span class="c1"># Tanya general</span>
-ai<span class="w"> </span>how<span class="w"> </span>to<span class="w"> </span>check<span class="w"> </span>disk<span class="w"> </span>usage<span class="w"> </span><span class="k">in</span><span class="w"> </span>linux
+opsterm<span class="w"> </span>how<span class="w"> </span>to<span class="w"> </span>check<span class="w"> </span>disk<span class="w"> </span>usage<span class="w"> </span><span class="k">in</span><span class="w"> </span>linux
 </code></pre></div>
 
 <p><strong>Cara kerja:</strong><br />
@@ -356,13 +356,13 @@ ai<span class="w"> </span>how<span class="w"> </span>to<span class="w"> </span>c
 <h2 id="2-smart-ssh">2️⃣ 🔑 Smart SSH</h2>
 <p>SSH ke server tanpa perlu hafal IP address.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Langsung connect</span>
-ai<span class="w"> </span>ssh<span class="w"> </span>vps-utama
+opsterm<span class="w"> </span>ssh<span class="w"> </span>vps-utama
 
 <span class="c1"># Fuzzy match — cukup sebagian nama</span>
-ai<span class="w"> </span>ssh<span class="w"> </span>vps
+opsterm<span class="w"> </span>ssh<span class="w"> </span>vps
 
 <span class="c1"># Lihat daftar server dulu</span>
-ai<span class="w"> </span>servers<span class="w"> </span>list
+opsterm<span class="w"> </span>servers<span class="w"> </span>list
 </code></pre></div>
 
 <p><strong>Konfigurasi server di <code>~/.ai-workflows/servers.yaml</code>:</strong></p>
@@ -386,10 +386,10 @@ ai<span class="w"> </span>servers<span class="w"> </span>list
 <h2 id="3-multi-hop-ssh">3️⃣ 🔗 Multi-hop SSH</h2>
 <p>SSH ke server internal yang cuma bisa diakses lewat jump host/bastion.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Via CLI (per-call)</span>
-ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w"> </span>--via<span class="w"> </span>bastion
+opsterm<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w"> </span>--via<span class="w"> </span>bastion
 
 <span class="c1"># Via config (permanen)</span>
-ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w">  </span><span class="c1"># otomatis lewat bastion</span>
+opsterm<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class="w">  </span><span class="c1"># otomatis lewat bastion</span>
 </code></pre></div>
 
 <p><strong>Config permanen di servers.yaml:</strong></p>
@@ -414,13 +414,13 @@ ai<span class="w"> </span>ssh<span class="w"> </span>internal-server<span class=
 <h2 id="4-scp-file-transfer">4️⃣ 📁 SCP File Transfer</h2>
 <p>Upload/download file antara lokal dan server — pakai syntax <code>server:path</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Upload dari lokal ke server</span>
-ai<span class="w"> </span>scp<span class="w"> </span>./config.yaml<span class="w"> </span>vps-utama:/home/ubuntu/
+opsterm<span class="w"> </span>scp<span class="w"> </span>./config.yaml<span class="w"> </span>vps-utama:/home/ubuntu/
 
 <span class="c1"># Download dari server ke lokal</span>
-ai<span class="w"> </span>scp<span class="w"> </span>vps-utama:logs/app.log<span class="w"> </span>.
+opsterm<span class="w"> </span>scp<span class="w"> </span>vps-utama:logs/app.log<span class="w"> </span>.
 
 <span class="c1"># Lewat jump host</span>
-ai<span class="w"> </span>scp<span class="w"> </span>file.txt<span class="w"> </span>internal-server:/tmp/<span class="w"> </span>--via<span class="w"> </span>bastion
+opsterm<span class="w"> </span>scp<span class="w"> </span>file.txt<span class="w"> </span>internal-server:/tmp/<span class="w"> </span>--via<span class="w"> </span>bastion
 </code></pre></div>
 
 <p><strong>Cara kerja:</strong><br />
@@ -431,10 +431,10 @@ ai<span class="w"> </span>scp<span class="w"> </span>file.txt<span class="w"> </
 <h2 id="5-workflow">5️⃣ ⚡ Workflow</h2>
 <p>Multi-step automation yang jalanin beberapa command secara berurutan.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Jalanin workflow</span>
-ai<span class="w"> </span>run<span class="w"> </span>deploy-app
+opsterm<span class="w"> </span>run<span class="w"> </span>deploy-app
 
 <span class="c1"># Lihat daftar workflow</span>
-ai<span class="w"> </span>workflows<span class="w"> </span>list
+opsterm<span class="w"> </span>workflows<span class="w"> </span>list
 </code></pre></div>
 
 <p><strong>Contoh workflow:</strong></p>
@@ -465,23 +465,23 @@ ai<span class="w"> </span>workflows<span class="w"> </span>list
 <h2 id="6-vault-encrypted-credentials">6️⃣ 🔐 Vault — Encrypted Credentials</h2>
 <p>Nyimpen credentials (API key, password, token) secara terenkripsi.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Init vault (set master password)</span>
-ai<span class="w"> </span>vault<span class="w"> </span>init
+opsterm<span class="w"> </span>vault<span class="w"> </span>init
 
 <span class="c1"># Simpan credential</span>
-ai<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>db_password<span class="w"> </span><span class="s2">&quot;supersecret&quot;</span>
-ai<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>github_token<span class="w"> </span><span class="s2">&quot;ghp_...&quot;</span>
+opsterm<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>db_password<span class="w"> </span><span class="s2">&quot;supersecret&quot;</span>
+opsterm<span class="w"> </span>vault<span class="w"> </span><span class="nb">set</span><span class="w"> </span>github_token<span class="w"> </span><span class="s2">&quot;ghp_...&quot;</span>
 
 <span class="c1"># Ambil credential</span>
-ai<span class="w"> </span>vault<span class="w"> </span>get<span class="w"> </span>db_password<span class="w">    </span><span class="c1"># Output: supersecret</span>
+opsterm<span class="w"> </span>vault<span class="w"> </span>get<span class="w"> </span>db_password<span class="w">    </span><span class="c1"># Output: supersecret</span>
 
 <span class="c1"># List keys</span>
-ai<span class="w"> </span>vault<span class="w"> </span>list
+opsterm<span class="w"> </span>vault<span class="w"> </span>list
 
 <span class="c1"># Hapus key</span>
-ai<span class="w"> </span>vault<span class="w"> </span>rm<span class="w"> </span>db_password
+opsterm<span class="w"> </span>vault<span class="w"> </span>rm<span class="w"> </span>db_password
 
 <span class="c1"># Kunci vault (clear password dari memory)</span>
-ai<span class="w"> </span>vault<span class="w"> </span>lock
+opsterm<span class="w"> </span>vault<span class="w"> </span>lock
 </code></pre></div>
 
 <p><strong>Teknis:</strong><br />
@@ -494,10 +494,10 @@ ai<span class="w"> </span>vault<span class="w"> </span>lock
 <h2 id="7-pipe-mode">7️⃣ 🔗 Pipe Mode</h2>
 <p>Kirim output command ke AI untuk dianalisa.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Explain output</span>
-kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;ada yang error?&quot;</span>
-docker<span class="w"> </span>logs<span class="w"> </span>webapp<span class="w"> </span>--tail<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;analisa error ini&quot;</span>
-free<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;apakah memory cukup?&quot;</span>
-netstat<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai<span class="w"> </span><span class="s2">&quot;port apa aja yang terbuka?&quot;</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span><span class="p">|</span><span class="w"> </span>opsterm<span class="w"> </span><span class="s2">&quot;ada yang error?&quot;</span>
+docker<span class="w"> </span>logs<span class="w"> </span>webapp<span class="w"> </span>--tail<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>opsterm<span class="w"> </span><span class="s2">&quot;analisa error ini&quot;</span>
+free<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>opsterm<span class="w"> </span><span class="s2">&quot;apakah memory cukup?&quot;</span>
+netstat<span class="w"> </span>-tlnp<span class="w"> </span><span class="p">|</span><span class="w"> </span>opsterm<span class="w"> </span><span class="s2">&quot;port apa aja yang terbuka?&quot;</span>
 
 <span class="c1"># Pipe tanpa prompt spesifik</span>
 df<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><span class="w"> </span>ai
@@ -516,61 +516,61 @@ df<span class="w"> </span>-h<span class="w"> </span><span class="p">|</span><spa
 <span class="nb">source</span><span class="w"> </span>~/opsterm/zsh/opsterm.plugin.zsh
 
 <span class="c1"># Lihat output command terakhir</span>
-ai<span class="w"> </span>last
+opsterm<span class="w"> </span>last
 
 <span class="c1"># Explain output command terakhir pake AI</span>
-ai<span class="w"> </span>explain-last
+opsterm<span class="w"> </span>explain-last
 </code></pre></div>
 
 <p><strong>Fitur:</strong><br />
-- <strong><code>ai-last</code></strong> — alias ke <code>ai last</code><br />
-- <strong><code>ai-explain</code></strong> — alias ke <code>ai explain-last</code><br />
-- <strong><code>ai-ti</code></strong> — AI + Terminal Integration: tanya AI, extract command, auto-execute</p>
+- <strong><code>opsterm-last</code></strong> — alias ke <code>opsterm last</code><br />
+- <strong><code>opsterm-explain</code></strong> — alias ke <code>opsterm explain-last</code><br />
+- <strong><code>opsterm-ti</code></strong> — AI + Terminal Integration: tanya AI, extract command, auto-execute</p>
 <p><strong>Cara kerja:</strong><br />
 - Zsh <code>preexec</code> hook → simpen command sebelum jalan<br />
 - Output command terakhir disimpan di <code>~/.ai-workflows/last_output.txt</code><br />
-- <code>ai explain-last</code> → baca file → kirim ke AI</p>
+- <code>opsterm explain-last</code> → baca file → kirim ke AI</p>
 <hr />
 <h2 id="9-tab-completion">9️⃣ ⌨️ Tab Completion</h2>
 <p>Auto-complete buat bash dan zsh — ga perlu hafal nama server/workflow.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Bash</span>
-<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>ai<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>opsterm<span class="w"> </span>completion<span class="w"> </span>bash<span class="o">)</span>
 
 <span class="c1"># Zsh</span>
-<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>ai<span class="w"> </span>completion<span class="w"> </span>zsh<span class="o">)</span>
+<span class="nb">source</span><span class="w"> </span>&lt;<span class="o">(</span>opsterm<span class="w"> </span>completion<span class="w"> </span>zsh<span class="o">)</span>
 
 <span class="c1"># Atau permanen:</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(ai completion bash)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
-<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(ai completion zsh)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(opsterm completion bash)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;source &lt;(opsterm completion zsh)&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.zshrc
 </code></pre></div>
 
 <p><strong>Yang bisa di-complete:</strong><br />
 | Context | Completion |<br />
 |---------|-----------|<br />
-| <code>ai [Tab]</code> | Semua subcommand |<br />
-| <code>ai ssh [Tab]</code> | Nama server |<br />
-| <code>ai run [Tab]</code> | Nama workflow |<br />
-| <code>ai scp [Tab]</code> | <code>server:</code> prefix |<br />
-| <code>ai servers [Tab]</code> | <code>add</code>, <code>edit</code>, <code>rm</code>, <code>list</code> |<br />
-| <code>ai vault [Tab]</code> | <code>init</code>, <code>set</code>, <code>get</code>, <code>list</code>, <code>rm</code>, <code>lock</code> |<br />
-| <code>ai --via [Tab]</code> | Nama proxy server |</p>
+| <code>opsterm [Tab]</code> | Semua subcommand |<br />
+| <code>opsterm ssh [Tab]</code> | Nama server |<br />
+| <code>opsterm run [Tab]</code> | Nama workflow |<br />
+| <code>opsterm scp [Tab]</code> | <code>server:</code> prefix |<br />
+| <code>opsterm servers [Tab]</code> | <code>add</code>, <code>edit</code>, <code>rm</code>, <code>list</code> |<br />
+| <code>opsterm vault [Tab]</code> | <code>init</code>, <code>set</code>, <code>get</code>, <code>list</code>, <code>rm</code>, <code>lock</code> |<br />
+| <code>opsterm --via [Tab]</code> | Nama proxy server |</p>
 <hr />
 <h2 id="server-manager">🔟 🛠️ Server Manager</h2>
 <p>CRUD untuk server — simpan, edit, hapus konfigurasi server.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Lihat semua server (dengan kolom PROXY)</span>
-ai<span class="w"> </span>servers<span class="w"> </span>list
+opsterm<span class="w"> </span>servers<span class="w"> </span>list
 <span class="c1"># Output:</span>
 <span class="c1"># NAMA       HOST            USER    PORT  PROXY  DESKRIPSI</span>
 <span class="c1"># vps-utama  203.0.113.1  ubuntu  22    —      Tencent Cloud VPS</span>
 
 <span class="c1"># Tambah server baru (interaktif)</span>
-ai<span class="w"> </span>servers<span class="w"> </span>add
+opsterm<span class="w"> </span>servers<span class="w"> </span>add
 
 <span class="c1"># Edit server</span>
-ai<span class="w"> </span>servers<span class="w"> </span>edit<span class="w"> </span>vps-utama
+opsterm<span class="w"> </span>servers<span class="w"> </span>edit<span class="w"> </span>vps-utama
 
 <span class="c1"># Hapus server</span>
-ai<span class="w"> </span>servers<span class="w"> </span>rm<span class="w"> </span>vps-utama
+opsterm<span class="w"> </span>servers<span class="w"> </span>rm<span class="w"> </span>vps-utama
 </code></pre></div>
 
 <p>Data disimpan di <code>~/.ai-workflows/servers.yaml</code>.</p>
@@ -578,16 +578,16 @@ ai<span class="w"> </span>servers<span class="w"> </span>rm<span class="w"> </sp
 <h2 id="1-1-workflow-manager">1️⃣1️⃣ 📋 Workflow Manager</h2>
 <p>CRUD untuk workflow — simpan, edit, hapus workflow.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Lihat semua workflow</span>
-ai<span class="w"> </span>workflows<span class="w"> </span>list
+opsterm<span class="w"> </span>workflows<span class="w"> </span>list
 
 <span class="c1"># Tambah workflow baru (interaktif)</span>
-ai<span class="w"> </span>workflows<span class="w"> </span>add
+opsterm<span class="w"> </span>workflows<span class="w"> </span>add
 
 <span class="c1"># Edit workflow (buka editor)</span>
-ai<span class="w"> </span>workflows<span class="w"> </span>edit<span class="w"> </span>deploy-app
+opsterm<span class="w"> </span>workflows<span class="w"> </span>edit<span class="w"> </span>deploy-app
 
 <span class="c1"># Hapus workflow</span>
-ai<span class="w"> </span>workflows<span class="w"> </span>rm<span class="w"> </span>deploy-app
+opsterm<span class="w"> </span>workflows<span class="w"> </span>rm<span class="w"> </span>deploy-app
 </code></pre></div>
 
 <p>Data disimpan di <code>~/.ai-workflows/workflows.yaml</code>.</p>
@@ -595,16 +595,16 @@ ai<span class="w"> </span>workflows<span class="w"> </span>rm<span class="w"> </
 <h2 id="1-2-config-manager">1️⃣2️⃣ ⚙️ Config Manager</h2>
 <p>Lihat dan set konfigurasi OpsTerm.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Lihat semua config</span>
-ai<span class="w"> </span>config<span class="w"> </span>list
+opsterm<span class="w"> </span>config<span class="w"> </span>list
 
 <span class="c1"># Set nilai</span>
-ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.model<span class="w"> </span>deepseek-chat
-ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.api_url<span class="w"> </span>https://api.deepseek.com/v1/chat/completions
-ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.temperature<span class="w"> </span><span class="m">0</span>.3
-ai<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>shell.confirm_before_exec<span class="w"> </span><span class="nb">true</span>
+opsterm<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.model<span class="w"> </span>deepseek-chat
+opsterm<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.api_url<span class="w"> </span>https://api.deepseek.com/v1/chat/completions
+opsterm<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>ai.temperature<span class="w"> </span><span class="m">0</span>.3
+opsterm<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>shell.confirm_before_exec<span class="w"> </span><span class="nb">true</span>
 
 <span class="c1"># Get nilai spesifik</span>
-ai<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </span>ai.model
+opsterm<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </span>ai.model
 </code></pre></div>
 
 <p>Data disimpan di <code>~/.ai-workflows/config.yaml</code>.</p>
@@ -612,17 +612,17 @@ ai<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </sp
 <h2 id="1-3-history">1️⃣3️⃣ 📖 History</h2>
 <p>Riwayat semua command yang pernah dijalanin.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Lihat 20 riwayat terakhir</span>
-ai<span class="w"> </span><span class="nb">history</span>
+opsterm<span class="w"> </span><span class="nb">history</span>
 
 <span class="c1"># Lihat 50 riwayat terakhir</span>
-ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span><span class="m">50</span>
+opsterm<span class="w"> </span><span class="nb">history</span><span class="w"> </span><span class="m">50</span>
 </code></pre></div>
 
 <p><strong>Output:</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="w">  </span><span class="o">[</span><span class="n">1</span><span class="o">]</span><span class="w"> </span><span class="err">🤖</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">30</span><span class="w"> </span><span class="o">[</span><span class="n">ai</span><span class="o">]</span><span class="w"> </span><span class="n">how</span><span class="w"> </span><span class="k">to</span><span class="w"> </span><span class="k">check</span><span class="w"> </span><span class="k">disk</span><span class="w"> </span><span class="k">usage</span>
 <span class="w">  </span><span class="o">[</span><span class="n">2</span><span class="o">]</span><span class="w"> </span><span class="err">🔑</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">35</span><span class="w"> </span><span class="o">[</span><span class="n">ssh</span><span class="o">]</span><span class="w"> </span><span class="n">vps</span><span class="o">-</span><span class="n">utama</span>
 <span class="w">  </span><span class="o">[</span><span class="n">3</span><span class="o">]</span><span class="w"> </span><span class="err">⚡</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">40</span><span class="w"> </span><span class="o">[</span><span class="n">workflow</span><span class="o">]</span><span class="w"> </span><span class="n">deploy</span><span class="o">-</span><span class="n">app</span>
-<span class="w">  </span><span class="o">[</span><span class="n">4</span><span class="o">]</span><span class="w"> </span><span class="err">🔗</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">45</span><span class="w"> </span><span class="o">[</span><span class="n">pipe</span><span class="o">]</span><span class="w"> </span><span class="n">docker</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">ai</span><span class="w"> </span><span class="n">error</span>
+<span class="w">  </span><span class="o">[</span><span class="n">4</span><span class="o">]</span><span class="w"> </span><span class="err">🔗</span><span class="w"> </span><span class="mi">2026</span><span class="o">-</span><span class="mi">05</span><span class="o">-</span><span class="mi">24</span><span class="w"> </span><span class="mi">15</span><span class="err">:</span><span class="mi">45</span><span class="w"> </span><span class="o">[</span><span class="n">pipe</span><span class="o">]</span><span class="w"> </span><span class="n">docker</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">opsterm</span><span class="w"> </span><span class="n">error</span>
 </code></pre></div>
 
 <p><strong>Ikon mode:</strong><br />
@@ -639,7 +639,7 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 <hr />
 <h2 id="1-4-init">1️⃣4️⃣ 🚀 Init</h2>
 <p>Setup awal — bikin file konfigurasi default.</p>
-<div class="codehilite"><pre><span></span><code>ai<span class="w"> </span>init
+<div class="codehilite"><pre><span></span><code>opsterm<span class="w"> </span>init
 </code></pre></div>
 
 <p><strong>Yang dibuat:</strong><br />
@@ -658,59 +658,59 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 <tbody>
 <tr>
 <td><strong>SSH ke server</strong></td>
-<td><code>ai ssh vps-utama</code></td>
+<td><code>opsterm ssh vps-utama</code></td>
 </tr>
 <tr>
 <td><strong>SSH lewat bastion</strong></td>
-<td><code>ai ssh internal --via bastion</code></td>
+<td><code>opsterm ssh internal --via bastion</code></td>
 </tr>
 <tr>
 <td><strong>Upload file</strong></td>
-<td><code>ai scp file.txt server:/path/</code></td>
+<td><code>opsterm scp file.txt server:/path/</code></td>
 </tr>
 <tr>
 <td><strong>Download file</strong></td>
-<td><code>ai scp server:log.txt .</code></td>
+<td><code>opsterm scp server:log.txt .</code></td>
 </tr>
 <tr>
 <td><strong>Deploy app</strong></td>
-<td><code>ai run deploy-app</code></td>
+<td><code>opsterm run deploy-app</code></td>
 </tr>
 <tr>
 <td><strong>Cek server health</strong></td>
-<td><code>ai run cek-server</code></td>
+<td><code>opsterm run cek-server</code></td>
 </tr>
 <tr>
 <td><strong>Tanya command</strong></td>
-<td><code>ai how to check disk</code></td>
+<td><code>opsterm how to check disk</code></td>
 </tr>
 <tr>
 <td><strong>Explain error</strong></td>
-<td><code>docker logs -n50 \| ai "error?"</code></td>
+<td><code>docker logs -n50 \| opsterm "error?"</code></td>
 </tr>
 <tr>
 <td><strong>Explain last command</strong></td>
-<td><code>ai explain-last</code></td>
+<td><code>opsterm explain-last</code></td>
 </tr>
 <tr>
 <td><strong>Simpan password</strong></td>
-<td><code>ai vault set db_pass</code></td>
+<td><code>opsterm vault set db_pass</code></td>
 </tr>
 <tr>
 <td><strong>Ambil password</strong></td>
-<td><code>ai vault get db_pass</code></td>
+<td><code>opsterm vault get db_pass</code></td>
 </tr>
 <tr>
 <td><strong>Auto-complete</strong></td>
-<td><code>ai [Tab]</code></td>
+<td><code>opsterm [Tab]</code></td>
 </tr>
 <tr>
 <td><strong>Lihat riwayat</strong></td>
-<td><code>ai history</code></td>
+<td><code>opsterm history</code></td>
 </tr>
 <tr>
 <td><strong>Setup dari awal</strong></td>
-<td><code>ai init</code></td>
+<td><code>opsterm init</code></td>
 </tr>
 </tbody>
 </table>
@@ -718,10 +718,10 @@ ai<span class="w"> </span><span class="nb">history</span><span class="w"> </span
 <h2 id="fitur-mendatang-roadmap">🔜 Fitur Mendatang (Roadmap)</h2>
 <ul>
 <li>[ ] <strong>Tmux/screen session manager</strong> — manage multi-session dari OpsTerm</li>
-<li>[ ] <strong>Docker exec shortcut</strong> — <code>ai exec &lt;container&gt;</code> langsung masuk container</li>
+<li>[ ] <strong>Docker exec shortcut</strong> — <code>opsterm exec &lt;container&gt;</code> langsung masuk container</li>
 <li>[ ] <strong>SSH config parser</strong> — import dari <code>~/.ssh/config</code></li>
 <li>[ ] <strong>Fish shell support</strong> — completion &amp; plugin buat Fish</li>
-<li>[ ] <strong>Multi-hop chain</strong> — <code>ai ssh server --via jump1,jump2</code></li>
+<li>[ ] <strong>Multi-hop chain</strong> — <code>opsterm ssh server --via jump1,jump2</code></li>
 <li>[ ] <strong>Vault auto-unlock</strong> — unlock vault pake fingerprint/keychain</li>
 </ul>
 

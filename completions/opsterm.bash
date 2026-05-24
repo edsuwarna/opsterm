@@ -1,6 +1,6 @@
 # OpsTerm Bash Completion
-# Source:  source <(ai completion bash)
-# Or add to .bashrc:  source <(ai completion bash)
+# Source:  source <(opsterm completion bash)
+# Or add to .bashrc:  source <(opsterm completion bash)
 
 _opsterm_completions() {
     local cur prev words cword
@@ -15,21 +15,21 @@ _opsterm_completions() {
 
     # Determine context
     case "${prev}" in
-        ai)
+        opsterm)
             mapfile -t COMPREPLY < <(compgen -W "${cmds}" -- "${cur}")
             return 0
             ;;
         ssh)
             # Complete server names
             local servers
-            servers=$(ai servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
+            servers=$(opsterm servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}")
             return 0
             ;;
         run)
             # Complete workflow names
             local workflows
-            workflows=$(ai workflows list 2>/dev/null | grep "⚡" | awk '{print $2}')
+            workflows=$(opsterm workflows list 2>/dev/null | grep "⚡" | awk '{print $2}')
             mapfile -t COMPREPLY < <(compgen -W "${workflows}" -- "${cur}")
             return 0
             ;;
@@ -52,7 +52,7 @@ _opsterm_completions() {
         scp)
             # Suggest server: or local paths
             local servers
-            servers=$(ai servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1":"}')
+            servers=$(opsterm servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1":"}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}")
             return 0
             ;;
@@ -63,7 +63,7 @@ _opsterm_completions() {
         edit)
             # Complete server names for "servers edit"
             local servers
-            servers=$(ai servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
+            servers=$(opsterm servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}")
             return 0
             ;;
@@ -72,11 +72,11 @@ _opsterm_completions() {
             local prev2="${words[cword-2]}"
             if [[ "${prev2}" == "servers" ]]; then
                 local servers
-                servers=$(ai servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
+                servers=$(opsterm servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
                 mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}")
             elif [[ "${prev2}" == "workflows" ]]; then
                 local workflows
-                workflows=$(ai workflows list 2>/dev/null | grep "⚡" | awk '{print $2}')
+                workflows=$(opsterm workflows list 2>/dev/null | grep "⚡" | awk '{print $2}')
                 mapfile -t COMPREPLY < <(compgen -W "${workflows}" -- "${cur}")
             fi
             return 0
@@ -84,7 +84,7 @@ _opsterm_completions() {
         --via|-v)
             # Complete proxy server names
             local servers
-            servers=$(ai servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
+            servers=$(opsterm servers list 2>/dev/null | grep -v "NAMA\|---\|Total:" | awk '{print $1}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}")
             return 0
             ;;
@@ -99,4 +99,4 @@ _opsterm_completions() {
     fi
 }
 
-complete -F _opsterm_completions ai
+complete -F _opsterm_completions opsterm

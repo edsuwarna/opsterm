@@ -8,20 +8,20 @@ This document explains **all features** available in OpsTerm, complete with usag
 
 | # | Feature | CLI Command | Category |
 |---|---------|-------------|----------|
-| 1 | 🤖 **AI Chat** | `ai <prompt>` | Core |
-| 2 | 🔑 **Smart SSH** | `ai ssh <server>` | Core |
-| 3 | 🔗 **Multi-hop SSH** | `ai ssh <srv> --via <proxy>` | Core |
-| 4 | 📁 **SCP File Transfer** | `ai scp <src> <dst>` | Core |
-| 5 | ⚡ **Workflow** | `ai run <name>` | Core |
-| 6 | 🔐 **Vault** | `ai vault` | Core |
-| 7 | 🔗 **Pipe Mode** | `cmd \| ai <prompt>` | Core |
-| 8 | 💻 **Shell Integration** | `ai explain-last` | Shell |
-| 9 | ⌨️ **Tab Completion** | `ai completion bash\|zsh` | Utility |
-| 10 | 🛠️ **Server Manager** | `ai servers` | Management |
-| 11 | 📋 **Workflow Manager** | `ai workflows` | Management |
-| 12 | ⚙️ **Config Manager** | `ai config` | Management |
-| 13 | 📖 **History** | `ai history` | Management |
-| 14 | 🚀 **Init** | `ai init` | Setup |
+| 1 | 🤖 **AI Chat** | `opsterm <prompt>` | Core |
+| 2 | 🔑 **Smart SSH** | `opsterm ssh <server>` | Core |
+| 3 | 🔗 **Multi-hop SSH** | `opsterm ssh <srv> --via <proxy>` | Core |
+| 4 | 📁 **SCP File Transfer** | `opsterm scp <src> <dst>` | Core |
+| 5 | ⚡ **Workflow** | `opsterm run <name>` | Core |
+| 6 | 🔐 **Vault** | `opsterm vault` | Core |
+| 7 | 🔗 **Pipe Mode** | `cmd \| opsterm <prompt>` | Core |
+| 8 | 💻 **Shell Integration** | `opsterm explain-last` | Shell |
+| 9 | ⌨️ **Tab Completion** | `opsterm completion bash\|zsh` | Utility |
+| 10 | 🛠️ **Server Manager** | `opsterm servers` | Management |
+| 11 | 📋 **Workflow Manager** | `opsterm workflows` | Management |
+| 12 | ⚙️ **Config Manager** | `opsterm config` | Management |
+| 13 | 📖 **History** | `opsterm history` | Management |
+| 14 | 🚀 **Init** | `opsterm init` | Setup |
 
 ---
 
@@ -31,17 +31,17 @@ Ask anything to AI directly from your terminal.
 
 ```bash
 # Ask for a shell command
-ai find log files larger than 1GB
+opsterm find log files larger than 1GB
 # Output: $ find /var/log -type f -size +1G
 
 # Ask for an explanation
-ai explain what is a reverse proxy
+opsterm explain what is a reverse proxy
 
 # Generate a docker compose
-ai create docker compose for nginx + postgres
+opsterm create docker compose for nginx + postgres
 
 # General question
-ai how to check disk usage in linux
+opsterm how to check disk usage in linux
 ```
 
 **How it works:**
@@ -63,13 +63,13 @@ SSH into servers without memorizing IP addresses.
 
 ```bash
 # Direct connect
-ai ssh vps-main
+opsterm ssh vps-main
 
 # Fuzzy match — partial name is enough
-ai ssh vps
+opsterm ssh vps
 
 # List servers first
-ai servers list
+opsterm servers list
 ```
 
 **Server configuration in `~/.ai-workflows/servers.yaml`:**
@@ -99,10 +99,10 @@ SSH into internal servers that are only accessible through a jump host / bastion
 
 ```bash
 # Via CLI (per-call)
-ai ssh internal-server --via bastion
+opsterm ssh internal-server --via bastion
 
 # Via config (permanent)
-ai ssh internal-server  # automatically routes through bastion
+opsterm ssh internal-server  # automatically routes through bastion
 ```
 
 **Permanent config in servers.yaml:**
@@ -133,13 +133,13 @@ Upload/download files between local and remote servers using `server:path` synta
 
 ```bash
 # Upload from local to server
-ai scp ./config.yaml vps-main:/home/ubuntu/
+opsterm scp ./config.yaml vps-main:/home/ubuntu/
 
 # Download from server to local
-ai scp vps-main:logs/app.log .
+opsterm scp vps-main:logs/app.log .
 
 # Through a jump host
-ai scp file.txt internal-server:/tmp/ --via bastion
+opsterm scp file.txt internal-server:/tmp/ --via bastion
 ```
 
 **How it works:**
@@ -155,10 +155,10 @@ Multi-step automation that runs several commands sequentially.
 
 ```bash
 # Run a workflow
-ai run deploy-app
+opsterm run deploy-app
 
 # List workflows
-ai workflows list
+opsterm workflows list
 ```
 
 **Example workflow:**
@@ -195,23 +195,23 @@ Store credentials (API keys, passwords, tokens) in encrypted form.
 
 ```bash
 # Init vault (set master password)
-ai vault init
+opsterm vault init
 
 # Store a credential
-ai vault set db_password "supersecret"
-ai vault set github_token "ghp_..."
+opsterm vault set db_password "supersecret"
+opsterm vault set github_token "ghp_..."
 
 # Retrieve a credential
-ai vault get db_password    # Output: supersecret
+opsterm vault get db_password    # Output: supersecret
 
 # List keys
-ai vault list
+opsterm vault list
 
 # Delete a key
-ai vault rm db_password
+opsterm vault rm db_password
 
 # Lock vault (clear password from memory)
-ai vault lock
+opsterm vault lock
 ```
 
 **Technical details:**
@@ -229,10 +229,10 @@ Send command output to AI for analysis.
 
 ```bash
 # Explain output
-kubectl get pods | ai "are there any errors?"
-docker logs webapp --tail 100 | ai "analyze these errors"
-free -h | ai "is there enough memory?"
-netstat -tlnp | ai "what ports are open?"
+kubectl get pods | opsterm "are there any errors?"
+docker logs webapp --tail 100 | opsterm "analyze these errors"
+free -h | opsterm "is there enough memory?"
+netstat -tlnp | opsterm "what ports are open?"
 
 # Pipe without a specific prompt
 df -h | ai
@@ -256,21 +256,21 @@ Integration with Zsh shell for viewing and explaining the last command's output.
 source ~/opsterm/zsh/opsterm.plugin.zsh
 
 # View last command output
-ai last
+opsterm last
 
 # Explain last command output using AI
-ai explain-last
+opsterm explain-last
 ```
 
 **Features:**
-- **`ai-last`** — alias for `ai last`
-- **`ai-explain`** — alias for `ai explain-last`
-- **`ai-ti`** — AI + Terminal Integration: ask AI, extract command, auto-execute
+- **`opsterm-last`** — alias for `opsterm last`
+- **`opsterm-explain`** — alias for `opsterm explain-last`
+- **`opsterm-ti`** — AI + Terminal Integration: ask AI, extract command, auto-execute
 
 **How it works:**
 - Zsh `preexec` hook → saves command before it runs
 - Last command output is stored in `~/.ai-workflows/last_output.txt`
-- `ai explain-last` → reads file → sends to AI
+- `opsterm explain-last` → reads file → sends to AI
 
 ---
 
@@ -280,26 +280,26 @@ Auto-complete for bash and zsh — no need to memorize server/workflow names.
 
 ```bash
 # Bash
-source <(ai completion bash)
+source <(opsterm completion bash)
 
 # Zsh
-source <(ai completion zsh)
+source <(opsterm completion zsh)
 
 # Or permanently:
-echo 'source <(ai completion bash)' >> ~/.bashrc
-echo 'source <(ai completion zsh)' >> ~/.zshrc
+echo 'source <(opsterm completion bash)' >> ~/.bashrc
+echo 'source <(opsterm completion zsh)' >> ~/.zshrc
 ```
 
 **Completion contexts:**
 | Context | Completion |
 |---------|------------|
-| `ai [Tab]` | All subcommands |
-| `ai ssh [Tab]` | Server names |
-| `ai run [Tab]` | Workflow names |
-| `ai scp [Tab]` | `server:` prefix |
-| `ai servers [Tab]` | `add`, `edit`, `rm`, `list` |
-| `ai vault [Tab]` | `init`, `set`, `get`, `list`, `rm`, `lock` |
-| `ai --via [Tab]` | Proxy server names |
+| `opsterm [Tab]` | All subcommands |
+| `opsterm ssh [Tab]` | Server names |
+| `opsterm run [Tab]` | Workflow names |
+| `opsterm scp [Tab]` | `server:` prefix |
+| `opsterm servers [Tab]` | `add`, `edit`, `rm`, `list` |
+| `opsterm vault [Tab]` | `init`, `set`, `get`, `list`, `rm`, `lock` |
+| `opsterm --via [Tab]` | Proxy server names |
 
 ---
 
@@ -309,19 +309,19 @@ CRUD for servers — save, edit, and delete server configurations.
 
 ```bash
 # List all servers (with PROXY column)
-ai servers list
+opsterm servers list
 # Output:
 # NAME       HOST            USER    PORT  PROXY  DESCRIPTION
 # vps-main   203.0.113.1  ubuntu  22    —      Tencent Cloud VPS
 
 # Add a new server (interactive)
-ai servers add
+opsterm servers add
 
 # Edit a server
-ai servers edit vps-main
+opsterm servers edit vps-main
 
 # Delete a server
-ai servers rm vps-main
+opsterm servers rm vps-main
 ```
 
 Data stored in `~/.ai-workflows/servers.yaml`.
@@ -334,16 +334,16 @@ CRUD for workflows — save, edit, and delete workflows.
 
 ```bash
 # List all workflows
-ai workflows list
+opsterm workflows list
 
 # Add a new workflow (interactive)
-ai workflows add
+opsterm workflows add
 
 # Edit a workflow (opens editor)
-ai workflows edit deploy-app
+opsterm workflows edit deploy-app
 
 # Delete a workflow
-ai workflows rm deploy-app
+opsterm workflows rm deploy-app
 ```
 
 Data stored in `~/.ai-workflows/workflows.yaml`.
@@ -356,16 +356,16 @@ View and set OpsTerm configuration.
 
 ```bash
 # View all config
-ai config list
+opsterm config list
 
 # Set a value
-ai config set ai.model deepseek-chat
-ai config set ai.api_url https://api.deepseek.com/v1/chat/completions
-ai config set ai.temperature 0.3
-ai config set shell.confirm_before_exec true
+opsterm config set ai.model deepseek-chat
+opsterm config set ai.api_url https://api.deepseek.com/v1/chat/completions
+opsterm config set ai.temperature 0.3
+opsterm config set shell.confirm_before_exec true
 
 # Get a specific value
-ai config get ai.model
+opsterm config get ai.model
 ```
 
 Data stored in `~/.ai-workflows/config.yaml`.
@@ -378,10 +378,10 @@ History of all commands that have been run.
 
 ```bash
 # View last 20 entries
-ai history
+opsterm history
 
 # View last 50 entries
-ai history 50
+opsterm history 50
 ```
 
 **Output:**
@@ -389,7 +389,7 @@ ai history 50
   [1] 🤖 2026-05-24 15:30 [ai] how to check disk usage
   [2] 🔑 2026-05-24 15:35 [ssh] vps-main
   [3] ⚡ 2026-05-24 15:40 [workflow] deploy-app
-  [4] 🔗 2026-05-24 15:45 [pipe] docker ps | ai error
+  [4] 🔗 2026-05-24 15:45 [pipe] docker ps | opsterm error
 ```
 
 **Mode icons:**
@@ -412,7 +412,7 @@ Data stored in SQLite: `~/.ai-workflows/history.db`.
 First-time setup — creates default configuration files.
 
 ```bash
-ai init
+opsterm init
 ```
 
 **Created files:**
@@ -426,28 +426,28 @@ ai init
 
 | What You Want To Do | Command |
 |---------------------|---------|
-| **SSH into a server** | `ai ssh vps-main` |
-| **SSH through a bastion** | `ai ssh internal --via bastion` |
-| **Upload a file** | `ai scp file.txt server:/path/` |
-| **Download a file** | `ai scp server:log.txt .` |
-| **Deploy an app** | `ai run deploy-app` |
-| **Check server health** | `ai run check-server` |
-| **Ask for a command** | `ai how to check disk` |
-| **Explain an error** | `docker logs -n50 \| ai "error?"` |
-| **Explain last command** | `ai explain-last` |
-| **Store a password** | `ai vault set db_pass` |
-| **Retrieve a password** | `ai vault get db_pass` |
-| **Auto-complete** | `ai [Tab]` |
-| **View history** | `ai history` |
-| **Setup from scratch** | `ai init` |
+| **SSH into a server** | `opsterm ssh vps-main` |
+| **SSH through a bastion** | `opsterm ssh internal --via bastion` |
+| **Upload a file** | `opsterm scp file.txt server:/path/` |
+| **Download a file** | `opsterm scp server:log.txt .` |
+| **Deploy an app** | `opsterm run deploy-app` |
+| **Check server health** | `opsterm run check-server` |
+| **Ask for a command** | `opsterm how to check disk` |
+| **Explain an error** | `docker logs -n50 \| opsterm "error?"` |
+| **Explain last command** | `opsterm explain-last` |
+| **Store a password** | `opsterm vault set db_pass` |
+| **Retrieve a password** | `opsterm vault get db_pass` |
+| **Auto-complete** | `opsterm [Tab]` |
+| **View history** | `opsterm history` |
+| **Setup from scratch** | `opsterm init` |
 
 ---
 
 ## 🔜 Future Roadmap
 
 - [ ] **Tmux/screen session manager** — manage multi-sessions from OpsTerm
-- [ ] **Docker exec shortcut** — `ai exec <container>` to jump directly into a container
+- [ ] **Docker exec shortcut** — `opsterm exec <container>` to jump directly into a container
 - [ ] **SSH config parser** — import from `~/.ssh/config`
 - [ ] **Fish shell support** — completion & plugin for Fish
-- [ ] **Multi-hop chain** — `ai ssh server --via jump1,jump2`
+- [ ] **Multi-hop chain** — `opsterm ssh server --via jump1,jump2`
 - [ ] **Vault auto-unlock** — unlock vault using fingerprint/keychain

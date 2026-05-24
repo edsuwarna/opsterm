@@ -7,9 +7,9 @@
 #
 # Features:
 #   - Otomatis capture output command sebelumnya
-#   - ai-last atau ai last: liat output command terakhir
-#   - ai-explain atau ai explain-last: explain output pake AI
-#   - ai-ti: jalankan AI command langsung di terminal
+#   - opsterm-last atau opsterm last: liat output command terakhir
+#   - opsterm-explain atau opsterm explain-last: explain output pake AI
+#   - opsterm-ti: jalankan AI command langsung di terminal
 
 OPS_LAST_FILE="${OPSTERM_DIR:-$HOME/.ai-workflows}/last_output.txt"
 OPS_LAST_CMD="${OPSTERM_DIR:-$HOME/.ai-workflows}/last_command.txt"
@@ -22,11 +22,11 @@ preexec() {
 
 # Simpan output setelah command selesai
 precmd() {
-    # Only capture if last command was not an ai command
+    # Only capture if last command was not an opsterm command
     local last_cmd
     if [[ -f "$OPS_LAST_CMD" ]]; then
         last_cmd=$(cat "$OPS_LAST_CMD")
-        if [[ "$last_cmd" != ai* && -n "$last_cmd" ]]; then
+        if [[ "$last_cmd" != opsterm* && -n "$last_cmd" ]]; then
             # Use history to get last command output (hack: rerun with tee)
             # Actually, Zsh doesn't natively capture stdout.
             # We use a different approach: save terminal buffer
@@ -45,9 +45,9 @@ _ops_capture_start() {
 }
 
 # ── Aliases ────────────────────────────────────────────────
-alias ai-last='ai last'
-alias ai-explain='ai explain-last'
-alias ai-ti='_ops_ti() { ai "$*" && eval $(ai "$*" 2>/dev/null | grep "^\$" | sed "s/^\$ //"); }; _ops_ti'
+alias opsterm-last='opsterm last'
+alias opsterm-explain='opsterm explain-last'
+alias opsterm-ti='_ops_ti() { opsterm "$*" && eval $(opsterm "$*" 2>/dev/null | grep "^\$" | sed "s/^\$ //"); }; _ops_ti'
 
 # ── Help ───────────────────────────────────────────────────
 _ops_help() {
@@ -56,16 +56,16 @@ _ops_help() {
 ║  OpsTerm Zsh Plugin                  ║
 ╠══════════════════════════════════════╣
 ║                                      ║
-║  ai <prompt>       Tanya AI          ║
-║  ai ssh <server>   SSH ke server     ║
-║  ai run <workflow> Jalan workflow    ║
-║  ai-last           Liat output       ║
-║  ai-explain        Explain output    ║
-║  ai-ti <prompt>    AI + auto-exec    ║
+║  opsterm <prompt>       Tanya AI     ║
+║  opsterm ssh <server>   SSH ke server║
+║  opsterm run <workflow> Jalan workflow║
+║  opsterm-last           Liat output  ║
+║  opsterm-explain        Explain out  ║
+║  opsterm-ti <prompt>    AI + auto-exec║
 ║                                      ║
 ╚══════════════════════════════════════╝
 EOF
 }
 
 print -Pn "\e[38;5;040m⚡ OpsTerm shell integration loaded\e[0m\n"
-print -Pn "\e[38;5;247m  Coba: ai-last, ai-explain, ai-ti\e[0m\n"
+print -Pn "\e[38;5;247m  Coba: opsterm-last, opsterm-explain, opsterm-ti\e[0m\n"

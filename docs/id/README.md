@@ -23,13 +23,13 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 ┌─────────────────────────────────────────────────────┐
 │                  USER LAPTOP                         │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  $ ai ssh vps-utama                           │  │
-│  │  $ ai "how to check disk"                     │  │
-│  │  $ docker ps | ai "error?"                    │  │
+│  │  $ opsterm ssh vps-utama                           │  │
+│  │  $ opsterm "how to check disk"                     │  │
+│  │  $ docker ps | opsterm "error?"                    │  │
 │  └───────────────┬───────────────────────────────┘  │
 │                  │                                   │
 │  ┌───────────────▼───────────────────────────────┐  │
-│  │           OpsTerm (bin/ai)                     │  │
+│  │           OpsTerm (bin/opsterm)                     │  │
 │  │  ┌─────────┐ ┌────────┐ ┌────────┐ ┌──────┐  │  │
 │  │  │ AI      │ │ SSH    │ │ SCP    │ │Vault │  │  │
 │  │  │ Client  │ │ Runner │ │ Transfer│ │      │  │  │
@@ -53,7 +53,7 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 ```
 ~/opsterm/
 ├── bin/
-│   └── ai                    ← Main script (single file, ~1500 baris)
+│   └── opsterm                    ← Main script (single file, ~1500 baris)
 ├── completions/
 │   ├── opsterm.bash          ← Bash tab completion
 │   └── opsterm.zsh           ← Zsh tab completion
@@ -96,7 +96,7 @@ Selamat datang di dokumentasi OpsTerm! Di sini lu bakal paham gimana OpsTerm bek
 ## 🧠 Filosofi Design
 
 1. **Zero dependencies** — cukup Python 3 stdlib, ga perlu `pip install` apa-apa (kecuali vault)
-2. **Single file** — `bin/ai` bisa dicopy ke server mana pun dan langsung jalan
+2. **Single file** — `bin/opsterm` bisa dicopy ke server mana pun dan langsung jalan
 3. **Local-first** — AI di terminal lokal, bukan di server. Bisa SSH tanpa kehilangan AI
 4. **Config as code** — server & workflow config pake YAML, bisa di-version control
 5. **Progressive disclosure** — fitur sederhana gampang dipake, fitur kompleks available kalo butuh

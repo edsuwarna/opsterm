@@ -12,8 +12,8 @@ This document explains in detail how OpsTerm works — from when the user types 
 │                                                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │ CLI Terminal  │  │ Zsh Plugin   │  │ Pipe (stdin)     │  │
-│  │ ai <command>  │  │ ai-last      │  │ cmd | ai <prompt>│  │
-│  │ ai ssh <svr>  │  │ ai-explain   │  │                  │  │
+│  │ opsterm <command>  │  │ opsterm-last      │  │ cmd | opsterm <prompt>│  │
+│  │ opsterm ssh <svr>  │  │ opsterm-explain   │  │                  │  │
 │  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘  │
 │         │                 │                    │            │
 └─────────┼─────────────────┼────────────────────┼────────────┘
@@ -23,7 +23,7 @@ This document explains in detail how OpsTerm works — from when the user types 
 │                   CLI ROUTER (argparse)                     │
 │                                                             │
 │  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────┐ ┌───────┐  │
-│  │ ai <ask> │ │ ai ssh   │ │ai scp  │ │ai run│ │ai vault│  │
+│  │ opsterm <ask> │ │ opsterm ssh   │ │ai scp  │ │ai run│ │ai vault│  │
 │  │ (default)│ │          │ │        │ │      │ │        │  │
 │  └────┬─────┘ └────┬─────┘ └───┬────┘ └──┬───┘ └───┬───┘  │
 └───────┼────────────┼───────────┼─────────┼──────────┼──────┘
@@ -70,10 +70,10 @@ This document explains in detail how OpsTerm works — from when the user types 
 
 ## 🔄 Execution Flows
 
-### Flow 1: AI Chat (`ai how to check disk`)
+### Flow 1: AI Chat (`opsterm how to check disk`)
 
 ```
-User input: "ai how to check disk"
+User input: "opsterm how to check disk"
              │
              ▼
     ┌─────────────────┐
@@ -118,10 +118,10 @@ User input: "ai how to check disk"
     └──────────────────┘
 ```
 
-### Flow 2: SSH (`ai ssh vps-utama --via bastion`)
+### Flow 2: SSH (`opsterm ssh vps-utama --via bastion`)
 
 ```
-User input: "ai ssh vps-utama --via bastion"
+User input: "opsterm ssh vps-utama --via bastion"
              │
              ▼
     ┌───────────────────────┐
@@ -161,10 +161,10 @@ User input: "ai ssh vps-utama --via bastion"
     └───────────────────────┘
 ```
 
-### Flow 3: Workflow (`ai run deploy-app`)
+### Flow 3: Workflow (`opsterm run deploy-app`)
 
 ```
-User input: "ai run deploy-app"
+User input: "opsterm run deploy-app"
              │
              ▼
     ┌──────────────────────┐
@@ -196,10 +196,10 @@ User input: "ai run deploy-app"
     └──────────────────────┘
 ```
 
-### Flow 4: Pipe Mode (`docker ps | ai "any errors?"`)
+### Flow 4: Pipe Mode (`docker ps | opsterm "any errors?"`)
 
 ```
-User input: "docker ps | ai any errors?"
+User input: "docker ps | opsterm any errors?"
              │
              ▼
     ┌──────────────────────────────────┐
@@ -228,10 +228,10 @@ User input: "docker ps | ai any errors?"
     └──────────────────────────────────┘
 ```
 
-### Flow 5: Vault (`ai vault set db_password`)
+### Flow 5: Vault (`opsterm vault set db_password`)
 
 ```
-User input: "ai vault set db_password"
+User input: "opsterm vault set db_password"
              │
              ▼
     ┌──────────────────────────────┐
@@ -280,8 +280,8 @@ OpsTerm **has no daemon or background process**. All state is stored in files:
 ```
 Config is read every time a command runs → no in-memory caching
 History is written after command finishes → append-only
-Vault is unlocked with password → stored in memory UNTIL ai vault lock
-Last output is written by the zsh plugin → read by ai last/explain-last
+Vault is unlocked with password → stored in memory UNTIL opsterm vault lock
+Last output is written by the zsh plugin → read by opsterm last/explain-last
 ```
 
 ---

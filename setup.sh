@@ -15,15 +15,15 @@ echo "✅ Python $(python3 --version) found"
 
 # Create symlink
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TARGET="$SCRIPT_DIR/bin/ai"
+TARGET="$SCRIPT_DIR/bin/opsterm"
 INSTALL_DIR="${HOME}/.local/bin"
 
 mkdir -p "$INSTALL_DIR"
-if [ -f "$INSTALL_DIR/ai" ] || [ -L "$INSTALL_DIR/ai" ]; then
-    rm -f "$INSTALL_DIR/ai"
+if [ -f "$INSTALL_DIR/opsterm" ] || [ -L "$INSTALL_DIR/opsterm" ]; then
+    rm -f "$INSTALL_DIR/opsterm"
 fi
-ln -sf "$TARGET" "$INSTALL_DIR/ai"
-echo "✅ Symlink: $INSTALL_DIR/ai → $TARGET"
+ln -sf "$TARGET" "$INSTALL_DIR/opsterm"
+echo "✅ Symlink: $INSTALL_DIR/opsterm → $TARGET"
 
 # Ensure ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
@@ -46,7 +46,7 @@ echo "🔑 Jangan lupa set API key:"
 echo "   export OPSTERM_API_KEY='sk-...'"
 echo ""
 echo "📖 Coba:"
-echo "   ai --help"
-echo "   ai ssh vps-utama"
-echo "   ai run cek-server"
+echo "   opsterm --help"
+echo "   opsterm ssh vps-utama"
+echo "   opsterm run cek-server"
 echo ""

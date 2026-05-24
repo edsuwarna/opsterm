@@ -6,20 +6,20 @@ Zero-dependency CLI tool: custom AI provider + saved servers, workflows,
 multi-hop SSH, SCP, vault, and shell integration.
 
 Usage:
-  ai <prompt>              Ask AI anything (default mode)
-  ai ssh <server> [--via <proxy>]   SSH ke server (via jump host opsional)
-  ai scp <src> <dst>       Upload/download file via server
-  ai run <workflow>        Jalanin multi-step workflow
-  ai servers               Manage server list
-  ai workflows             Manage workflow list
-  ai config                Manage config
-  ai vault                 Encrypted credentials
-  ai last                  Lihat output command terakhir
-  ai explain-last          Explain output pake AI
-  ai history               Riwayat command
-  ai init                  Setup awal
-  ai completion bash|zsh   Generate completion script
-  <cmd> | ai <prompt>      Pipe mode
+  opsterm <prompt>              Ask AI anything (default mode)
+  opsterm ssh <server> [--via <proxy>]   SSH ke server (via jump host opsional)
+  opsterm scp <src> <dst>       Upload/download file via server
+  opsterm run <workflow>        Jalanin multi-step workflow
+  opsterm servers               Manage server list
+  opsterm workflows             Manage workflow list
+  opsterm config                Manage config
+  opsterm vault                 Encrypted credentials
+  opsterm last                  Lihat output command terakhir
+  opsterm explain-last          Explain output pake AI
+  opsterm history               Riwayat command
+  opsterm init                  Setup awal
+  opsterm completion bash|zsh   Generate completion script
+  <cmd> | opsterm <prompt>      Pipe mode
 """
 
 import argparse
@@ -383,7 +383,7 @@ def _server_lookup(name: str, servers: dict) -> Optional[dict]:
     if exact:
         return servers[exact]
     print(f"❌ Server '{name}' tidak ditemukan.")
-    print(f"   Gunakan: ai servers list")
+    print(f"   Gunakan: opsterm servers list")
     return None
 
 def _build_ssh_cmd(s: dict, proxy_cmd: Optional[str] = None) -> List[str]:
@@ -580,7 +580,7 @@ class Vault:
         # Verify by deriving key
         key = self._derive_key(pw, salt)
         print(f"✅ Vault initialized di {VAULT_FILE}")
-        print("   Gunakan: ai vault set <key>")
+        print("   Gunakan: opsterm vault set <key>")
         if not HAS_CRYPTOGRAPHY:
             print("   ⚠️  cryptography not installed — using fallback encryption")
             print("      Install: pip install cryptography")
@@ -594,7 +594,7 @@ class Vault:
             return False
         data = self._load_data()
         if not data or "salt" not in data:
-            print("❌ Vault belum di-init. Jalankan: ai vault init")
+            print("❌ Vault belum di-init. Jalankan: opsterm vault init")
             return False
         salt = base64.b64decode(data["salt"])
         key = self._derive_key(pw, salt)
@@ -705,7 +705,7 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
     exact = _fuzzy_match(name, workflows)
     if not exact:
         print(f"❌ Workflow '{name}' tidak ditemukan.")
-        print(f"   Gunakan: ai workflows list")
+        print(f"   Gunakan: opsterm workflows list")
         return
     name = exact
     wf = workflows[name]
@@ -836,7 +836,7 @@ def get_last_output() -> Tuple[str, str]:
 # ═══════════════════════════════════════════════════════════
 
 COMPLETION_BASH = """# OpsTerm Bash Completion
-# Add to .bashrc:  source <(ai completion bash)
+# Add to .bashrc:  source <(opsterm completion bash)
 
 _opsterm_completions() {
     local cur prev words cword
@@ -845,19 +845,19 @@ _opsterm_completions() {
     cur="${{words[cword]}}"
     prev="${{words[cword-1]}}"
     case "${{prev}}" in
-        ai) mapfile -t COMPREPLY < <(compgen -W "${{cmds}}" -- "${{cur}}"); return 0 ;;
+        opsterm) mapfile -t COMPREPLY < <(compgen -W "${{cmds}}" -- "${{cur}}"); return 0 ;;
         ssh|--via|-v)
-            local servers; servers=$(ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1}}')
+            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1}}')
             mapfile -t COMPREPLY < <(compgen -W "${{servers}}" -- "${{cur}}"); return 0 ;;
         run)
-            local workflows; workflows=$(ai workflows list 2>/dev/null | grep '⚡' | awk '{{print $2}}')
+            local workflows; workflows=$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{{print $2}}')
             mapfile -t COMPREPLY < <(compgen -W "${{workflows}}" -- "${{cur}}"); return 0 ;;
         servers) mapfile -t COMPREPLY < <(compgen -W "list add edit rm" -- "${{cur}}"); return 0 ;;
         workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm" -- "${{cur}}"); return 0 ;;
         config) mapfile -t COMPREPLY < <(compgen -W "list get set" -- "${{cur}}"); return 0 ;;
         vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${{cur}}"); return 0 ;;
         scp)
-            local servers; servers=$(ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1":"}}')
+            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1":"}}')
             mapfile -t COMPREPLY < <(compgen -W "${{servers}}" -- "${{cur}}"); return 0 ;;
         completion) mapfile -t COMPREPLY < <(compgen -W "bash zsh" -- "${{cur}}"); return 0 ;;
     esac
@@ -869,7 +869,7 @@ complete -F _opsterm_completions ai
 """
 
 COMPLETION_ZSH = """# OpsTerm Zsh Completion
-# Add to .zshrc:  source <(ai completion zsh)
+# Add to .zshrc:  source <(opsterm completion zsh)
 
 _opsterm() {
     local -a cmds
@@ -893,10 +893,10 @@ _opsterm() {
         args)
             case "$words[1]" in
                 ssh|--via)
-                    local servers; servers=(${(f)"$(ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1}')"})
+                    local servers; servers=(${(f)"$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1}')"})
                     _describe 'server' servers ;;
                 run)
-                    local workflows; workflows=(${(f)"$(ai workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')"})
+                    local workflows; workflows=(${(f)"$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')"})
                     _describe 'workflow' workflows ;;
                 servers) _values 'action' list add edit rm ;;
                 workflows) _values 'action' list add edit rm ;;
@@ -909,7 +909,7 @@ _opsterm() {
             esac ;;
     esac
 }
-compdef _opsterm ai
+compdef _opsterm opsterm
 """
 
 # ═══════════════════════════════════════════════════════════
@@ -1061,12 +1061,11 @@ def do_init():
     print(f"""
 📁 Config dir: {CONFIG_DIR}
 🔑 Set API key:  export OPSTERM_API_KEY='sk-...'
-🔐 Vault:         ai vault init
-🔄 Multi-hop:     tambah proxy: di servers.yaml
-📁 SCP:           ai scp vps-utama:file.txt .
-⚡ Coba:          ai ssh vps-utama
-                  ai run cek-server
-                  ai how to check disk
+🔐 Vault:         opsterm vault init
+📁 SCP:           opsterm scp vps-utama:file.txt .
+⚡ Coba:          opsterm ssh vps-utama
+                  opsterm run cek-server
+                  opsterm how to check disk
 """)
 
 # ═══════════════════════════════════════════════════════════
@@ -1083,19 +1082,19 @@ def main():
             pass
 
     parser = argparse.ArgumentParser(
-        prog="ai",
+        prog="opsterm",
         description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop, SCP, vault.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
             Examples:
-              ai how to find large files
-              ai ssh vps-utama
-              ai ssh internal-server --via bastion
-              ai scp file.txt vps-utama:/home/ubuntu/
-              ai scp vps-utama:logs/app.log .
-              ai run deploy-app
-              ai vault set db_password
-              docker ps | ai "any errors?"
+              opsterm how to find large files
+              opsterm ssh vps-utama
+              opsterm ssh internal-server --via bastion
+              opsterm scp file.txt vps-utama:/home/ubuntu/
+              opsterm scp vps-utama:logs/app.log .
+              opsterm run deploy-app
+              opsterm vault set db_password
+              docker ps | opsterm "any errors?"
         """),
     )
     parser.add_argument("args", nargs="*", help="Command or prompt")
@@ -1271,8 +1270,8 @@ def main():
         if len(raw_args) == 1:
             print("🔐 OpsTerm Vault — Encrypted Credential Store")
             print("  init   — Buat vault baru")
-            print("  set    — Simpan credential (ai vault set <key>)")
-            print("  get    — Ambil credential (ai vault get <key>)")
+            print("  set    — Simpan credential (opsterm vault set <key>)")
+            print("  get    — Ambil credential (opsterm vault get <key>)")
             print("  list   — Lihat semua key")
             print("  rm     — Hapus key")
             print("  lock   — Kunci vault")
@@ -1318,7 +1317,7 @@ def main():
         if not out and not cmd:
             print("📭 Belum ada output tersimpan.")
             print("   Command terakhir otomatis disimpan oleh zsh plugin.")
-            print("   Tanpa plugin: gunakan pipe mode | ai explain")
+            print("   Tanpa plugin: gunakan pipe mode | opsterm explain")
         else:
             if cmd:
                 print(f"💻 Command: {cmd}")
@@ -1330,7 +1329,7 @@ def main():
         out, cmd = get_last_output()
         if not out and not cmd:
             print("📭 Belum ada output yang bisa di-explain.")
-            print("   Jalankan command dulu, atau pipe: cmd | ai explain")
+            print("   Jalankan command dulu, atau pipe: cmd | opsterm explain")
             return
         config = load_config()
         prompt = f"Explain output dari command '{cmd}' ini:\n```\n{out[:3000]}\n```"

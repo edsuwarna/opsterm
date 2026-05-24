@@ -208,11 +208,11 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <li class="toc-h1"><a href="#architecture-amp-system-design">📐 Architecture &amp; System Design</a></li>
   <li class="toc-h2"><a href="#overall-architecture">🏗 Overall Architecture</a></li>
   <li class="toc-h2"><a href="#execution-flows">🔄 Execution Flows</a></li>
-    <li class="toc-h3"><a href="#flow-1-ai-chat-ai-how-to-check-disk">Flow 1: AI Chat (ai how to check disk)</a></li>
-    <li class="toc-h3"><a href="#flow-2-ssh-ai-ssh-vps-utama-via-bastion">Flow 2: SSH (ai ssh vps-utama --via bastion)</a></li>
-    <li class="toc-h3"><a href="#flow-3-workflow-ai-run-deploy-app">Flow 3: Workflow (ai run deploy-app)</a></li>
-    <li class="toc-h3"><a href="#flow-4-pipe-mode-docker-ps-ai-any-errors">Flow 4: Pipe Mode (docker ps | ai "any errors?")</a></li>
-    <li class="toc-h3"><a href="#flow-5-vault-ai-vault-set-db-password">Flow 5: Vault (ai vault set db_password)</a></li>
+    <li class="toc-h3"><a href="#flow-1-ai-chat-opsterm-how-to-check-disk">Flow 1: AI Chat (opsterm how to check disk)</a></li>
+    <li class="toc-h3"><a href="#flow-2-ssh-opsterm-ssh-vps-utama-via-bastion">Flow 2: SSH (opsterm ssh vps-utama --via bastion)</a></li>
+    <li class="toc-h3"><a href="#flow-3-workflow-opsterm-run-deploy-app">Flow 3: Workflow (opsterm run deploy-app)</a></li>
+    <li class="toc-h3"><a href="#flow-4-pipe-mode-docker-ps-opsterm-any-errors">Flow 4: Pipe Mode (docker ps | opsterm "any errors?")</a></li>
+    <li class="toc-h3"><a href="#flow-5-vault-opsterm-vault-set-db-password">Flow 5: Vault (opsterm vault set db_password)</a></li>
   <li class="toc-h2"><a href="#state-management">State Management</a></li>
   <li class="toc-h2"><a href="#security">🔒 Security</a></li>
     <li class="toc-h3"><a href="#api-key">API Key</a></li>
@@ -234,8 +234,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 │<span class="w">                                                             </span>│
 │<span class="w">  </span>┌──────────────┐<span class="w">  </span>┌──────────────┐<span class="w">  </span>┌──────────────────┐<span class="w">  </span>│
 │<span class="w">  </span>│<span class="w"> </span><span class="nv">CLI</span><span class="w"> </span><span class="nv">Terminal</span><span class="w">  </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">Zsh</span><span class="w"> </span><span class="nv">Plugin</span><span class="w">   </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">Pipe</span><span class="w"> </span><span class="ss">(</span><span class="nv">stdin</span><span class="ss">)</span><span class="w">     </span>│<span class="w">  </span>│
-│<span class="w">  </span>│<span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">command</span><span class="o">&gt;</span><span class="w">  </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">ai</span><span class="o">-</span><span class="nv">last</span><span class="w">      </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">cmd</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">prompt</span><span class="o">&gt;</span>│<span class="w">  </span>│
-│<span class="w">  </span>│<span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="nv">ssh</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">svr</span><span class="o">&gt;</span><span class="w">  </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">ai</span><span class="o">-</span><span class="nv">explain</span><span class="w">   </span>│<span class="w">  </span>│<span class="w">                  </span>│<span class="w">  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">command</span><span class="o">&gt;</span><span class="w">  </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="o">-</span><span class="nv">last</span><span class="w">      </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">cmd</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">prompt</span><span class="o">&gt;</span>│<span class="w">  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="nv">ssh</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">svr</span><span class="o">&gt;</span><span class="w">  </span>│<span class="w">  </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="o">-</span><span class="nv">explain</span><span class="w">   </span>│<span class="w">  </span>│<span class="w">                  </span>│<span class="w">  </span>│
 │<span class="w">  </span>└──────┬───────┘<span class="w">  </span>└──────┬───────┘<span class="w">  </span>└────────┬─────────┘<span class="w">  </span>│
 │<span class="w">         </span>│<span class="w">                 </span>│<span class="w">                    </span>│<span class="w">            </span>│
 └─────────┼─────────────────┼────────────────────┼────────────┘
@@ -245,7 +245,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 │<span class="w">                   </span><span class="nv">CLI</span><span class="w"> </span><span class="nv">ROUTER</span><span class="w"> </span><span class="ss">(</span><span class="nv">argparse</span><span class="ss">)</span><span class="w">                     </span>│
 │<span class="w">                                                             </span>│
 │<span class="w">  </span>┌──────────┐<span class="w"> </span>┌──────────┐<span class="w"> </span>┌────────┐<span class="w"> </span>┌──────┐<span class="w"> </span>┌───────┐<span class="w">  </span>│
-│<span class="w">  </span>│<span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ask</span><span class="o">&gt;</span><span class="w"> </span>│<span class="w"> </span>│<span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="nv">ssh</span><span class="w">   </span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">scp</span><span class="w">  </span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">run</span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">vault</span>│<span class="w">  </span>│
+│<span class="w">  </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="o">&lt;</span><span class="nv">ask</span><span class="o">&gt;</span><span class="w"> </span>│<span class="w"> </span>│<span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="nv">ssh</span><span class="w">   </span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">scp</span><span class="w">  </span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">run</span>│<span class="w"> </span>│<span class="nv">ai</span><span class="w"> </span><span class="nv">vault</span>│<span class="w">  </span>│
 │<span class="w">  </span>│<span class="w"> </span><span class="ss">(</span><span class="nv">default</span><span class="ss">)</span>│<span class="w"> </span>│<span class="w">          </span>│<span class="w"> </span>│<span class="w">        </span>│<span class="w"> </span>│<span class="w">      </span>│<span class="w"> </span>│<span class="w">        </span>│<span class="w">  </span>│
 │<span class="w">  </span>└────┬─────┘<span class="w"> </span>└────┬─────┘<span class="w"> </span>└───┬────┘<span class="w"> </span>└──┬───┘<span class="w"> </span>└───┬───┘<span class="w">  </span>│
 └───────┼────────────┼───────────┼─────────┼──────────┼──────┘
@@ -290,8 +290,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 
 <hr />
 <h2 id="execution-flows">🔄 Execution Flows</h2>
-<h3 id="flow-1-ai-chat-ai-how-to-check-disk">Flow 1: AI Chat (<code>ai how to check disk</code>)</h3>
-<div class="codehilite"><pre><span></span><code><span class="nx">User</span><span class="w"> </span><span class="nx">input</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ai how to check disk&quot;</span>
+<h3 id="flow-1-ai-chat-opsterm-how-to-check-disk">Flow 1: AI Chat (<code>opsterm how to check disk</code>)</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">User</span><span class="w"> </span><span class="nx">input</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;opsterm how to check disk&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
 <span class="w">    </span><span class="err">┌─────────────────┐</span>
@@ -336,8 +336,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span><span class="err">└──────────────────┘</span>
 </code></pre></div>
 
-<h3 id="flow-2-ssh-ai-ssh-vps-utama-via-bastion">Flow 2: SSH (<code>ai ssh vps-utama --via bastion</code>)</h3>
-<div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;ai ssh vps-utama --via bastion&quot;</span>
+<h3 id="flow-2-ssh-opsterm-ssh-vps-utama-via-bastion">Flow 2: SSH (<code>opsterm ssh vps-utama --via bastion</code>)</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="o">:</span><span class="w"> </span><span class="s">&quot;opsterm ssh vps-utama --via bastion&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
 <span class="w">    </span><span class="err">┌───────────────────────┐</span>
@@ -377,8 +377,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span><span class="err">└───────────────────────┘</span>
 </code></pre></div>
 
-<h3 id="flow-3-workflow-ai-run-deploy-app">Flow 3: Workflow (<code>ai run deploy-app</code>)</h3>
-<div class="codehilite"><pre><span></span><code><span class="nv">User</span><span class="w"> </span><span class="nv">input</span>:<span class="w"> </span><span class="s2">&quot;ai run deploy-app&quot;</span>
+<h3 id="flow-3-workflow-opsterm-run-deploy-app">Flow 3: Workflow (<code>opsterm run deploy-app</code>)</h3>
+<div class="codehilite"><pre><span></span><code><span class="nv">User</span><span class="w"> </span><span class="nv">input</span>:<span class="w"> </span><span class="s2">&quot;opsterm run deploy-app&quot;</span>
 <span class="w">             </span>│
 <span class="w">             </span>▼
 <span class="w">    </span>┌──────────────────────┐
@@ -410,8 +410,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <span class="w">    </span>└──────────────────────┘
 </code></pre></div>
 
-<h3 id="flow-4-pipe-mode-docker-ps-ai-any-errors">Flow 4: Pipe Mode (<code>docker ps | ai "any errors?"</code>)</h3>
-<div class="codehilite"><pre><span></span><code>User input: &quot;docker ps | ai any errors?&quot;
+<h3 id="flow-4-pipe-mode-docker-ps-opsterm-any-errors">Flow 4: Pipe Mode (<code>docker ps | opsterm "any errors?"</code>)</h3>
+<div class="codehilite"><pre><span></span><code>User input: &quot;docker ps | opsterm any errors?&quot;
              │
              ▼
     ┌──────────────────────────────────┐
@@ -440,8 +440,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
     └──────────────────────────────────┘
 </code></pre></div>
 
-<h3 id="flow-5-vault-ai-vault-set-db-password">Flow 5: Vault (<code>ai vault set db_password</code>)</h3>
-<div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ai vault set db_password&quot;</span>
+<h3 id="flow-5-vault-opsterm-vault-set-db-password">Flow 5: Vault (<code>opsterm vault set db_password</code>)</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">User</span><span class="w"> </span><span class="n">input</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;opsterm vault set db_password&quot;</span>
 <span class="w">             </span><span class="err">│</span>
 <span class="w">             </span><span class="err">▼</span>
 <span class="w">    </span><span class="err">┌──────────────────────────────┐</span>
@@ -521,8 +521,8 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <p><strong>Data flow:</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="nv">Config</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">read</span><span class="w"> </span><span class="nv">every</span><span class="w"> </span><span class="nv">time</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">command</span><span class="w"> </span><span class="nv">runs</span><span class="w"> </span>→<span class="w"> </span><span class="nv">no</span><span class="w"> </span><span class="nv">in</span><span class="o">-</span><span class="nv">memory</span><span class="w"> </span><span class="nv">caching</span>
 <span class="nv">History</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">written</span><span class="w"> </span><span class="nv">after</span><span class="w"> </span><span class="nv">command</span><span class="w"> </span><span class="nv">finishes</span><span class="w"> </span>→<span class="w"> </span><span class="nv">append</span><span class="o">-</span><span class="nv">only</span>
-<span class="nv">Vault</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">unlocked</span><span class="w"> </span><span class="nv">with</span><span class="w"> </span><span class="nv">password</span><span class="w"> </span>→<span class="w"> </span><span class="nv">stored</span><span class="w"> </span><span class="nv">in</span><span class="w"> </span><span class="nv">memory</span><span class="w"> </span><span class="k">UNTIL</span><span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="nv">vault</span><span class="w"> </span><span class="nv">lock</span>
-<span class="nv">Last</span><span class="w"> </span><span class="nv">output</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">written</span><span class="w"> </span><span class="nv">by</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">zsh</span><span class="w"> </span><span class="nv">plugin</span><span class="w"> </span>→<span class="w"> </span><span class="nv">read</span><span class="w"> </span><span class="nv">by</span><span class="w"> </span><span class="nv">ai</span><span class="w"> </span><span class="nv">last</span><span class="o">/</span><span class="nv">explain</span><span class="o">-</span><span class="nv">last</span>
+<span class="nv">Vault</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">unlocked</span><span class="w"> </span><span class="nv">with</span><span class="w"> </span><span class="nv">password</span><span class="w"> </span>→<span class="w"> </span><span class="nv">stored</span><span class="w"> </span><span class="nv">in</span><span class="w"> </span><span class="nv">memory</span><span class="w"> </span><span class="k">UNTIL</span><span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="nv">vault</span><span class="w"> </span><span class="nv">lock</span>
+<span class="nv">Last</span><span class="w"> </span><span class="nv">output</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">written</span><span class="w"> </span><span class="nv">by</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">zsh</span><span class="w"> </span><span class="nv">plugin</span><span class="w"> </span>→<span class="w"> </span><span class="nv">read</span><span class="w"> </span><span class="nv">by</span><span class="w"> </span><span class="nv">opsterm</span><span class="w"> </span><span class="nv">last</span><span class="o">/</span><span class="nv">explain</span><span class="o">-</span><span class="nv">last</span>
 </code></pre></div>
 
 <hr />

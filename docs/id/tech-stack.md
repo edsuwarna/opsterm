@@ -227,15 +227,15 @@ scp -o ProxyJump=ubuntu@bastion:22 file.txt ubuntu@internal:/path/
 ### Aliases:
 
 ```zsh
-alias ai-last='ai last'
-alias ai-explain='ai explain-last'
+alias opsterm-last='ai last'
+alias opsterm-explain='ai explain-last'
 ```
 
-### Cara kerja `ai-ti` (AI + Terminal Integration):
+### Cara kerja `opsterm-ti` (AI + Terminal Integration):
 ```zsh
-ai-ti() {
+opsterm-ti() {
     # 1. Tanya AI
-    ai "$*"
+    opsterm "$*"
     
     # 2. Ekstrak command dari response (yang mulai dengan $)
     # 3. Tanya user: jalanin?

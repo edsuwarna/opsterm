@@ -230,7 +230,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
   <li class="toc-h2"><a href="#zsh-plugin-integration">🐚 Zsh Plugin Integration</a></li>
     <li class="toc-h3"><a href="#hooks-used">Hooks Used:</a></li>
     <li class="toc-h3"><a href="#aliases">Aliases:</a></li>
-    <li class="toc-h3"><a href="#how-ai-ti-ai-terminal-integration-works">How ai-ti (AI + Terminal Integration) works:</a></li>
+    <li class="toc-h3"><a href="#how-opsterm-ti-ai-terminal-integration-works">How opsterm-ti (AI + Terminal Integration) works:</a></li>
   <li class="toc-h2"><a href="#comparison-with-alternatives">Comparison with Alternatives</a></li>
 </ul>
 </nav>
@@ -577,14 +577,14 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </tbody>
 </table>
 <h3 id="aliases">Aliases:</h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span>ai-last<span class="o">=</span><span class="s1">&#39;ai last&#39;</span>
-<span class="nb">alias</span><span class="w"> </span>ai-explain<span class="o">=</span><span class="s1">&#39;ai explain-last&#39;</span>
+<div class="codehilite"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span>opsterm-last<span class="o">=</span><span class="s1">&#39;ai last&#39;</span>
+<span class="nb">alias</span><span class="w"> </span>opsterm-explain<span class="o">=</span><span class="s1">&#39;ai explain-last&#39;</span>
 </code></pre></div>
 
-<h3 id="how-ai-ti-ai-terminal-integration-works">How <code>ai-ti</code> (AI + Terminal Integration) works:</h3>
-<div class="codehilite"><pre><span></span><code>ai-ti<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<h3 id="how-opsterm-ti-ai-terminal-integration-works">How <code>opsterm-ti</code> (AI + Terminal Integration) works:</h3>
+<div class="codehilite"><pre><span></span><code>opsterm-ti<span class="o">()</span><span class="w"> </span><span class="o">{</span>
 <span class="w">    </span><span class="c1"># 1. Ask AI</span>
-<span class="w">    </span>ai<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
+<span class="w">    </span>opsterm<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
 
 <span class="w">    </span><span class="c1"># 2. Extract command from response (lines starting with $)</span>
 <span class="w">    </span><span class="c1"># 3. Ask user: run it?</span>

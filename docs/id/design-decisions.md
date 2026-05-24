@@ -51,11 +51,11 @@ OpsTerm butuh bahasa yang **portable, zero-dep, dan gampang di-maintain**.
 ### Konteks
 OpsTerm bisa aja dibikin sebagai Python package dengan `pip install`.
 
-### Keputusan: ✅ Single file (`bin/ai`)
+### Keputusan: ✅ Single file (`bin/opsterm`)
 
 **Alasan:**
 
-1. **Portable** — Copy 1 file ke server mana pun, langsung jalan. `scp bin/ai server:~/.local/bin/`
+1. **Portable** — Copy 1 file ke server mana pun, langsung jalan. `scp bin/opsterm server:~/.local/bin/`
 
 2. **Zero setup** — Ga perlu `pip install`, ga perlu `python -m opsterm`. Langsung `./ai`.
 
@@ -214,9 +214,9 @@ Completion bisa ditulis manual atau di-generate.
 
 1. **Always up-to-date** — Kalo ada subcommand baru, completion otomatis update karena di-generate dari kode.
 
-2. **Zero additional file** — `ai completion bash` langsung print ke stdout. Gak perlu file terpisah.
+2. **Zero additional file** — `opsterm completion bash` langsung print ke stdout. Gak perlu file terpisah.
 
-3. **Works out of box** — `source <(ai completion bash)` — 1 command, langsung jadi.
+3. **Works out of box** — `source <(opsterm completion bash)` — 1 command, langsung jadi.
 
 ---
 

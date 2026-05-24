@@ -23,13 +23,13 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ┌─────────────────────────────────────────────────────┐
 │                  USER LAPTOP                         │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  $ ai ssh vps-utama                           │  │
-│  │  $ ai "how to check disk"                     │  │
-│  │  $ docker ps | ai "error?"                    │  │
+│  │  $ opsterm ssh vps-utama                           │  │
+│  │  $ opsterm "how to check disk"                     │  │
+│  │  $ docker ps | opsterm "error?"                    │  │
 │  └───────────────┬───────────────────────────────┘  │
 │                  │                                   │
 │  ┌───────────────▼───────────────────────────────┐  │
-│  │           OpsTerm (bin/ai)                     │  │
+│  │           OpsTerm (bin/opsterm)                     │  │
 │  │  ┌─────────┐ ┌────────┐ ┌────────┐ ┌──────┐  │  │
 │  │  │ AI      │ │ SSH    │ │ SCP    │ │Vault │  │  │
 │  │  │ Client  │ │ Runner │ │ Transfer│ │      │  │  │
@@ -53,7 +53,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ```
 ~/opsterm/
 ├── bin/
-│   └── ai                    ← Main script (single file, ~1500 lines)
+│   └── opsterm                    ← Main script (single file, ~1500 lines)
 ├── completions/
 │   ├── opsterm.bash          ← Bash tab completion
 │   └── opsterm.zsh           ← Zsh tab completion
@@ -96,7 +96,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ## 🧠 Design Philosophy
 
 1. **Zero dependencies** — just Python 3 stdlib, no `pip install` needed (except vault encryption)
-2. **Single file** — `bin/ai` can be copied to any server and run immediately
+2. **Single file** — `bin/opsterm` can be copied to any server and run immediately
 3. **Local-first** — AI runs on your local terminal, not on the server. SSH without losing AI access
 4. **Config as code** — server & workflow configs use YAML, version-control friendly
 5. **Progressive disclosure** — simple features are easy to use, complex features are available when needed

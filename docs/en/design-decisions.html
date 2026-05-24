@@ -212,7 +212,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
     <li class="toc-h3"><a href="#decision-python-3">Decision: ✅ Python 3</a></li>
   <li class="toc-h2"><a href="#2-why-single-file-not-a-package">2⃣ Why single file, not a package?</a></li>
     <li class="toc-h3"><a href="#context-2">Context</a></li>
-    <li class="toc-h3"><a href="#decision-single-file-bin-ai">Decision: ✅ Single file (bin/ai)</a></li>
+    <li class="toc-h3"><a href="#decision-single-file-bin-opsterm">Decision: ✅ Single file (bin/opsterm)</a></li>
   <li class="toc-h2"><a href="#3-why-zero-dependencies">3⃣ Why zero dependencies?</a></li>
     <li class="toc-h3"><a href="#context-3">Context</a></li>
     <li class="toc-h3"><a href="#decision-zero-external-dependencies">Decision: ✅ Zero external dependencies</a></li>
@@ -348,11 +348,11 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <h2 id="2-why-single-file-not-a-package">2️⃣ Why single file, not a package?</h2>
 <h3 id="context-2">Context</h3>
 <p>OpsTerm could have been built as a Python package installable via <code>pip install</code>.</p>
-<h3 id="decision-single-file-bin-ai">Decision: ✅ Single file (<code>bin/ai</code>)</h3>
+<h3 id="decision-single-file-bin-opsterm">Decision: ✅ Single file (<code>bin/opsterm</code>)</h3>
 <p><strong>Reasons:</strong></p>
 <ol>
 <li>
-<p><strong>Portable</strong> — Copy one file to any server and it runs. <code>scp bin/ai server:~/.local/bin/</code></p>
+<p><strong>Portable</strong> — Copy one file to any server and it runs. <code>scp bin/opsterm server:~/.local/bin/</code></p>
 </li>
 <li>
 <p><strong>Zero setup</strong> — No <code>pip install</code>, no <code>python -m opsterm</code>. Just <code>./ai</code>.</p>
@@ -517,14 +517,14 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <p><strong>Always up-to-date</strong> — When new subcommands are added, completion automatically updates because it's generated from the code.</p>
 </li>
 <li>
-<p><strong>Zero additional files</strong> — <code>ai completion bash</code> prints directly to stdout. No separate file needed.</p>
+<p><strong>Zero additional files</strong> — <code>opsterm completion bash</code> prints directly to stdout. No separate file needed.</p>
 </li>
 <li>
-<p><strong>Works out of the box</strong> — <code>source &lt;(ai completion bash)</code> — one command, done.</p>
+<p><strong>Works out of the box</strong> — <code>source &lt;(opsterm completion bash)</code> — one command, done.</p>
 </li>
 </ol>
 <p><strong>Trade-offs:</strong><br />
-- Requires the <code>ai</code> script to be installed before completion works.<br />
+- Requires the <code>opsterm</code> script to be installed before completion works.<br />
 - Generator logic adds ~50 lines to the script.</p>
 <hr />
 <h2 id="why-a-separate-zsh-plugin">🔟 Why a separate Zsh plugin?</h2>

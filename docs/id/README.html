@@ -264,13 +264,13 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <div class="codehilite"><pre><span></span><code>┌─────────────────────────────────────────────────────┐
 │                  USER LAPTOP                         │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  $ ai ssh vps-utama                           │  │
-│  │  $ ai &quot;how to check disk&quot;                     │  │
-│  │  $ docker ps | ai &quot;error?&quot;                    │  │
+│  │  $ opsterm ssh vps-utama                           │  │
+│  │  $ opsterm &quot;how to check disk&quot;                     │  │
+│  │  $ docker ps | opsterm &quot;error?&quot;                    │  │
 │  └───────────────┬───────────────────────────────┘  │
 │                  │                                   │
 │  ┌───────────────▼───────────────────────────────┐  │
-│  │           OpsTerm (bin/ai)                     │  │
+│  │           OpsTerm (bin/opsterm)                     │  │
 │  │  ┌─────────┐ ┌────────┐ ┌────────┐ ┌──────┐  │  │
 │  │  │ AI      │ │ SSH    │ │ SCP    │ │Vault │  │  │
 │  │  │ Client  │ │ Runner │ │ Transfer│ │      │  │  │
@@ -290,7 +290,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <h2 id="struktur-project">📁 Struktur Project</h2>
 <div class="codehilite"><pre><span></span><code>~/opsterm/
 ├── bin/
-│   └── ai                    ← Main script (single file, ~1500 baris)
+│   └── opsterm                    ← Main script (single file, ~1500 baris)
 ├── completions/
 │   ├── opsterm.bash          ← Bash tab completion
 │   └── opsterm.zsh           ← Zsh tab completion
@@ -331,7 +331,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <h2 id="filosofi-design">🧠 Filosofi Design</h2>
 <ol>
 <li><strong>Zero dependencies</strong> — cukup Python 3 stdlib, ga perlu <code>pip install</code> apa-apa (kecuali vault)</li>
-<li><strong>Single file</strong> — <code>bin/ai</code> bisa dicopy ke server mana pun dan langsung jalan</li>
+<li><strong>Single file</strong> — <code>bin/opsterm</code> bisa dicopy ke server mana pun dan langsung jalan</li>
 <li><strong>Local-first</strong> — AI di terminal lokal, bukan di server. Bisa SSH tanpa kehilangan AI</li>
 <li><strong>Config as code</strong> — server &amp; workflow config pake YAML, bisa di-version control</li>
 <li><strong>Progressive disclosure</strong> — fitur sederhana gampang dipake, fitur kompleks available kalo butuh</li>

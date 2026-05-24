@@ -1,6 +1,6 @@
 # OpsTerm Zsh Completion
-# Source:  source <(ai completion zsh)
-# Or add to .zshrc:  source <(ai completion zsh)
+# Source:  source <(opsterm completion zsh)
+# Or add to .zshrc:  source <(opsterm completion zsh)
 
 _opsterm() {
     local -a cmds
@@ -76,20 +76,20 @@ _opsterm() {
 
 _opsterm_servers() {
     local -a servers
-    servers=(${(f)"$(_call_program servers ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total/ {print $1}')"})
+    servers=(${(f)"$(_call_program servers opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total/ {print $1}')"})
     _describe 'server' servers
 }
 
 _opsterm_workflows() {
     local -a workflows
-    workflows=(${(f)"$(_call_program workflows ai workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')"})
+    workflows=(${(f)"$(_call_program workflows opsterm workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')"})
     _describe 'workflow' workflows
 }
 
 _opsterm_servers_with_colon() {
     local -a servers
-    servers=(${(f)"$(_call_program servers ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total/ {print $1": "}')"})
+    servers=(${(f)"$(_call_program servers opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total/ {print $1\": \"}'"})
     _describe 'server' servers
 }
 
-compdef _opsterm ai
+compdef _opsterm opsterm

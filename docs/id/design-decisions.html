@@ -212,7 +212,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
     <li class="toc-h3"><a href="#keputusan-python-3">Keputusan: ✅ Python 3</a></li>
   <li class="toc-h2"><a href="#2-kenapa-single-file-bukan-package">2⃣ Kenapa single file, bukan package?</a></li>
     <li class="toc-h3"><a href="#konteks-2">Konteks</a></li>
-    <li class="toc-h3"><a href="#keputusan-single-file-bin-ai">Keputusan: ✅ Single file (bin/ai)</a></li>
+    <li class="toc-h3"><a href="#keputusan-single-file-bin-opsterm">Keputusan: ✅ Single file (bin/opsterm)</a></li>
   <li class="toc-h2"><a href="#3-kenapa-zero-dependencies">3⃣ Kenapa zero dependencies?</a></li>
     <li class="toc-h3"><a href="#konteks-3">Konteks</a></li>
     <li class="toc-h3"><a href="#keputusan-zero-external-dependencies">Keputusan: ✅ Zero external dependencies</a></li>
@@ -348,11 +348,11 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <h2 id="2-kenapa-single-file-bukan-package">2️⃣ Kenapa single file, bukan package?</h2>
 <h3 id="konteks-2">Konteks</h3>
 <p>OpsTerm bisa aja dibikin sebagai Python package dengan <code>pip install</code>.</p>
-<h3 id="keputusan-single-file-bin-ai">Keputusan: ✅ Single file (<code>bin/ai</code>)</h3>
+<h3 id="keputusan-single-file-bin-opsterm">Keputusan: ✅ Single file (<code>bin/opsterm</code>)</h3>
 <p><strong>Alasan:</strong></p>
 <ol>
 <li>
-<p><strong>Portable</strong> — Copy 1 file ke server mana pun, langsung jalan. <code>scp bin/ai server:~/.local/bin/</code></p>
+<p><strong>Portable</strong> — Copy 1 file ke server mana pun, langsung jalan. <code>scp bin/opsterm server:~/.local/bin/</code></p>
 </li>
 <li>
 <p><strong>Zero setup</strong> — Ga perlu <code>pip install</code>, ga perlu <code>python -m opsterm</code>. Langsung <code>./ai</code>.</p>
@@ -512,10 +512,10 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
 <p><strong>Always up-to-date</strong> — Kalo ada subcommand baru, completion otomatis update karena di-generate dari kode.</p>
 </li>
 <li>
-<p><strong>Zero additional file</strong> — <code>ai completion bash</code> langsung print ke stdout. Gak perlu file terpisah.</p>
+<p><strong>Zero additional file</strong> — <code>opsterm completion bash</code> langsung print ke stdout. Gak perlu file terpisah.</p>
 </li>
 <li>
-<p><strong>Works out of box</strong> — <code>source &lt;(ai completion bash)</code> — 1 command, langsung jadi.</p>
+<p><strong>Works out of box</strong> — <code>source &lt;(opsterm completion bash)</code> — 1 command, langsung jadi.</p>
 </li>
 </ol>
 <hr />

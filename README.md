@@ -13,17 +13,17 @@ SSH into any server without losing AI access — because the AI runs on your **l
 
 | Feature | Command | Description |
 |---------|---------|-------------|
-| 🤖 **AI Chat** | `ai how to check disk` | Ask AI anything |
-| 🔑 **Smart SSH** | `ai ssh vps-utama` | SSH without remembering IPs |
-| 🔗 **Multi-hop SSH** | `ai ssh internal --via bastion` | SSH through jump host |
-| 📁 **SCP File Transfer** | `ai scp file.txt server:/path` | Upload/download via server |
-| ⚡ **Workflow** | `ai run deploy-app` | Multi-step automation (SSH/SCP/local) |
-| 🔐 **Vault** | `ai vault set db_pass` | Encrypted credentials (AES-128) |
-| 🔗 **Pipe Mode** | `docker ps \| ai "any errors?"` | Explain command output with AI |
-| 💻 **Shell Integration** | `ai explain-last` | Explain previous command output |
-| ⌨️ **Tab Completion** | `source <(ai completion bash)` | Auto-complete servers/workflows |
-| 📋 **History** | `ai history` | Command history |
-| 🛠️ **Custom Provider** | `ai config set ai.model gpt-4` | Choose any AI provider |
+| 🤖 **AI Chat** | `opsterm how to check disk` | Ask AI anything |
+| 🔑 **Smart SSH** | `opsterm ssh vps-utama` | SSH without remembering IPs |
+| 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH through jump host |
+| 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download via server |
+| ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
+| 🔐 **Vault** | `opsterm vault set db_pass` | Encrypted credentials (AES-128) |
+| 🔗 **Pipe Mode** | `docker ps \| opsterm "any errors?"` | Explain command output with AI |
+| 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
+| ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete servers/workflows |
+| 📋 **History** | `opsterm history` | Command history |
+| 🛠️ **Custom Provider** | `opsterm config set ai.model gpt-4` | Choose any AI provider |
 
 ---
 
@@ -43,11 +43,11 @@ cd ~/opsterm
 export OPSTERM_API_KEY='sk-deepseek-...'
 
 # 4. Tab completion (bash)
-echo 'source <(ai completion bash)' >> ~/.bashrc
+echo 'source <(opsterm completion bash)' >> ~/.bashrc
 source ~/.bashrc
 
 # 5. Try it
-ai --help
+opsterm --help
 ```
 
 ### 🍎 macOS
@@ -64,14 +64,14 @@ cd ~/opsterm
 export OPSTERM_API_KEY='sk-deepseek-...'
 
 # 4. Tab completion — macOS uses Zsh by default
-echo 'source <(ai completion zsh)' >> ~/.zshrc
+echo 'source <(opsterm completion zsh)' >> ~/.zshrc
 source ~/.zshrc
 
 # 5. Zsh plugin (optional — for ai-last, ai-explain)
 echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
 
 # 6. Try it
-ai --help
+opsterm --help
 ```
 
 > **macOS Note**: Make sure Python 3 is available (`python3 --version`).
@@ -85,7 +85,7 @@ ai --help
 echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
 
 # Add your first server
-ai servers add
+opsterm servers add
 
 # Or edit the config file directly
 nano ~/.ai-workflows/servers.yaml
@@ -98,21 +98,21 @@ nano ~/.ai-workflows/servers.yaml
 ### 🤖 AI Mode (Default)
 ```bash
 # Ask for a command
-ai find log files larger than 1GB
+opsterm find log files larger than 1GB
 # → $ find /var/log -type f -size +1G
 
 # Ask for an explanation
-ai explain what is kubernetes
+opsterm explain what is kubernetes
 
 # Generate a command
-ai create docker compose for nginx + postgres
+opsterm create docker compose for nginx + postgres
 ```
 
 ### 🔑 SSH — Multi-hop Support
 ```bash
-ai ssh vps-utama                        # Direct SSH
-ai ssh internal-server --via bastion    # SSH via jump host
-ai ssh vps                              # Fuzzy match — just "vps" is enough
+opsterm ssh vps-utama                        # Direct SSH
+opsterm ssh internal-server --via bastion    # SSH via jump host
+opsterm ssh vps                              # Fuzzy match — just "vps" is enough
 ```
 
 You can set a permanent jump host in the server config:
@@ -128,13 +128,13 @@ servers:
 ### 📁 SCP File Transfer
 ```bash
 # Upload file to server
-ai scp ./config.yaml vps-utama:/home/ubuntu/
+opsterm scp ./config.yaml vps-utama:/home/ubuntu/
 
 # Download file from server
-ai scp vps-utama:logs/app.log .
+opsterm scp vps-utama:logs/app.log .
 
 # Through jump host
-ai scp file.txt internal-server:/tmp/ --via bastion
+opsterm scp file.txt internal-server:/tmp/ --via bastion
 ```
 
 ### ⚡ Workflow with SCP
@@ -155,23 +155,23 @@ workflows:
 ### 🔐 Vault — Encrypted Credentials
 ```bash
 # Init vault (set master password)
-ai vault init
+opsterm vault init
 
 # Store credentials
-ai vault set db_password "supersecret"
-ai vault set api_key "sk-..."
+opsterm vault set db_password "supersecret"
+opsterm vault set api_key "sk-..."
 
 # Retrieve credentials
-ai vault get db_password    # Output: supersecret
+opsterm vault get db_password    # Output: supersecret
 
 # List keys
-ai vault list
+opsterm vault list
 
 # Delete key
-ai vault rm db_password
+opsterm vault rm db_password
 
 # Lock vault
-ai vault lock
+opsterm vault lock
 ```
 
 Use env var to avoid re-entering password:
@@ -181,10 +181,10 @@ export OPSTERM_VAULT_PASSWORD='master-password'
 
 ### 🔗 Pipe Mode
 ```bash
-kubectl get pods | ai "any errors?"
-docker logs webapp --tail 50 | ai "analyze these errors"
-free -h | ai "is memory sufficient?"
-netstat -tlnp | ai "what ports are open?"
+kubectl get pods | opsterm "any errors?"
+docker logs webapp --tail 50 | opsterm "analyze these errors"
+free -h | opsterm "is memory sufficient?"
+netstat -tlnp | opsterm "what ports are open?"
 ```
 
 ### 💻 Shell Integration (Zsh Plugin)
@@ -193,31 +193,31 @@ netstat -tlnp | ai "what ports are open?"
 source ~/opsterm/zsh/opsterm.plugin.zsh
 
 # Features:
-ai last               # View last command output
-ai explain-last       # Explain last output using AI
+opsterm last               # View last command output
+opsterm explain-last       # Explain last output using AI
 ```
 
 ### ⌨️ Tab Completion
 ```bash
-ai [Tab]        # List subcommands
-ai ssh [Tab]    # List server names
-ai run [Tab]    # List workflow names
+opsterm [Tab]        # List subcommands
+opsterm ssh [Tab]    # List server names
+opsterm run [Tab]    # List workflow names
 ```
 
 ### 🛠️ Server Management
 ```bash
-ai servers list           # List all servers (with PROXY column)
-ai servers add            # Add new server
-ai servers edit vps       # Edit server
-ai servers rm vps         # Remove server
+opsterm servers list           # List all servers (with PROXY column)
+opsterm servers add            # Add new server
+opsterm servers edit vps       # Edit server
+opsterm servers rm vps         # Remove server
 ```
 
 ### ⚙️ Configuration
 ```bash
-ai config list            # View all config
-ai config set ai.model deepseek-chat
-ai config set ai.api_url https://api.deepseek.com/v1/chat/completions
-ai config set shell.confirm_before_exec true
+opsterm config list            # View all config
+opsterm config set ai.model deepseek-chat
+opsterm config set ai.api_url https://api.deepseek.com/v1/chat/completions
+opsterm config set shell.confirm_before_exec true
 ```
 
 ---
@@ -304,7 +304,7 @@ workflows:
 - [x] SCP/file transfer in workflows
 - [x] Vault encrypted credentials (AES-128 + PBKDF2)
 - [ ] Tmux/screen session manager
-- [ ] Docker exec shortcut (`ai exec <container>`)
+- [ ] Docker exec shortcut (`opsterm exec <container>`)
 - [ ] SSH config parser (import from ~/.ssh/config)
 
 ---
