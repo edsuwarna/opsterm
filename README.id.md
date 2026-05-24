@@ -312,3 +312,11 @@ workflows:
 ## 📝 Lisensi
 
 MIT
+
+---
+
+## 📚 Dokumentasi Lengkap
+
+Untuk penjelasan detail tentang arsitektur, tech stack, dan design decisions:
+
+👉 [docs/](docs/README.md) — 📐 Arsitektur | 🔧 Tech Stack | 🤔 Design Decisions | 📊 Diagram Excalidraw
