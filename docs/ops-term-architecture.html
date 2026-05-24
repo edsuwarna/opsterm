@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #ffffff;
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+.diagram {
+  width: 1400px;
+  position: relative;
+}
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  padding: 15px 0 25px;
+}
+
+/* Layer backgrounds */
+.layer {
+  border-radius: 10px;
+  padding: 10px 0 15px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.layer-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 0 0 8px 16px;
+}
+.layer-ui { background: #e8f4fd; border: 1px solid #b3d9f2; }
+.layer-router { background: #ede8f9; border: 1px solid #d0c4e8; }
+.layer-engines { background: #e6f7ee; border: 1px solid #b8e6cc; }
+.layer-data { background: #fef9e7; border: 1px solid #f9e79f; }
+.layer-external { background: #fdece4; border: 1px solid #f5cba7; }
+
+.layer-ui .layer-label { color: #1971c2; }
+.layer-router .layer-label { color: #6741d9; }
+.layer-engines .layer-label { color: #2b8a3e; }
+.layer-data .layer-label { color: #e67700; }
+.layer-external .layer-label { color: #c92a2a; }
+
+.box-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 0 10px;
+  flex-wrap: wrap;
+}
+.box {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 18px;
+  border: 2px solid;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.box-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.box-desc {
+  font-size: 12px;
+  color: #555;
+  margin-top: 3px;
+}
+.box-wide {
+  flex: 1;
+  min-width: 200px;
+}
+.box-full {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Colors */
+.bc-ui { border-color: #1971c2; }
+.bc-router { border-color: #6741d9; }
+.bc-eng { border-color: #2b8a3e; }
+.bc-data { border-color: #e67700; }
+.bc-ext { border-color: #c92a2a; }
+
+/* Arrows row */
+.arrows-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 28px;
+  gap: 20px;
+}
+.arrow-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+}
+.arrow-down .line {
+  width: 2px;
+  height: 14px;
+  background: #666;
+}
+.arrow-down .head {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #666;
+}
+.arrow-down .label {
+  margin-top: 2px;
+}
+.arrow-down.dashed .line {
+  border-right: 2px dashed #e67700;
+  background: transparent;
+}
+.arrow-down.dashed .head {
+  border-top-color: #e67700;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  padding: 15px 0 5px;
+  font-size: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-swatch {
+  width: 16px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+.legend-swatch.ui { background: #e8f4fd; border-color: #b3d9f2; }
+.legend-swatch.router { background: #ede8f9; border-color: #d0c4e8; }
+.legend-swatch.eng { background: #e6f7ee; border-color: #b8e6cc; }
+.legend-swatch.data { background: #fef9e7; border-color: #f9e79f; }
+.legend-swatch.ext { background: #fdece4; border-color: #f5cba7; }
+
+.footer-note {
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  padding: 8px 0;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="diagram">
+
+<div class="title">OpsTerm Architecture — System Design Overview</div>
+
+<!-- LAYER 1: USER INTERFACE -->
+<div class="layer layer-ui">
+  <div class="layer-label">📱 Layer 1: User Interface</div>
+  <div class="box-row">
+    <div class="box bc-ui" style="width:260px;">
+      <div class="box-title">CLI Terminal</div>
+      <div class="box-desc">$ ai &lt;command&gt;</div>
+    </div>
+    <div class="box bc-ui" style="width:260px;">
+      <div class="box-title">Zsh Plugin</div>
+      <div class="box-desc">ai-last / ai-explain</div>
+    </div>
+    <div class="box bc-ui" style="width:260px;">
+      <div class="box-title">Pipe Mode (stdin)</div>
+      <div class="box-desc">cmd | ai &lt;prompt&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- Arrow: L1 → L2 -->
+<div class="arrows-row">
+  <div class="arrow-down">
+    <div class="line"></div>
+    <div class="head"></div>
+  </div>
+</div>
+
+<!-- LAYER 2: COMMAND ROUTER -->
+<div class="layer layer-router">
+  <div class="layer-label">🔀 Layer 2: Command Router</div>
+  <div class="box-row">
+    <div class="box bc-router box-full">
+      <div class="box-title">CLI Router (argparse)</div>
+      <div class="box-desc">Route ke subcommand yang sesuai</div>
+    </div>
+  </div>
+</div>
+
+<!-- Arrow: L2 → L3 -->
+<div class="arrows-row">
+  <div class="arrow-down">
+    <div class="line"></div>
+    <div class="head"></div>
+  </div>
+</div>
+
+<!-- LAYER 3: ENGINES -->
+<div class="layer layer-engines">
+  <div class="layer-label">⚙️ Layer 3: Engines</div>
+  <div class="box-row" style="margin-bottom:10px;">
+    <div class="box bc-eng" style="width:240px;">
+      <div class="box-title">AI Client</div>
+      <div class="box-desc">urllib → OpenAI API<br>Custom provider support</div>
+    </div>
+    <div class="box bc-eng" style="width:240px;">
+      <div class="box-title">SSH Runner</div>
+      <div class="box-desc">subprocess + execvp<br>Multi-hop via -J</div>
+    </div>
+    <div class="box bc-eng" style="width:240px;">
+      <div class="box-title">SCP Transfer</div>
+      <div class="box-desc">subprocess + scp<br>Server:path syntax</div>
+    </div>
+    <div class="box bc-eng" style="width:220px;">
+      <div class="box-title">Vault</div>
+      <div class="box-desc">AES-128 + PBKDF2<br>cryptography (optional)</div>
+    </div>
+  </div>
+  <div class="box-row">
+    <div class="box bc-eng box-wide" style="max-width:700px;">
+      <div class="box-title">Workflow Executor</div>
+      <div class="box-desc">Orchestrate multi-step: SSH → SCP → Local → Confirm → Wait</div>
+    </div>
+  </div>
+</div>
+
+<!-- Arrow: L3 → L4 (dashed) -->
+<div class="arrows-row">
+  <div class="arrow-down dashed">
+    <div class="label">Reads/Writes</div>
+    <div class="line" style="border-right:2px dashed #e67700;background:transparent;height:14px;"></div>
+    <div class="head" style="border-top-color:#e67700;"></div>
+  </div>
+</div>
+
+<!-- LAYER 4: DATA & STATE -->
+<div class="layer layer-data">
+  <div class="layer-label">💾 Layer 4: Data &amp; State</div>
+  <div class="box-row">
+    <div class="box bc-data" style="width:380px;">
+      <div class="box-title">Config Loader</div>
+      <div class="box-desc">YAML parsing — config.yaml, servers.yaml, workflows.yaml</div>
+    </div>
+    <div class="box bc-data" style="width:380px;">
+      <div class="box-title">History</div>
+      <div class="box-desc">SQLite — mode, input, output, timestamp</div>
+    </div>
+  </div>
+</div>
+
+<!-- Arrow: L4 → L5 -->
+<div class="arrows-row">
+  <div class="arrow-down">
+    <div class="line"></div>
+    <div class="head"></div>
+  </div>
+</div>
+
+<!-- LAYER 5: EXTERNAL SYSTEMS -->
+<div class="layer layer-external">
+  <div class="layer-label">🌐 Layer 5: External Systems</div>
+  <div class="box-row">
+    <div class="box bc-ext" style="width:280px;">
+      <div class="box-title">AI Provider API</div>
+      <div class="box-desc">DeepSeek / OpenAI<br>Ollama / OpenRouter</div>
+    </div>
+    <div class="box bc-ext" style="width:280px;">
+      <div class="box-title">SSH Servers</div>
+      <div class="box-desc">VPS / Cloud instances<br>Internal network</div>
+    </div>
+    <div class="box bc-ext" style="width:280px;">
+      <div class="box-title">Local Filesystem</div>
+      <div class="box-desc">~/.ai-workflows/<br>config, vault, history</div>
+    </div>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch ui"></div> User Interface</div>
+  <div class="legend-item"><div class="legend-swatch router"></div> Command Router</div>
+  <div class="legend-item"><div class="legend-swatch eng"></div> Engine</div>
+  <div class="legend-item"><div class="legend-swatch data"></div> Data &amp; State</div>
+  <div class="legend-item"><div class="legend-swatch ext"></div> External System</div>
+</div>
+
+<div class="footer-note">
+  Arrows: Data flow direction. Solid = direct call. Dashed = config/history read/write.
+  Config is loaded fresh per command. History is written after each command completes.
+</div>
+
+</div>
+</body>
+</html>

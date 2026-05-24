@@ -315,10 +315,10 @@ MIT
 
 ---
 
-## 📚 Dokumentasi Lengkap
+## 📚 Full Documentation
 
-Untuk penjelasan detail tentang arsitektur, tech stack, dan design decisions:
+For detailed explanations of architecture, tech stack, and design decisions:
 
-👉 [docs/](docs/en/README.md) — 📐 Architecture | 🔧 Tech Stack | 🤔 Design Decisions | 🎯 Features | 📊 Diagram
+👉 [docs/en/](docs/en/README.md) — 📐 Architecture | 🔧 Tech Stack | 🤔 Design Decisions | 🎯 Features | 📊 Diagram
 
 🖼️ **Architecture Diagram:** [docs/ops-term-architecture.png](docs/ops-term-architecture.png)
