@@ -132,10 +132,22 @@
             padding: 15px 20px;
             border-radius: 6px;
             font-size: 14px;
-            line-height: 1.8;
+            line-height: 1.7;
             overflow-x: auto;
             color: var(--code-text);
         }
+        .code-block { position: relative; }
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px; z-index: 10;
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 6px; width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; opacity: 0; transition: all 0.2s;
+            color: var(--text2);
+        }
+        .code-block:hover .copy-btn { opacity: 1; }
+        .copy-btn:hover { background: var(--accent); color: #fff; }
+        .copy-btn.copied { opacity: 1; background: var(--green); color: #fff; }
         .install-box .comment { color: var(--text2); }
 
         .section-title {
@@ -237,6 +249,7 @@
     <!-- Quick Install -->
     <div class="install-box">
       <h2>⚡ Quick Install</h2>
+      <div class="code-block">
       <code>
         <span class="comment"># 1. Clone & setup</span>
         git clone https://github.com/edsuwarna/opsterm.git ~/opsterm<br>
@@ -245,6 +258,7 @@
         export OPSTERM_API_KEY='sk-...'<br>
         opsterm --help
       </code>
+      </div>
     </div>
 
     <!-- Documentation -->
@@ -281,6 +295,26 @@
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
         const saved = localStorage.getItem('ops-term-theme');
         if (saved) setTheme(saved);
+
+        function copyCode(btn) {
+            const code = btn.parentElement.querySelector('code');
+            const text = Array.from(code.childNodes).map(n =>
+                n.nodeType === 1 && n.tagName === 'BR' ? '\n' : n.textContent
+            ).join('').trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✅';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = '📋'; btn.classList.remove('copied'); }, 1500);
+            });
+        }
+        document.querySelectorAll('.code-block code').forEach(code => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = '📋';
+            btn.title = 'Copy';
+            btn.addEventListener('click', () => copyCode(btn));
+            code.parentElement.appendChild(btn);
+        });
     </script>
 </body>
 </html>
