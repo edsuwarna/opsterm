@@ -1,208 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🔧 Tech Stack — OpsTerm</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Theme ── */
+:root {
+  --bg: #0d1117; --bg2: #161b22; --bg3: #1c2128; --border: #30363d;
+  --text: #e6edf3; --text2: #8b949e; --text3: #484f58;
+  --accent: #58a6ff; --green: #3fb950;
+  --code-bg: #151b23;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg2: #f6f8fa; --bg3: #eef1f5; --border: #d0d7de;
+  --text: #1f2328; --text2: #656d76; --text3: #afb8c1;
+  --accent: #0969da; --green: #1a7f37;
+  --code-bg: #f6f8fa;
+}
+html { scroll-behavior: smooth; }
 body {
   font-family: 'Segoe UI', -apple-system, sans-serif;
-  background: #f8f9fa;
-  color: #1a1a2e;
-  line-height: 1.7;
-  padding: 20px;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin: 0; padding: 0; transition: background 0.2s, color 0.2s;
 }
-.container {
-  max-width: 860px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 12px;
-  padding: 40px 48px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  border: 1px solid #e9ecef;
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 240px; background: var(--bg2);
+  border-right: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100;
+  transition: background 0.2s;
 }
+.sidebar-header {
+  padding: 20px 16px; border-bottom: 1px solid var(--border);
+  font-weight: 700; font-size: 16px;
+  background: linear-gradient(135deg,var(--accent),var(--green));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.sidebar-back {
+  display: flex; align-items: center; gap: 6px; padding: 12px 16px;
+  color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500;
+  border-bottom: 1px solid var(--border); transition: background 0.2s;
+}
+.sidebar-back:hover { background: var(--bg3); }
+.sidebar-label { padding: 12px 16px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); }
+.sidebar-nav { padding: 4px 0; }
+.sidebar-nav a {
+  display: block; padding: 6px 16px; color: var(--text2); text-decoration: none;
+  font-size: 13px; border-left: 2px solid transparent; transition: all 0.15s;
+}
+.sidebar-nav a:hover { color: var(--text); background: var(--bg3); }
+.sidebar-nav a.active { color: var(--accent); border-left-color: var(--accent); background: #1f6feb11; }
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.theme-toggle {
+  position: fixed; top: 12px; right: 12px; z-index: 200;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.theme-toggle:hover { background: var(--bg3); }
+
+.content { flex: 1; margin-left: 240px; padding: 32px 48px; max-width: 860px; }
+
 h1 { font-size: 28px; margin: 20px 0 10px; }
-h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e9ecef; }
+h2 { font-size: 22px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
 h3 { font-size: 18px; margin: 20px 0 8px; }
 p { margin: 10px 0; }
 code {
-  background: #f1f3f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  background: var(--bg3); padding: 2px 6px; border-radius: 4px;
+  font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;
 }
-pre code {
-  display: block;
-  background: #1a1a2e;
-  color: #e9ecef;
-  padding: 16px 20px;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.6;
-}
-pre code .comment { color: #6c757d; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 15px 0;
-}
-th, td {
-  border: 1px solid #dee2e6;
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 14px;
-}
-th { background: #f1f3f5; font-weight: 600; }
-tr:nth-child(even) td { background: #f8f9fa; }
-a { color: #1971c2; text-decoration: none; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px; overflow-x: auto; }
+pre code { display: block; background: none; border: none; padding: 0; color: #c9d1d9; font-size: 13px; }
+pre code .comment { color: var(--text2); }
+table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; font-size: 14px; }
+th { background: var(--bg3); font-weight: 600; }
+tr:nth-child(even) td { background: var(--bg2); }
+a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 ul, ol { margin: 10px 0; padding-left: 24px; }
 li { margin: 4px 0; }
-hr { border: none; border-top: 2px solid #e9ecef; margin: 30px 0; }
-blockquote {
-  border-left: 4px solid #1971c2;
-  padding: 10px 16px;
-  margin: 15px 0;
-  background: #f1f3f5;
-  border-radius: 0 6px 6px 0;
-}
+hr { border: none; border-top: 2px solid var(--border); margin: 30px 0; }
+blockquote { border-left: 4px solid var(--accent); padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
 blockquote p { margin: 0; }
-img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
-.nav-back {
-  display: inline-block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #888;
-}
-.nav-back:hover { color: #1971c2; }
-.footer {
-  text-align: center;
-  padding: 30px 0 10px;
-  font-size: 13px;
-  color: #888;
-  border-top: 1px solid #e9ecef;
-  margin-top: 40px;
-}
-.footer a { color: #1971c2; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
 
-/* ── Doc Nav ── */
-.doc-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 10px 0 14px;
-  margin: 10px 0 16px;
-  border-bottom: 2px solid #e9ecef;
-}
-.doc-nav-item {
-  font-size: 13px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  color: #495057;
-  text-decoration: none;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.doc-nav-item:hover {
-  background: #e8f4fd;
-  color: #1971c2;
-}
-.doc-nav-item.active {
-  background: #1971c2;
-  color: white;
-  font-weight: 600;
-}
-.doc-nav-item.diagram-link {
-  margin-left: auto;
-  opacity: 0.7;
-}
-.doc-nav-item.diagram-link:hover {
-  opacity: 1;
-}
-@media (max-width: 600px) {
-  .doc-nav { gap: 4px; }
-  .doc-nav-item { font-size: 12px; padding: 4px 8px; }
-  .doc-nav-item.diagram-link { margin-left: 0; }
-}
+.footer { text-align: center; padding: 30px 0 10px; font-size: 13px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 40px; }
+.footer a { color: var(--accent); }
 
-/* ── Table of Contents ── */
-.page-toc {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-left: 4px solid #1971c2;
-  border-radius: 8px;
-  padding: 16px 20px;
-  margin: 0 0 30px 0;
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .sidebar-toggle { display: block; }
+  .content { margin-left: 0; padding: 24px 20px; max-width: 100%; }
 }
-.page-toc .toc-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1971c2;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.page-toc ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.page-toc li {
-  margin: 3px 0;
-  line-height: 1.5;
-}
-.page-toc li.toc-h1 { padding-left: 0; }
-.page-toc li.toc-h2 { padding-left: 18px; }
-.page-toc li.toc-h3 { padding-left: 36px; }
-.page-toc li a {
-  font-size: 14px;
-  color: #495057;
-  text-decoration: none;
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all 0.15s;
-}
-.page-toc li a:hover {
-  background: #e8f4fd;
-  color: #1971c2;
-}
-/* Sticky ToC for wide screens */
-@media (min-width: 1200px) {
-  .page-toc {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    width: 240px;
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-    z-index: 100;
-    margin: 0;
-    background: rgba(255,255,255,0.97);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-  .container { max-width: 800px; }
-}
-@media (min-width: 1400px) {
-  .page-toc { width: 280px; }
-}
-@media (max-width: 1199px) {
-  .page-toc { position: static; width: auto; }
-}
+.sidebar-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 200; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 20px; color: var(--text); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
 
 </style>
 </head>
 <body>
-<div class="container">
+<button class="sidebar-toggle" id="sidebarToggle">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
 
-<p class="nav-back"><a href="../index.html">← Back to OpsTerm</a></p>
+<div class="layout">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">OpsTerm</div>
+        <a href="../index.html" class="sidebar-back">← Back to Home</a>
+        <div class="sidebar-label">Documentation</div>
+        <div class="sidebar-nav">
+            <a href="README.html" class="">📖 Overview</a>
+<a href="architecture.html" class="">📐 Architecture</a>
+<a href="tech-stack.html" class=" active">🔧 Tech Stack</a>
+<a href="design-decisions.html" class="">🤔 Design Decisions</a>
+<a href="features.html" class="">🎯 Features</a>
+<a href="../ops-term-architecture.png" target="_blank">🖼️ Diagram</a>
+        </div>
+    </nav>
 
-<nav class="doc-nav"><a href="README.html" class="doc-nav-item">📖 Overview</a><a href="architecture.html" class="doc-nav-item">📐 Architecture</a><a href="tech-stack.html" class="doc-nav-item active">🔧 Tech Stack</a><a href="design-decisions.html" class="doc-nav-item">🤔 Design Decisions</a><a href="features.html" class="doc-nav-item">🎯 Features</a><a href="../ops-term-architecture.png" class="doc-nav-item diagram-link" target="_blank">🖼️ Diagram</a></nav>
-
-<nav class="page-toc">
+    <main class="content">
+        <nav class="page-toc">
 <div class="toc-title">📑 On this page</div>
 <ul>
 <li class="toc-h1"><a href="#tech-stack">🔧 Tech Stack</a></li>
@@ -234,8 +159,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid #e9ecef; }
   <li class="toc-h2"><a href="#comparison-with-alternatives">Comparison with Alternatives</a></li>
 </ul>
 </nav>
-
-<h1 id="tech-stack">🔧 Tech Stack</h1>
+        <h1 id="tech-stack">🔧 Tech Stack</h1>
 <p>This document explains the technology used in OpsTerm — from the programming language to the communication protocol.</p>
 <hr />
 <h2 id="summary">🎯 Summary</h2>
@@ -673,10 +597,31 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <hr />
 <p>Next: <a href="design-decisions.html">🤔 Design Decisions →</a></p>
 
-<div class="footer">
-  <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+        <div class="footer">
+            <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
+        </div>
+    </main>
 </div>
 
-</div>
+<script>
+function getTheme() { return document.documentElement.getAttribute('data-theme'); }
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ops-term-theme', theme);
+    document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
+}
+function toggleTheme() { setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+const saved = localStorage.getItem('ops-term-theme');
+if (saved) setTheme(saved);
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+document.getElementById('sidebarToggle').onclick = toggleSidebar;
+document.getElementById('sidebarOverlay').onclick = toggleSidebar;
+</script>
+
 </body>
 </html>
