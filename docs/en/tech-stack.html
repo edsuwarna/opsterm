@@ -76,7 +76,7 @@ code {
   font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;
 }
 pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px; overflow-x: auto; }
-pre code { display: block; background: none; border: none; padding: 0; color: #c9d1d9; font-size: 13px; }
+pre code { display: block; background: none; border: none; padding: 0; color: var(--text); font-size: 13px; }
 pre code .comment { color: var(--text2); }
 table { width: 100%; border-collapse: collapse; margin: 15px 0; }
 th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; font-size: 14px; }
@@ -88,6 +88,31 @@ ul, ol { margin: 10px 0; padding-left: 24px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 2px solid var(--border); margin: 30px 0; }
 blockquote { border-left: 4px solid var(--accent); padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+/* ── Right TOC ── */
+.right-toc {
+  position: fixed; top: 0; right: 0; width: 200px;
+  height: 100vh; overflow-y: auto; padding: 24px 12px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  transition: background 0.2s;
+  display: none;
+}
+.right-toc-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 10px; padding-left: 4px; }
+.right-toc a { display: block; padding: 3px 8px; font-size: 12px; color: var(--text2); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; }
+.right-toc a:hover { color: var(--text); }
+.right-toc a.active { color: var(--accent); border-left-color: var(--accent); }
+.right-toc a.lvl-2 { padding-left: 8px; }
+.right-toc a.lvl-3 { padding-left: 20px; font-size: 11.5px; }
+.right-toc::-webkit-scrollbar { width: 4px; }
+.right-toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+@media (min-width: 1300px) { .right-toc { display: block; } .content { max-width: 720px; padding: 32px 64px 32px 48px; } }
+@media (min-width: 1500px) { .right-toc { width: 230px; } }
+
+/* ── Page TOC (top box, hidden — moved to right) ── */
+.page-toc { display: none; } padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
 blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
 
@@ -127,38 +152,6 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     </nav>
 
     <main class="content">
-        <nav class="page-toc">
-<div class="toc-title">📑 On this page</div>
-<ul>
-<li class="toc-h1"><a href="#tech-stack">🔧 Tech Stack</a></li>
-  <li class="toc-h2"><a href="#summary">Summary</a></li>
-  <li class="toc-h2"><a href="#language-python-3">🐍 Language: Python 3</a></li>
-    <li class="toc-h3"><a href="#why-python">Why Python?</a></li>
-    <li class="toc-h3"><a href="#why-not-go-rust">Why NOT Go / Rust?</a></li>
-  <li class="toc-h2"><a href="#zero-dependency-strategy">📦 Zero-Dependency Strategy</a></li>
-    <li class="toc-h3"><a href="#what-typically-uses-third-party-libraries">What Typically Uses Third-Party Libraries:</a></li>
-    <li class="toc-h3"><a href="#custom-yaml-parser">Custom YAML Parser</a></li>
-  <li class="toc-h2"><a href="#sqlite-history">🗄 SQLite History</a></li>
-    <li class="toc-h3"><a href="#schema">Schema:</a></li>
-    <li class="toc-h3"><a href="#why-sqlite">Why SQLite?</a></li>
-  <li class="toc-h2"><a href="#protocol-openai-compatible-api">Protocol: OpenAI-Compatible API</a></li>
-    <li class="toc-h3"><a href="#request">Request:</a></li>
-    <li class="toc-h3"><a href="#response">Response:</a></li>
-    <li class="toc-h3"><a href="#supported-providers">Supported Providers:</a></li>
-  <li class="toc-h2"><a href="#vault-encryption">Vault Encryption</a></li>
-    <li class="toc-h3"><a href="#primary-recommended-cryptography-fernet-fernet">Primary (recommended): cryptography.fernet.Fernet</a></li>
-    <li class="toc-h3"><a href="#fallback-no-cryptography-hmac-xor">Fallback (no cryptography): HMAC + XOR</a></li>
-  <li class="toc-h2"><a href="#ssh-scp-communication">📡 SSH/SCP Communication</a></li>
-    <li class="toc-h3"><a href="#ssh-command-building">SSH Command Building:</a></li>
-    <li class="toc-h3"><a href="#scp-command-building">SCP Command Building:</a></li>
-    <li class="toc-h3"><a href="#interaction">Interaction:</a></li>
-  <li class="toc-h2"><a href="#zsh-plugin-integration">🐚 Zsh Plugin Integration</a></li>
-    <li class="toc-h3"><a href="#hooks-used">Hooks Used:</a></li>
-    <li class="toc-h3"><a href="#aliases">Aliases:</a></li>
-    <li class="toc-h3"><a href="#how-opsterm-ti-ai-terminal-integration-works">How opsterm-ti (AI + Terminal Integration) works:</a></li>
-  <li class="toc-h2"><a href="#comparison-with-alternatives">Comparison with Alternatives</a></li>
-</ul>
-</nav>
         <h1 id="tech-stack">🔧 Tech Stack</h1>
 <p>This document explains the technology used in OpsTerm — from the programming language to the communication protocol.</p>
 <hr />
@@ -327,7 +320,7 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <p><strong>NOT supported:</strong><br />
 - YAML anchors (<code>&amp;anchor</code>, <code>*alias</code>)<br />
 - Multi-line strings (<code>|</code>, <code>&gt;</code>)<br />
-- Inline JSON (<code>{key: value}</code>)<br />
+- Inline JSON (<code>{{key: value}}</code>)<br />
 - Complex types (timestamps, sets)</p>
 <p><strong>Why not use PyYAML?</strong><br />
 1. <strong>Dependency</strong> — users would need to <code>pip install</code> it first<br />
@@ -360,27 +353,27 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 <span class="err">Au</span><span class="kc">t</span><span class="err">horiza</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="p">:</span><span class="w"> </span><span class="err">Bearer</span><span class="w"> </span><span class="err">***</span>
 <span class="err">Co</span><span class="kc">ntent</span><span class="mi">-</span><span class="err">Type</span><span class="p">:</span><span class="w"> </span><span class="err">applica</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="err">/jso</span><span class="kc">n</span>
 
-<span class="p">{</span>
+<span class="p">{{</span>
 <span class="w">    </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deepseek-chat&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;messages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You are a terminal assistant...&quot;</span><span class="p">},</span>
-<span class="w">        </span><span class="p">{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;how to check disk usage&quot;</span><span class="p">}</span>
+<span class="w">        </span><span class="p">{{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You are a terminal assistant...&quot;</span><span class="p">}},</span>
+<span class="w">        </span><span class="p">{{</span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;how to check disk usage&quot;</span><span class="p">}}</span>
 <span class="w">    </span><span class="p">],</span>
 <span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;max_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span>
-<span class="p">}</span>
+<span class="p">}}</span>
 </code></pre></div>
 
 <h3 id="response">Response:</h3>
-<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<div class="codehilite"><pre><span></span><code><span class="p">{{</span>
 <span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chatcmpl-...&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;choices&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
-<span class="w">        </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;choices&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{{</span>
+<span class="w">        </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{{</span>
 <span class="w">            </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;$ df -h /&quot;</span>
-<span class="w">        </span><span class="p">}</span>
-<span class="w">    </span><span class="p">}]</span>
-<span class="p">}</span>
+<span class="w">        </span><span class="p">}}</span>
+<span class="w">    </span><span class="p">}}]</span>
+<span class="p">}}</span>
 </code></pre></div>
 
 <h3 id="supported-providers">Supported Providers:</h3>
@@ -506,14 +499,14 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
 </code></pre></div>
 
 <h3 id="how-opsterm-ti-ai-terminal-integration-works">How <code>opsterm-ti</code> (AI + Terminal Integration) works:</h3>
-<div class="codehilite"><pre><span></span><code>opsterm-ti<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<div class="codehilite"><pre><span></span><code>opsterm-ti<span class="o">()</span><span class="w"> </span><span class="o">{{</span>
 <span class="w">    </span><span class="c1"># 1. Ask AI</span>
 <span class="w">    </span>opsterm<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$*</span><span class="s2">&quot;</span>
 
 <span class="w">    </span><span class="c1"># 2. Extract command from response (lines starting with $)</span>
 <span class="w">    </span><span class="c1"># 3. Ask user: run it?</span>
 <span class="w">    </span><span class="c1"># 4. If yes, execute</span>
-<span class="o">}</span>
+<span class="o">}}</span>
 </code></pre></div>
 
 <hr />
@@ -601,26 +594,78 @@ The only optional dependency: <code>pip install cryptography</code> (for vault).
             <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
         </div>
     </main>
+
+    <aside class="right-toc" id="rightToc">
+        <div class="right-toc-label">📑 On this page</div>
+        <div id="rightTocLinks">
+            <a href="#tech-stack" class="lvl-1">🔧 Tech Stack</a>
+<a href="#summary" class="lvl-2">Summary</a>
+<a href="#language-python-3" class="lvl-2">🐍 Language: Python 3</a>
+<a href="#why-python" class="lvl-3">Why Python?</a>
+<a href="#why-not-go-rust" class="lvl-3">Why NOT Go / Rust?</a>
+<a href="#zero-dependency-strategy" class="lvl-2">📦 Zero-Dependency Strategy</a>
+<a href="#what-typically-uses-third-party-libraries" class="lvl-3">What Typically Uses Third-Party Libraries:</a>
+<a href="#custom-yaml-parser" class="lvl-3">Custom YAML Parser</a>
+<a href="#sqlite-history" class="lvl-2">🗄 SQLite History</a>
+<a href="#schema" class="lvl-3">Schema:</a>
+<a href="#why-sqlite" class="lvl-3">Why SQLite?</a>
+<a href="#protocol-openai-compatible-api" class="lvl-2">Protocol: OpenAI-Compatible API</a>
+<a href="#request" class="lvl-3">Request:</a>
+<a href="#response" class="lvl-3">Response:</a>
+<a href="#supported-providers" class="lvl-3">Supported Providers:</a>
+<a href="#vault-encryption" class="lvl-2">Vault Encryption</a>
+<a href="#primary-recommended-cryptography-fernet-fernet" class="lvl-3">Primary (recommended): cryptography.fernet.Fernet</a>
+<a href="#fallback-no-cryptography-hmac-xor" class="lvl-3">Fallback (no cryptography): HMAC + XOR</a>
+<a href="#ssh-scp-communication" class="lvl-2">📡 SSH/SCP Communication</a>
+<a href="#ssh-command-building" class="lvl-3">SSH Command Building:</a>
+<a href="#scp-command-building" class="lvl-3">SCP Command Building:</a>
+<a href="#interaction" class="lvl-3">Interaction:</a>
+<a href="#zsh-plugin-integration" class="lvl-2">🐚 Zsh Plugin Integration</a>
+<a href="#hooks-used" class="lvl-3">Hooks Used:</a>
+<a href="#aliases" class="lvl-3">Aliases:</a>
+<a href="#how-opsterm-ti-ai-terminal-integration-works" class="lvl-3">How opsterm-ti (AI + Terminal Integration) works:</a>
+<a href="#comparison-with-alternatives" class="lvl-2">Comparison with Alternatives</a>
+        </div>
+    </aside>
 </div>
 
 <script>
-function getTheme() { return document.documentElement.getAttribute('data-theme'); }
-function setTheme(theme) {
+function getTheme() {{ return document.documentElement.getAttribute('data-theme'); }}
+function setTheme(theme) {{
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('ops-term-theme', theme);
     document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
-}
-function toggleTheme() { setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+}}
+function toggleTheme() {{ setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }}
 document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 const saved = localStorage.getItem('ops-term-theme');
 if (saved) setTheme(saved);
 
-function toggleSidebar() {
+function toggleSidebar() {{
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('open');
-}
+}}
 document.getElementById('sidebarToggle').onclick = toggleSidebar;
 document.getElementById('sidebarOverlay').onclick = toggleSidebar;
+
+// ── Right TOC active tracking ──
+function setupTOC() {
+    const links = document.querySelectorAll('#rightTocLinks a');
+    if (!links.length) return;
+    const observer = new IntersectionObserver((entries) => {
+        let visible = null;
+        entries.forEach(e => { if (e.isIntersecting) visible = e.target.id; });
+        if (visible) {
+            links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + visible));
+        }
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    links.forEach(l => {
+        const id = l.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+    });
+}
+setupTOC();
 </script>
 
 </body>

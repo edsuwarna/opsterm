@@ -52,23 +52,16 @@ def generate_toc(html):
         flags=re.DOTALL
     )
 
-    # Build ToC HTML
+    # Build ToC HTML for right sidebar (simple links, no wrapper)
     if not toc_items:
         return html_fixed, ""
-
-    toc_lines = ['<nav class="page-toc">',
-                 '<div class="toc-title">📑 On this page</div>',
-                 '<ul>']
+    toc_lines = []
     for level, hid, text in toc_items:
-        indent = "  " * (level - 1)
-        cls = 'toc-h1' if level == 1 else 'toc-h2' if level == 2 else 'toc-h3'
+        cls = f'lvl-{level}'
         text_clean = re.sub(r'[🇬🇧🇮🇩📱🔀⚙️💾🌐📖🚀📁🧠🎯✨🔑🔐🔗⌨️🖼️📊📄📂]+', '', text).strip()
         if not text_clean:
             text_clean = text.strip()
-        toc_lines.append(f'{indent}<li class="{cls}"><a href="#{hid}">{text_clean}</a></li>')
-    toc_lines.append('</ul>')
-    toc_lines.append('</nav>')
-
+        toc_lines.append(f'<a href="#{hid}" class="{cls}">{text_clean}</a>')
     return html_fixed, "\n".join(toc_lines)
 
 
@@ -170,7 +163,7 @@ code {
   font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;
 }
 pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px; overflow-x: auto; }
-pre code { display: block; background: none; border: none; padding: 0; color: #c9d1d9; font-size: 13px; }
+pre code { display: block; background: none; border: none; padding: 0; color: var(--text); font-size: 13px; }
 pre code .comment { color: var(--text2); }
 table { width: 100%; border-collapse: collapse; margin: 15px 0; }
 th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; font-size: 14px; }
@@ -182,6 +175,31 @@ ul, ol { margin: 10px 0; padding-left: 24px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 2px solid var(--border); margin: 30px 0; }
 blockquote { border-left: 4px solid var(--accent); padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+/* ── Right TOC ── */
+.right-toc {
+  position: fixed; top: 0; right: 0; width: 200px;
+  height: 100vh; overflow-y: auto; padding: 24px 12px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  transition: background 0.2s;
+  display: none;
+}
+.right-toc-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 10px; padding-left: 4px; }
+.right-toc a { display: block; padding: 3px 8px; font-size: 12px; color: var(--text2); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; }
+.right-toc a:hover { color: var(--text); }
+.right-toc a.active { color: var(--accent); border-left-color: var(--accent); }
+.right-toc a.lvl-2 { padding-left: 8px; }
+.right-toc a.lvl-3 { padding-left: 20px; font-size: 11.5px; }
+.right-toc::-webkit-scrollbar { width: 4px; }
+.right-toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+@media (min-width: 1300px) { .right-toc { display: block; } .content { max-width: 720px; padding: 32px 64px 32px 48px; } }
+@media (min-width: 1500px) { .right-toc { width: 230px; } }
+
+/* ── Page TOC (top box, hidden — moved to right) ── */
+.page-toc { display: none; } padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
 blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
 
@@ -225,33 +243,58 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
     </nav>
 
     <main class="content">
-        {toc}
         {content}
 
         <div class="footer">
             <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
         </div>
     </main>
+
+    <aside class="right-toc" id="rightToc">
+        <div class="right-toc-label">📑 On this page</div>
+        <div id="rightTocLinks">
+            {toc}
+        </div>
+    </aside>
 </div>
 
 <script>
-function getTheme() {{ return document.documentElement.getAttribute(\'data-theme\'); }}
-function setTheme(theme) {{
+function getTheme() {{{{ return document.documentElement.getAttribute(\'data-theme\'); }}}}
+function setTheme(theme) {{{{
     document.documentElement.setAttribute(\'data-theme\', theme);
     localStorage.setItem(\'ops-term-theme\', theme);
     document.getElementById(\'themeToggle\').textContent = theme === \'dark\' ? \'🌙\' : \'☀️\';
-}}
-function toggleTheme() {{ setTheme(getTheme() === \'dark\' ? \'light\' : \'dark\'); }}
+}}}}
+function toggleTheme() {{{{ setTheme(getTheme() === \'dark\' ? \'light\' : \'dark\'); }}}}
 document.getElementById(\'themeToggle\').addEventListener(\'click\', toggleTheme);
 const saved = localStorage.getItem(\'ops-term-theme\');
 if (saved) setTheme(saved);
 
-function toggleSidebar() {{
+function toggleSidebar() {{{{
     document.getElementById(\'sidebar\').classList.toggle(\'open\');
     document.getElementById(\'sidebarOverlay\').classList.toggle(\'open\');
+}}}}
+document.getElementById('sidebarToggle').onclick = toggleSidebar;
+document.getElementById('sidebarOverlay').onclick = toggleSidebar;
+
+// ── Right TOC active tracking ──
+function setupTOC() {{
+    const links = document.querySelectorAll('#rightTocLinks a');
+    if (!links.length) return;
+    const observer = new IntersectionObserver((entries) => {{
+        let visible = null;
+        entries.forEach(e => {{ if (e.isIntersecting) visible = e.target.id; }});
+        if (visible) {{
+            links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + visible));
+        }}
+    }}, {{ rootMargin: '-80px 0px -60% 0px' }});
+    links.forEach(l => {{
+        const id = l.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+    }});
 }}
-document.getElementById(\'sidebarToggle\').onclick = toggleSidebar;
-document.getElementById(\'sidebarOverlay\').onclick = toggleSidebar;
+setupTOC();
 </script>
 
 </body>
@@ -307,13 +350,19 @@ def convert_md_to_html(filepath):
 
     lang_code = 'id' if parent_dir == 'id' else 'en'
 
+    # Escape braces in content for .format() safety
+    html_body_safe = html_body.replace('{', '{{').replace('}', '}}')
+    toc_safe = toc_html.replace('{', '{{').replace('}', '}}')
+    sidebar_safe = sidebar_nav_html.replace('{', '{{').replace('}', '}}')
+    title_safe = title.replace('{', '{{').replace('}', '}}')
+
     html_full = HTML_TEMPLATE.format(
         lang=lang_code,
-        title=title,
-        toc=toc_html,
-        sidebar_nav=sidebar_nav_html,
+        title=title_safe,
+        toc=toc_safe,
+        sidebar_nav=sidebar_safe,
         TOC_CSS=TOC_CSS,
-        content=html_body
+        content=html_body_safe
     )
 
     out_path = os.path.join(dirname, basename + '.html')

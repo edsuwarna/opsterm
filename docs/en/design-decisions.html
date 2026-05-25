@@ -76,7 +76,7 @@ code {
   font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', monospace;
 }
 pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px; overflow-x: auto; }
-pre code { display: block; background: none; border: none; padding: 0; color: #c9d1d9; font-size: 13px; }
+pre code { display: block; background: none; border: none; padding: 0; color: var(--text); font-size: 13px; }
 pre code .comment { color: var(--text2); }
 table { width: 100%; border-collapse: collapse; margin: 15px 0; }
 th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; font-size: 14px; }
@@ -88,6 +88,31 @@ ul, ol { margin: 10px 0; padding-left: 24px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 2px solid var(--border); margin: 30px 0; }
 blockquote { border-left: 4px solid var(--accent); padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
+blockquote p { margin: 0; }
+img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+/* ── Right TOC ── */
+.right-toc {
+  position: fixed; top: 0; right: 0; width: 200px;
+  height: 100vh; overflow-y: auto; padding: 24px 12px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  transition: background 0.2s;
+  display: none;
+}
+.right-toc-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); margin-bottom: 10px; padding-left: 4px; }
+.right-toc a { display: block; padding: 3px 8px; font-size: 12px; color: var(--text2); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; }
+.right-toc a:hover { color: var(--text); }
+.right-toc a.active { color: var(--accent); border-left-color: var(--accent); }
+.right-toc a.lvl-2 { padding-left: 8px; }
+.right-toc a.lvl-3 { padding-left: 20px; font-size: 11.5px; }
+.right-toc::-webkit-scrollbar { width: 4px; }
+.right-toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+@media (min-width: 1300px) { .right-toc { display: block; } .content { max-width: 720px; padding: 32px 64px 32px 48px; } }
+@media (min-width: 1500px) { .right-toc { width: 230px; } }
+
+/* ── Page TOC (top box, hidden — moved to right) ── */
+.page-toc { display: none; } padding: 10px 16px; margin: 15px 0; background: var(--bg3); border-radius: 0 6px 6px 0; }
 blockquote p { margin: 0; }
 img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
 
@@ -127,45 +152,6 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     </nav>
 
     <main class="content">
-        <nav class="page-toc">
-<div class="toc-title">📑 On this page</div>
-<ul>
-<li class="toc-h1"><a href="#design-decisions">🤔 Design Decisions</a></li>
-  <li class="toc-h2"><a href="#decision-summary">📜 Decision Summary</a></li>
-  <li class="toc-h2"><a href="#1-why-python-not-go-rust">1⃣ Why Python, not Go/Rust?</a></li>
-    <li class="toc-h3"><a href="#context">Context</a></li>
-    <li class="toc-h3"><a href="#decision-python-3">Decision: ✅ Python 3</a></li>
-  <li class="toc-h2"><a href="#2-why-single-file-not-a-package">2⃣ Why single file, not a package?</a></li>
-    <li class="toc-h3"><a href="#context-2">Context</a></li>
-    <li class="toc-h3"><a href="#decision-single-file-bin-opsterm">Decision: ✅ Single file (bin/opsterm)</a></li>
-  <li class="toc-h2"><a href="#3-why-zero-dependencies">3⃣ Why zero dependencies?</a></li>
-    <li class="toc-h3"><a href="#context-3">Context</a></li>
-    <li class="toc-h3"><a href="#decision-zero-external-dependencies">Decision: ✅ Zero external dependencies</a></li>
-  <li class="toc-h2"><a href="#4-why-yaml-not-json-toml">4⃣ Why YAML, not JSON/TOML?</a></li>
-    <li class="toc-h3"><a href="#context-4">Context</a></li>
-    <li class="toc-h3"><a href="#decision-yaml-with-custom-parser">Decision: ✅ YAML (with custom parser)</a></li>
-  <li class="toc-h2"><a href="#5-why-openai-compatible-api-not-an-ai-library">5⃣ Why OpenAI-compatible API, not an AI library?</a></li>
-    <li class="toc-h3"><a href="#context-5">Context</a></li>
-    <li class="toc-h3"><a href="#decision-direct-http-call-openai-compatible">Decision: ✅ Direct HTTP call (OpenAI-compatible)</a></li>
-  <li class="toc-h2"><a href="#6-why-system-ssh-not-a-python-library">6⃣ Why system SSH, not a Python library?</a></li>
-    <li class="toc-h3"><a href="#context-6">Context</a></li>
-    <li class="toc-h3"><a href="#decision-system-ssh-subprocess-usr-bin-ssh">Decision: ✅ System SSH (subprocess + /usr/bin/ssh)</a></li>
-  <li class="toc-h2"><a href="#7-why-file-based-state-not-a-daemon">7⃣ Why file-based state, not a daemon?</a></li>
-    <li class="toc-h3"><a href="#context-7">Context</a></li>
-    <li class="toc-h3"><a href="#decision-file-based-no-daemon">Decision: ✅ File-based (no daemon)</a></li>
-  <li class="toc-h2"><a href="#8-why-optional-vault">8⃣ Why optional vault?</a></li>
-    <li class="toc-h3"><a href="#context-8">Context</a></li>
-    <li class="toc-h3"><a href="#decision-optional-cryptography-recommended-fallback-available">Decision: ✅ Optional — cryptography recommended, fallback available</a></li>
-  <li class="toc-h2"><a href="#9-why-generated-completion">9⃣ Why generated completion?</a></li>
-    <li class="toc-h3"><a href="#context-9">Context</a></li>
-    <li class="toc-h3"><a href="#decision-generated-embedded-in-script">Decision: ✅ Generated (embedded in script)</a></li>
-  <li class="toc-h2"><a href="#why-a-separate-zsh-plugin">🔟 Why a separate Zsh plugin?</a></li>
-    <li class="toc-h3"><a href="#context-10">Context</a></li>
-    <li class="toc-h3"><a href="#decision-separate-file-zsh-opsterm-plugin-zsh">Decision: ✅ Separate file (zsh/opsterm.plugin.zsh)</a></li>
-  <li class="toc-h2"><a href="#suggestions-for-improvement">💡 Suggestions for Improvement</a></li>
-  <li class="toc-h2"><a href="#references">References</a></li>
-</ul>
-</nav>
         <h1 id="design-decisions">🤔 Design Decisions</h1>
 <p>This document explains <strong>why</strong> OpsTerm is designed the way it is — the reasoning behind each technical decision, including the trade-offs that were made.</p>
 <hr />
@@ -332,7 +318,7 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
 <p><strong>User-friendly</strong> — OpsTerm's target users are DevOps engineers who already use YAML (Docker Compose, Kubernetes, Ansible, GitHub Actions).</p>
 </li>
 <li>
-<p><strong>No brackets</strong> — JSON is full of <code>{}</code> and <code>[]</code> that hurt readability for long configs.</p>
+<p><strong>No brackets</strong> — JSON is full of <code>{{}}</code> and <code>[]</code> that hurt readability for long configs.</p>
 </li>
 </ol>
 <p><strong>Trade-offs:</strong><br />
@@ -504,26 +490,85 @@ img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
             <p><a href="https://github.com/edsuwarna/opsterm">OpsTerm</a> · MIT License</p>
         </div>
     </main>
+
+    <aside class="right-toc" id="rightToc">
+        <div class="right-toc-label">📑 On this page</div>
+        <div id="rightTocLinks">
+            <a href="#design-decisions" class="lvl-1">🤔 Design Decisions</a>
+<a href="#decision-summary" class="lvl-2">📜 Decision Summary</a>
+<a href="#1-why-python-not-go-rust" class="lvl-2">1⃣ Why Python, not Go/Rust?</a>
+<a href="#context" class="lvl-3">Context</a>
+<a href="#decision-python-3" class="lvl-3">Decision: ✅ Python 3</a>
+<a href="#2-why-single-file-not-a-package" class="lvl-2">2⃣ Why single file, not a package?</a>
+<a href="#context-2" class="lvl-3">Context</a>
+<a href="#decision-single-file-bin-opsterm" class="lvl-3">Decision: ✅ Single file (bin/opsterm)</a>
+<a href="#3-why-zero-dependencies" class="lvl-2">3⃣ Why zero dependencies?</a>
+<a href="#context-3" class="lvl-3">Context</a>
+<a href="#decision-zero-external-dependencies" class="lvl-3">Decision: ✅ Zero external dependencies</a>
+<a href="#4-why-yaml-not-json-toml" class="lvl-2">4⃣ Why YAML, not JSON/TOML?</a>
+<a href="#context-4" class="lvl-3">Context</a>
+<a href="#decision-yaml-with-custom-parser" class="lvl-3">Decision: ✅ YAML (with custom parser)</a>
+<a href="#5-why-openai-compatible-api-not-an-ai-library" class="lvl-2">5⃣ Why OpenAI-compatible API, not an AI library?</a>
+<a href="#context-5" class="lvl-3">Context</a>
+<a href="#decision-direct-http-call-openai-compatible" class="lvl-3">Decision: ✅ Direct HTTP call (OpenAI-compatible)</a>
+<a href="#6-why-system-ssh-not-a-python-library" class="lvl-2">6⃣ Why system SSH, not a Python library?</a>
+<a href="#context-6" class="lvl-3">Context</a>
+<a href="#decision-system-ssh-subprocess-usr-bin-ssh" class="lvl-3">Decision: ✅ System SSH (subprocess + /usr/bin/ssh)</a>
+<a href="#7-why-file-based-state-not-a-daemon" class="lvl-2">7⃣ Why file-based state, not a daemon?</a>
+<a href="#context-7" class="lvl-3">Context</a>
+<a href="#decision-file-based-no-daemon" class="lvl-3">Decision: ✅ File-based (no daemon)</a>
+<a href="#8-why-optional-vault" class="lvl-2">8⃣ Why optional vault?</a>
+<a href="#context-8" class="lvl-3">Context</a>
+<a href="#decision-optional-cryptography-recommended-fallback-available" class="lvl-3">Decision: ✅ Optional — cryptography recommended, fallback available</a>
+<a href="#9-why-generated-completion" class="lvl-2">9⃣ Why generated completion?</a>
+<a href="#context-9" class="lvl-3">Context</a>
+<a href="#decision-generated-embedded-in-script" class="lvl-3">Decision: ✅ Generated (embedded in script)</a>
+<a href="#why-a-separate-zsh-plugin" class="lvl-2">🔟 Why a separate Zsh plugin?</a>
+<a href="#context-10" class="lvl-3">Context</a>
+<a href="#decision-separate-file-zsh-opsterm-plugin-zsh" class="lvl-3">Decision: ✅ Separate file (zsh/opsterm.plugin.zsh)</a>
+<a href="#suggestions-for-improvement" class="lvl-2">💡 Suggestions for Improvement</a>
+<a href="#references" class="lvl-2">References</a>
+        </div>
+    </aside>
 </div>
 
 <script>
-function getTheme() { return document.documentElement.getAttribute('data-theme'); }
-function setTheme(theme) {
+function getTheme() {{ return document.documentElement.getAttribute('data-theme'); }}
+function setTheme(theme) {{
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('ops-term-theme', theme);
     document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
-}
-function toggleTheme() { setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+}}
+function toggleTheme() {{ setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }}
 document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 const saved = localStorage.getItem('ops-term-theme');
 if (saved) setTheme(saved);
 
-function toggleSidebar() {
+function toggleSidebar() {{
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('open');
-}
+}}
 document.getElementById('sidebarToggle').onclick = toggleSidebar;
 document.getElementById('sidebarOverlay').onclick = toggleSidebar;
+
+// ── Right TOC active tracking ──
+function setupTOC() {
+    const links = document.querySelectorAll('#rightTocLinks a');
+    if (!links.length) return;
+    const observer = new IntersectionObserver((entries) => {
+        let visible = null;
+        entries.forEach(e => { if (e.isIntersecting) visible = e.target.id; });
+        if (visible) {
+            links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + visible));
+        }
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    links.forEach(l => {
+        const id = l.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+    });
+}
+setupTOC();
 </script>
 
 </body>
