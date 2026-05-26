@@ -52,6 +52,8 @@ except ImportError:
 HOME = Path.home()
 CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".ai-workflows"))
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+# 🔒 Set secure permissions on config dir (owner-only)
+os.chmod(str(CONFIG_DIR), 0o700)
 
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 SERVERS_FILE = CONFIG_DIR / "servers.yaml"
@@ -60,6 +62,22 @@ HISTORY_DB = CONFIG_DIR / "history.db"
 VAULT_FILE = CONFIG_DIR / "vault.json"
 LAST_OUTPUT_FILE = CONFIG_DIR / "last_output.txt"
 LAST_CMD_FILE = CONFIG_DIR / "last_command.txt"
+
+
+def _set_secure_permissions(path: Path):
+    """Set file to owner-only read/write (0o600)."""
+    try:
+        path.chmod(0o600)
+    except Exception:
+        pass
+
+
+def _set_secure_permissions_on_all():
+    """Apply secure permissions to all opsterm config files."""
+    for f in [CONFIG_FILE, SERVERS_FILE, WORKFLOWS_FILE, VAULT_FILE,
+              HISTORY_DB, LAST_OUTPUT_FILE, LAST_CMD_FILE]:
+        if f.exists():
+            _set_secure_permissions(f)
 
 # ═══════════════════════════════════════════════════════════
 # MINIMAL YAML PARSER
@@ -237,6 +255,7 @@ def load_yaml(path: Path) -> dict:
 
 def save_yaml(path: Path, data: dict):
     path.write_text(_dump_yaml(data) + "\n", encoding="utf-8")
+    _set_secure_permissions(path)
 
 def load_config() -> dict:
     cfg = load_yaml(CONFIG_FILE)
@@ -526,6 +545,7 @@ class Vault:
 
     def _save_data(self, data: dict):
         VAULT_FILE.write_text(json.dumps(data, indent=2))
+        _set_secure_permissions(VAULT_FILE)
 
     def _derive_key(self, password: str, salt: bytes) -> bytes:
         """Derive a Fernet-compatible key using PBKDF2."""
@@ -540,6 +560,11 @@ class Vault:
         return base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
             "sha256", password.encode(), salt, 600_000
         )[:32])
+
+    def _make_verifier(self, password: str, salt: bytes) -> bytes:
+        """Create a verification HMAC to validate password on unlock."""
+        key = self._derive_key(password, salt)
+        return hmac.new(key, b"opsterm_vault_verify", "sha256").digest()
 
     def _get_password(self, confirm: bool = False) -> Optional[str]:
         """Read master password from env or prompt."""
@@ -572,8 +597,10 @@ class Vault:
         if not pw:
             return
         salt = os.urandom(16)
+        verifier = base64.b64encode(self._make_verifier(pw, salt)).decode()
         data = {
             "salt": base64.b64encode(salt).decode(),
+            "verifier": verifier,
             "keys": {},
         }
         self._save_data(data)
@@ -598,12 +625,19 @@ class Vault:
             return False
         salt = base64.b64decode(data["salt"])
         key = self._derive_key(pw, salt)
-        # Test key by trying to decrypt something
+        # Test key by trying to decrypt something or verify verifier
         if HAS_CRYPTOGRAPHY:
             try:
                 self._fernet = Fernet(key)
-                # Verify by decrypting any existing value (or just store key)
-                if data.get("keys"):
+                # Verify by decrypting any existing value
+                stored_verifier = data.get("verifier", "")
+                if stored_verifier:
+                    expected = base64.b64decode(stored_verifier)
+                    computed = self._make_verifier(pw, salt)
+                    if not hmac.compare_digest(computed, expected):
+                        print("❌ Wrong password!")
+                        return False
+                elif data.get("keys"):
                     sample = next(iter(data["keys"].values()))
                     self._fernet.decrypt(sample["data"].encode())
                 self._unlocked = True
@@ -612,7 +646,16 @@ class Vault:
                 print("❌ Wrong password!")
                 return False
         else:
-            # Fallback: HMAC-based verification
+            # Fallback: verify password using stored verifier
+            stored_verifier_b64 = data.get("verifier", "")
+            if not stored_verifier_b64:
+                print("❌ Vault corrupted (no verifier found). Re-init with: opsterm vault init")
+                return False
+            stored_verifier = base64.b64decode(stored_verifier_b64)
+            computed_verifier = self._make_verifier(pw, salt)
+            if not hmac.compare_digest(computed_verifier, stored_verifier):
+                print("❌ Wrong password!")
+                return False
             self._fernet = key  # Store key bytes for later use
             self._unlocked = True
             return True
@@ -765,7 +808,7 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
         # Local command
         elif command:
             print(f"    $ {command}")
-            result = subprocess.run(command, shell=True, capture_output=False)
+            result = subprocess.run(shlex.split(command), capture_output=False)
             if result.returncode != 0:
                 print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
                 if i < total:
@@ -940,22 +983,61 @@ def print_workflow_table(workflows: dict):
 # INTERACTIVE EDITORS
 # ═══════════════════════════════════════════════════════════
 
+def _validate_hostname(host: str) -> bool:
+    """Basic validation for hostname/IP to prevent injection."""
+    import re
+    if not host:
+        return False
+    # Allow hostnames, IPs, FQDNs — reject shell metacharacters
+    if re.search(r'[;|&`$(){}[\]<>!#~*?\\\n\r]', host):
+        return False
+    return True
+
+
+def _validate_username(user: str) -> bool:
+    """Validate username — alphanumeric, dash, underscore only."""
+    import re
+    if not user:
+        return False
+    return bool(re.match(r'^[a-zA-Z0-9_.-]+$', user))
+
+
+def _validate_ssh_key_path(path: str) -> bool:
+    """Validate SSH key path — no shell metacharacters."""
+    import re
+    if re.search(r'[;|&`$(){}[\]<>!#~*?\\\n\r]', path):
+        return False
+    return True
+
+
 def interactive_add_server():
     print("== Tambah Server Baru ==")
     name = input("  Nama: ").strip()
     if not name:
         print("❌ Nama wajib diisi."); return
+    if not _validate_hostname(name):
+        print("❌ Nama server tidak valid (karakter terlarang)."); return
     servers = get_servers()
     if name in servers:
         ov = input(f"⚠️ Server '{name}' sudah ada. Timpa? [y/N] ").strip().lower()
         if ov not in ("y", "yes"): return
     host = input("  Host/IP: ").strip()
+    if not _validate_hostname(host):
+        print("❌ Host tidak valid (karakter terlarang)."); return
     user = input("  User [root]: ").strip() or "root"
+    if not _validate_username(user):
+        print("❌ Username tidak valid (hanya alfanumerik, _, -, .)."); return
     port_str = input("  Port [22]: ").strip()
     port = int(port_str) if port_str else 22
+    if port < 1 or port > 65535:
+        print("❌ Port harus antara 1-65535."); return
     key = input("  SSH key path [~/.ssh/id_ed25519]: ").strip() or "~/.ssh/id_ed25519"
+    if not _validate_ssh_key_path(key):
+        print("❌ Key path tidak valid (karakter terlarang)."); return
     desc = input("  Deskripsi: ").strip()
     proxy = input("  Proxy/jump host (nama server): ").strip()
+    if proxy and not _validate_hostname(proxy):
+        print("❌ Nama proxy tidak valid (karakter terlarang)."); return
     s = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
     if proxy:
         s["proxy"] = proxy
@@ -1033,6 +1115,9 @@ EXAMPLE_WORKFLOWS = {
 }
 
 def do_init():
+    # 🔒 Ensure secure permissions on existing files and dir
+    _set_secure_permissions_on_all()
+    os.chmod(str(CONFIG_DIR), 0o700)
     if not CONFIG_FILE.exists():
         save_yaml(CONFIG_FILE, {
             "ai": {
@@ -1168,12 +1253,22 @@ def main():
             print(f"Edit server '{target}' (kosongkan untuk skip):")
             s = servers[target]
             host = input(f"  Host [{s.get('host','')}]: ").strip() or s.get('host','')
+            if host and not _validate_hostname(host):
+                print("❌ Host tidak valid (karakter terlarang)."); return
             user = input(f"  User [{s.get('user','')}]: ").strip() or s.get('user','')
+            if user and not _validate_username(user):
+                print("❌ Username tidak valid (hanya alfanumerik, _, -, .)."); return
             port_str = input(f"  Port [{s.get('port',22)}]: ").strip()
             port = int(port_str) if port_str else s.get('port',22)
+            if port < 1 or port > 65535:
+                print("❌ Port harus antara 1-65535."); return
             key = input(f"  SSH key [{s.get('key','')}]: ").strip() or s.get('key','')
+            if key and not _validate_ssh_key_path(key):
+                print("❌ Key path tidak valid (karakter terlarang)."); return
             desc = input(f"  Deskripsi [{s.get('desc','')}]: ").strip() or s.get('desc','')
             proxy = input(f"  Proxy [{s.get('proxy','')}]: ").strip() or s.get('proxy','')
+            if proxy and not _validate_hostname(proxy):
+                print("❌ Nama proxy tidak valid (karakter terlarang)."); return
             servers[target] = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
             if proxy:
                 servers[target]["proxy"] = proxy
@@ -1378,7 +1473,7 @@ def main():
                 for candidate in exec_candidates:
                     resp = input(f"💻 Jalanin: {candidate}? [y/N] ").strip().lower()
                     if resp in ("y", "yes"):
-                        result = subprocess.run(candidate, shell=True, capture_output=True)
+                        result = subprocess.run(shlex.split(candidate), capture_output=True)
                         out = result.stdout.decode() + result.stderr.decode()
                         _save_last_output(out, candidate)
                         if out:
