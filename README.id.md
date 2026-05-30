@@ -5,7 +5,7 @@
 **OpsTerm** adalah asisten AI terminal lokal yang nempel di terminal laptop lu.
 Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di **terminal lokal**, bukan di server remote.
 
-> Mirip Warp.dev tapi **bebas pake custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, dll)
+> Terinspirasi dari [Warp.dev](https://warp.dev) — tapi **bebas pake custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, dll)
 
 ---
 
@@ -20,6 +20,7 @@ Bisa SSH ke server mana pun tanpa kehilangan akses AI — karena AI-nya jalan di
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step otomatis (SSH/SCP/local) |
 | 🔐 **Vault** | `opsterm vault set db_pass` | Simpan credential terenkripsi (AES-128) |
 | 🔗 **Pipe Mode** | `docker ps \| opsterm \"error?\"` | Explain output command pake AI |
+| 🗜️ **RTK AI** | `auto` | Kompres output command 60-95% sebelum ke AI (irit token) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain output command sebelumnya |
 | ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete nama server/workflow |
 | 📋 **History** | `opsterm history` | Riwayat semua command |
@@ -187,6 +188,27 @@ free -h | opsterm "apakah memory cukup?"
 netstat -tlnp | opsterm "port apa aja yang terbuka?"
 ```
 
+### 🗜️ RTK AI — Kompresi Token
+
+Auto-kompres output command **60-95%** sebelum dikirim ke AI — irit token, respon lebih cepet, biaya lebih murah.
+
+```
+# Sebelum RTK: output pytest = 597 chars → AI
+# Setelah RTK: output pytest =   18 chars → AI (-96% 🚀)
+```
+
+| Fitur | Detail |
+|-------|--------|
+| 🔌 **Auto-detect** | RTK deteksi tipe output (git diff, pytest, docker, logs, dll) |
+| 📐 **Smart threshold** | Skip kompresi kalo <200 chars (ga worth it) |
+| 🔄 **Graceful fallback** | RTK gak terinstall? Jalan normal. Gak ada error. |
+| ⚙️ **Config** | `opsterm config set rtk.enabled false` untuk matiin |
+| 🟢 **Status** | Nampil `🟢 RTK x.x.x` di `opsterm provider list` |
+
+**Kompatibel dengan:** Pipe mode, `opsterm explain-last`, auto-exec mode.
+
+> 💡 RTK opsional — install: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
+
 ### 💻 Shell Integration (Zsh Plugin)
 ```bash
 # Load plugin di .zshrc
@@ -305,6 +327,7 @@ workflows:
 - [x] Multi-hop SSH (jump host)
 - [x] SCP/file transfer via workflow
 - [x] Vault encrypted credentials (AES-128 + PBKDF2)
+- [x] RTK AI — kompresi token (auto-detect, hemat 60-95%)
 - [ ] Tmux/screen session manager
 - [ ] Docker exec shortcut (`opsterm exec <container>`)
 - [ ] SSH config parser (import dari ~/.ssh/config)
@@ -324,3 +347,5 @@ Untuk penjelasan detail tentang arsitektur, tech stack, dan design decisions:
 👉 [docs/](docs/id/README.md) — 📐 Arsitektur | 🔧 Tech Stack | 🤔 Design Decisions | 🎯 Fitur | 📊 Diagram
 
 🖼️ **Diagram Arsitektur:** [docs/ops-term-architecture.png](docs/ops-term-architecture.png)
+
+> Terinspirasi dari [Warp.dev](https://warp.dev) — AI di terminal lu, pake provider sendiri.

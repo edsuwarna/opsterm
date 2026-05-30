@@ -18,6 +18,7 @@ This document explains **why** OpsTerm is designed the way it is — the reasoni
 | 8 | **Vault** | Optional cryptography | Hardcoded key, no encryption |
 | 9 | **Completion** | Generated script | Manual completion |
 | 10 | **Shell Integration** | Separate Zsh plugin | Hook shell, LD_PRELOAD |
+| 11 | **RTK Integration** | Optional, auto-detect, graceful fallback | Always-on, hard dependency |
 
 ---
 
@@ -249,6 +250,32 @@ Shell integration could be part of the main script or a separate file.
 **Trade-offs:**
 - Only supports Zsh out of the box (no Bash/Fish support yet).
 - Users must manually source the plugin in their shell config.
+
+## 1️⃣1️⃣ 🗜️ Why optional RTK with graceful fallback?
+
+### Context
+OpsTerm processes command output (pipe mode, explain-last) that can be large — pytest output, git diffs, docker logs, etc. Sending all this to the AI provider consumes tokens and slows responses.
+
+### Decision: ✅ Optional RTK integration — auto-detect, graceful fallback
+
+**Reasons:**
+
+1. **Token savings** — RTK compresses output 60-95% while preserving semantic meaning. pytest: 597→18 chars (-96%).
+
+2. **Zero deps still applies** — RTK is optional. If not installed, OpsTerm runs normally. If installed, it's auto-detected.
+
+3. **Auto-detect** — RTK automatically selects the best compression filter based on output patterns (git diff, pytest, docker ps, logs, etc.).
+
+4. **Smart threshold** — Output <200 chars skips RTK (overhead not worth it). No unnecessary subprocess calls.
+
+5. **Transparent** — User sees no difference in workflow. RTK happens silently between output capture and AI processing.
+
+6. **RTK status** — `opsterm provider list` shows `🟢 RTK x.x.x` when available, `🔴 RTK unavailable` when not.
+
+**Trade-offs:**
+- Subprocess call overhead (~10-50ms). Mitigated by 200-char threshold.
+- Another tool to install. Mitigated by graceful fallback — optional, not required.
+- Extra config key (`rtk.*`) in config.yaml.
 
 ---
 

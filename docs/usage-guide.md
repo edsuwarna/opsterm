@@ -38,6 +38,8 @@ Once connected, you can still use `opsterm "query"` — the AI runs on your loca
 
 Explain command output or ask questions about it:
 
+> 🗜️ **RTK AI** — output auto-compressed 60-95% before sending to AI. Saves tokens, faster responses.
+
 ```bash
 # Analyze logs
 journalctl -u nginx | opsterm "find error patterns"
@@ -119,7 +121,7 @@ opsterm servers remove prod-1
 If you've enabled the Zsh plugin:
 
 ```bash
-# Explain last command output
+# Explain last command output (auto-compressed with RTK if available)
 opsterm-explain-last
 
 # Re-run last command with AI enhancement

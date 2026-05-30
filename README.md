@@ -5,7 +5,7 @@
 **OpsTerm** is a local AI terminal assistant that lives in your terminal.
 SSH into any server without losing AI access — because the AI runs on your **local terminal**, not on the remote server.
 
-> Think Warp.dev but **free to use any custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, etc.)
+> Inspired by [Warp.dev](https://warp.dev) — but **free to use any custom AI provider** (DeepSeek, OpenAI, Ollama, OpenRouter, etc.)
 
 ---
 
@@ -20,6 +20,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
 | 🔐 **Vault** | `opsterm vault set db_pass` | Encrypted credentials (AES-128) |
 | 🔗 **Pipe Mode** | `docker ps \| opsterm "any errors?"` | Explain command output with AI |
+| 🗜️ **RTK AI** | `auto` | Compress command output 60-95% before AI (saves tokens) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
 | ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete servers/workflows |
 | 📋 **History** | `opsterm history` | Command history |
@@ -177,6 +178,27 @@ free -h | opsterm "is memory sufficient?"
 netstat -tlnp | opsterm "what ports are open?"
 ```
 
+### 🗜️ RTK AI — Token Compression
+
+Auto-compress command output by **60-95%** before sending to AI — saves tokens, speeds up responses, lowers cost.
+
+```
+# Before RTK: pytest output = 597 chars → AI
+# After RTK:  pytest output =   18 chars → AI (-96% 🚀)
+```
+
+| Feature | Detail |
+|---------|--------|
+| 🔌 **Auto-detect** | RTK identifies output type (git diff, pytest, docker, logs, etc.) |
+| 📐 **Smart threshold** | Skips compression for output <200 chars (overhead not worth it) |
+| 🔄 **Graceful fallback** | No RTK installed? Runs normally. No errors. |
+| ⚙️ **Config** | `opsterm config set rtk.enabled false` to disable |
+| 🟢 **Status** | Shows `🟢 RTK x.x.x` in `opsterm provider list` |
+
+**Works with:** Pipe mode, `opsterm explain-last`, auto-exec mode.
+
+> 💡 RTK is optional — install with: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
+
 ### 💻 Shell Integration (Zsh Plugin)
 ```bash
 # Load plugin in .zshrc
@@ -298,12 +320,15 @@ workflows:
 - [x] Shell operators (`&&`, `|`, `>`) in local commands
 - [x] Auto-migrate config `~/.ai-workflows` → `~/.opsterm/`
 - [x] EOFError-safe auto-exec prompt
+- [x] RTK AI — token compression (auto-detect, 60-95% savings)
 - [ ] Tmux/screen session manager
 - [ ] Docker exec shortcut (`opsterm exec <container>`)
 - [ ] SSH config parser (import from ~/.ssh/config)
 - [ ] Web dashboard (see workflows and servers in browser)
 
 ---
+
+> Inspired by [Warp.dev](https://warp.dev) — AI in your terminal, your way.
 
 ## 📝 License
 

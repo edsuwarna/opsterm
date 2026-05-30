@@ -21,7 +21,8 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 11 | 📋 **Workflow Manager** | `opsterm workflows` | Management |
 | 12 | ⚙️ **Config Manager** | `opsterm config` | Management |
 | 13 | 📖 **History** | `opsterm history` | Management |
-| 14 | 🚀 **Init** | `opsterm init` | Setup |
+| 14 | 🗜️ **RTK AI** | `auto` (pipe/explain-last) | Core |
+| 15 | 🚀 **Init** | `opsterm init` | Setup |
 
 ---
 
@@ -407,7 +408,58 @@ Data stored in SQLite: `~/.ai-workflows/history.db`.
 
 ---
 
-## 1️⃣4️⃣ 🚀 Init
+## 1️⃣4️⃣ 🗜️ RTK AI — Token Compression
+
+Auto-compress command output by **60-95%** before sending to AI — saves tokens, speeds up responses, lowers API cost.
+
+```bash
+# Example: pytest output before → after RTK
+# Before (597 chars):  $ pytest tests/
+# After (18 chars):     pytest.failed.2 passed.15
+
+# RTK works automatically — no special command needed
+docker logs webapp --tail 200 | opsterm "any errors?"
+#    → Output auto-compressed via RTK before AI processes it
+
+opsterm explain-last
+#    → Last output auto-compressed via RTK before AI processes it
+```
+
+**How it works:**
+
+| Component | Detail |
+|-----------|--------|
+| 🔌 **Auto-detect filter** | RTK identifies output type (git diff, pytest, docker ps, logs, journalctl, etc.) |
+| 📐 **Smart threshold** | Skips RTK for output <200 chars — overhead not worth it |
+| 🔄 **Graceful fallback** | If `rtk` not in PATH → runs normally. No errors, no noise. |
+| ⚙️ **Config** | `opsterm config set rtk.enabled false` to disable |
+| 🟢 **Status indicator** | Shows `🟢 RTK x.x.x` in `opsterm provider list` |
+| 🚀 **Ultra compact mode** | `opsterm config set rtk.ultra_compact true` for max compression |
+
+**Where RTK applies:**
+
+- **Pipe mode** — `cmd | opsterm "question"` → stdin_data goes through RTK
+- **`opsterm explain-last`** — saved output file goes through RTK before AI
+- **Auto-exec mode** — full output shown to user, compressed version goes to AI
+
+**Typical savings:**
+
+| Output Type | Raw | RTK'd | Savings |
+|-------------|-----|-------|---------|
+| pytest results | 597 chars | 18 chars | **-96%** 🚀 |
+| git diff | ~500 chars | ~150 chars | **-70%** |
+| git status | ~300 chars | ~60 chars | **-80%** |
+| docker ps | ~400 chars | ~100 chars | **-75%** |
+| logs / journalctl | ~1000 chars | ~200 chars | **-80%** |
+
+**Requirements:**
+
+- RTK binary in PATH (optional — OpsTerm runs fine without it)
+- Install: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
+
+---
+
+## 1️⃣5️⃣ 🚀 Init
 
 First-time setup — creates default configuration files.
 

@@ -50,6 +50,26 @@ shell:
 | `shell.confirm_before_exec` | `true` | Ask before executing suggested commands |
 | `shell.auto_exec_patterns` | — | Regex patterns for auto-execution |
 
+### RTK Token Compression
+
+Optional config section for RTK (Rust Token Killer) — auto-compresses command output before sending to AI:
+
+```yaml
+rtk:
+  enabled: true        # Set false to disable RTK entirely
+  auto_detect: true    # Auto-select filter based on output type
+  ultra_compact: false # Max compression (may lose some detail)
+```
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `rtk.enabled` | `true` | Enable/disable RTK compression |
+| `rtk.auto_detect` | `true` | Auto-detect output type (git, pytest, docker, etc.) |
+| `rtk.ultra_compact` | `false` | Maximum compression mode |
+
+> 💡 RTK is optional — install: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
+> No RTK installed? OpsTerm runs normally without errors.
+
 ### Supported Providers
 
 | Provider | API URL | Model |
