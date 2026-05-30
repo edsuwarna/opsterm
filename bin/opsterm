@@ -169,6 +169,138 @@ KNOWN_PROVIDERS = {
     },
 }
 
+# ── RTK Integration — optional token compression ───────────
+# Auto-detects RTK binary. If installed, pipes command output
+# through RTK before sending to AI context (saves 60-90% tokens).
+
+RTK_BIN: Optional[str] = None  # cached path
+
+RTK_FILTERS = {
+    # Git
+    "git-status": [r"^on branch", r"^your branch", r"changes not staged", r"changes to be committed",
+                   r"untracked files", r"modified:\s", r"deleted:\s", r"new file:\s"],
+    "git-log": [r"^commit\s", r"^commit\s[a-f0-9]{7,}"],
+    "git-diff": [r"^diff --git", r"^index\s", r"^---\s", r"^\+\+\+\s", r"^@@\s"],
+    # Test runners
+    "pytest": [r"^={6,} test session starts", r"^collected \d+ items", r"passed", r"failed"],
+    "cargo-test": [r"^running \d+ test", r"^test .* \.\.\. ok", r"^test result"],
+    "go-test": [r"^ok\s+\S+", r"^FAIL\s", r"^\?\s+\S+", r"^--- PASS", r"^--- FAIL"],
+    "vitest": [r"^ RUNS", r"^ PASS", r"^ FAIL", r"Tests\s+\d+", r"Files\s+\d+"],
+    # Build/lint
+    "tsc": [r"^src/.*\.ts\(\d+,\d+\)", r"^TS\d+:", r"error TS\d+:"],
+    "mypy": [r"^.*\.py:\d+:\s*error", r"^Found \d+ error"],
+    "ruff-check": [r"^.*\.py:\d+:\d+:", r"^\d+ files? checked"],
+    "ruff-format": [r"^\d+ files? (left unchanged|formatted)", r"^--- \d+ files?"],
+    "prettier": [r"^\[\w+\]", r"^\d+ files? (unchanged|formatted|checked)"],
+    # Search
+    "grep": [r"^.*\.\w+:\d+:", r"^Binary file .* matches"],
+    "rg": [r"^.*\.\w+:\d+:", r"^\d+ matches?"],
+    "find": [r"^\./", r"^/", r"^\w+\.\w+$"],
+    "fd": [r"^\./", r"^\w+\.\w+$"],
+    # Logs
+    "log": [r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}", r"\[ERROR\]", r"\[WARN\]", r"\[INFO\]",
+            r"\[FATAL\]", r"error\:", r"traceback"],
+}
+
+def _detect_rtk_filter(text: str) -> str:
+    """Auto-detect the best RTK filter based on content patterns."""
+    if not text or not text.strip():
+        return ""
+    first_5k = text[:5000].lower()
+    first_line = text.strip().split('\n')[0].lower() if text.strip() else ""
+    # Strong signal filters (check first)
+    if first_line.startswith("diff --git"):
+        return "git-diff"
+    if first_line.startswith("commit ") or re.match(r"^[a-f0-9]{7,}\s", first_line):
+        return "git-log"
+    if first_line.startswith("on branch") or first_line.startswith("your branch"):
+        return "git-status"
+    # Test runners
+    if "test session starts" in first_5k and "=" in first_5k:
+        return "pytest"
+    if re.search(r"^running \d+ test", first_line):
+        return "cargo-test"
+    if re.search(r"^(ok|FAIL|\?)\s+\S+", first_line):
+        return "go-test"
+    # TypeScript / build
+    if "error ts" in first_5k or re.search(r"ts\d+:", first_5k):
+        return "tsc"
+    # Lint
+    if "ruff" in first_5k and ": error" in first_5k:
+        return "ruff-check"
+    if re.search(r"\.py:\d+:\s*error", first_5k):
+        return "mypy"
+    if "files checked" in first_5k or "files formatted" in first_5k:
+        return "ruff-format"
+    # Logs
+    if re.search(r"error:|traceback|\[error\]|\[warn\]", first_5k):
+        return "log"
+    if re.search(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}", first_5k):
+        return "log"
+    # Search
+    if first_line.startswith("./") and ("." in first_line or "/" in first_line):
+        return "find"
+    # Generic: don't guess, pass through
+    return ""
+
+def _find_rtk() -> Optional[str]:
+    """Find RTK binary in PATH. Returns path or None (cached)."""
+    global RTK_BIN
+    if RTK_BIN is not None:
+        return RTK_BIN
+    for path_dir in os.environ.get("PATH", "").split(os.pathsep):
+        candidate = os.path.join(path_dir, "rtk")
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            RTK_BIN = candidate
+            return RTK_BIN
+    RTK_BIN = ""  # Sentinel: not found
+    return None
+
+def _rtk_available() -> bool:
+    """Check if RTK binary is available."""
+    return bool(_find_rtk())
+
+def _rtk_pipe(text: str, filter_name: str = "") -> str:
+    """Pipe text through RTK for token compression. Returns filtered text.
+    Falls back to original text if RTK unavailable or errors.
+    If filter_name is empty, uses auto-detect.
+    Skips RTK for small outputs (<200 chars) where overhead isn't worth it.
+    """
+    if not text or not text.strip():
+        return text
+    rtk_bin = _find_rtk()
+    if not rtk_bin:
+        return text
+    # Skip RTK for small output — overhead not worth it
+    if len(text) < 200:
+        return text
+    # Auto-detect filter if not specified
+    fname = filter_name or _detect_rtk_filter(text)
+    if not fname:
+        return text  # Can't determine filter, pass through raw
+    try:
+        cmd = [rtk_bin, "pipe", "-f", fname]
+        result = subprocess.run(
+            cmd, input=text, capture_output=True, text=True, timeout=15
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError, subprocess.SubprocessError):
+        pass
+    return text
+
+def _rtk_status_icon() -> str:
+    """Return status indicator string for RTK."""
+    if _rtk_available():
+        ver = "?"
+        try:
+            r = subprocess.run([_find_rtk(), "--version"], capture_output=True, text=True, timeout=5)
+            ver = r.stdout.strip().split()[-1] if r.stdout.strip() else "?"
+        except Exception:
+            pass
+        return f"🟢 RTK {ver}"
+    return "⚪ RTK (not installed)"
+
 
 # ── Loading spinner ───────────────────────────────────────────
 def _loading_spinner(stop_event: threading.Event, msg: str = "AI mikir") -> None:
@@ -543,6 +675,12 @@ def load_config() -> dict:
     cfg.setdefault("providers", {})
     cfg.setdefault("default_provider", "")
 
+    # RTK defaults — optional token compression
+    rtk_cfg = cfg.setdefault("rtk", {})
+    rtk_cfg.setdefault("enabled", True)
+    rtk_cfg.setdefault("auto_detect", True)
+    rtk_cfg.setdefault("ultra_compact", False)
+
     # Resolve active provider from providers dict
     provider_name = cfg.get("default_provider", "") or ai.get("provider", "")
     if provider_name and provider_name in cfg["providers"]:
@@ -581,6 +719,7 @@ def do_provider(raw_args):
         if not providers:
             print("📭 No providers configured.")
             print("   Use: opsterm provider add [name]")
+            print(f"  {_rtk_status_icon()}")
             return
         default = cfg.get("default_provider", "")
         for name, prov in providers.items():
@@ -594,6 +733,7 @@ def do_provider(raw_args):
             masked = (key[:8] + "..." + key[-4:]) if len(key) > 14 else "(no key)"
             print(f"         Key:   {masked}")
         print(f"\n  Default: {cfg.get('default_provider', '(none)')}")
+        print(f"  {_rtk_status_icon()}")
         return
 
     action = raw_args[1]
@@ -1326,8 +1466,17 @@ KAPAN MENGGUNAKAN FORMAT:
 
 def generate_command(prompt: str, config: dict, stdin_data: str = "") -> str:
     full_prompt = prompt
+
+    # ── RTK: pipe stdin_data through RTK before AI context ──
+    ctx_data = stdin_data
+    rtk_cfg = config.get("rtk", {})
+    if rtk_cfg.get("enabled", True) and _rtk_available() and stdin_data:
+        filtered = _rtk_pipe(stdin_data)
+        if filtered and len(filtered) < len(stdin_data):
+            ctx_data = filtered
+
     if stdin_data:
-        full_prompt = f"Output dari command sebelumnya:\n```\n{stdin_data[:3000]}\n```\n\nPertanyaan: {prompt}"
+        full_prompt = f"Output dari command sebelumnya:\n```\n{ctx_data[:3000]}\n```\n\nPertanyaan: {prompt}"
     system = SHELL_SYSTEM_PROMPT
     system += "\n\nLingkungan: Linux, shell bash, user ubuntu."
     return ai_chat(full_prompt, system, config)
@@ -1933,7 +2082,14 @@ def main():
             print("   Jalankan command dulu, atau pipe: cmd | opsterm explain")
             return
         config = load_config()
-        prompt = f"Explain output dari command '{cmd}' ini:\n```\n{out[:3000]}\n```"
+        # ── RTK: filter saved output before AI context ──
+        rtk_cfg = config.get("rtk", {})
+        ctx_out = out
+        if rtk_cfg.get("enabled", True) and _rtk_available() and out:
+            filtered = _rtk_pipe(out)
+            if filtered and len(filtered) < len(out):
+                ctx_out = filtered
+        prompt = f"Explain output dari command '{cmd}' ini:\n```\n{ctx_out[:3000]}\n```"
         response = generate_command(prompt, config)
         add_history("pipe" if out else "ai", cmd or "(last)", response)
         print(response)
