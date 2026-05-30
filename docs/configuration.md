@@ -22,8 +22,8 @@ All config files live in `~/.opsterm/`:
 
 ```yaml
 ai:
-  provider: opencode       # Provider label (informational)
-  api_url: "https://opencode.ai/zen/go/v1/chat/completions"
+  provider: opencode-zen    # Provider label (informational)
+  api_url: "https://opencode.ai/zen/v1/chat/completions"
   api_key: ""              # Set via env var: OPSTERM_API_KEY
   model: deepseek-v4-flash
   temperature: 0.3
@@ -58,7 +58,8 @@ shell:
 | DeepSeek | `https://api.deepseek.com/v1/chat/completions` | `deepseek-chat`, `deepseek-coder` |
 | OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | `anthropic/claude-sonnet-4` |
 | Ollama (local) | `http://localhost:11434/v1/chat/completions` | `llama3`, `qwen2.5` |
-| OpenCode | `https://opencode.ai/zen/go/v1/chat/completions` | `deepseek-v4-flash` |
+|| OpenCode Zen | `https://opencode.ai/zen/v1/chat/completions` | `deepseek-v4-flash` (curated) |
+|| OpenCode Go | `https://opencode.ai/zen/v1/chat/completions` | `deepseek-v4-flash` (subscription) |
 
 ## servers.yaml — SSH Servers
 

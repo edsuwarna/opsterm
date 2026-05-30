@@ -5,22 +5,19 @@ Get OpsTerm running in less than 2 minutes.
 ## 1. Install
 
 ```bash
-git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
-cd ~/opsterm && ./setup.sh
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
+opsterm init
 ```
 
-## 2. Set API Key
+## 2. Add AI Provider
 
 ```bash
-export OPSTERM_API_KEY='sk-your-key'
-```
+# Smart interactive — enter API key, pick provider, choose model ✨
+opsterm provider add
 
-Or edit `~/.opsterm/config.yaml`:
-
-```yaml
-ai:
-  api_key: "sk-your-key"
-  model: "gpt-4o"  # or deepseek-chat, claude-sonnet-4, etc.
+# Or one-liner
+opsterm provider add default --api-key sk-your-key --model gpt-4o
 ```
 
 ## 3. Try It

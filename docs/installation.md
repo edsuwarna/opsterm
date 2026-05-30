@@ -50,24 +50,40 @@ echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
 
 ## Post-Install: Configure AI Provider
 
-Set your API key — supports any OpenAI-compatible provider:
+### Add AI Provider
 
 ```bash
-# Via env var (recommended)
-export OPSTERM_API_KEY='sk-your-key'
+# Smart interactive — just enter API key, pick provider, choose model
+opsterm provider add
 
-# Via config file (~/.opsterm/config.yaml)
-opsterm config set ai.api_key sk-your-key
+# The tool will:
+#   1. Ask for API key
+#   2. Show known providers (OpenAI, OpenCode, DeepSeek, OpenRouter, Groq, etc.)
+#   3. Auto-fill the correct API URL
+#   4. Fetch available models from the provider
+#   5. Let you pick a model from the list
+
+# Or one-liner with flags
+opsterm provider add default --api-key 'sk-...' --model gpt-4o
+
+# Set as default
+opsterm provider default default
+
+# List configured providers
+opsterm provider list
 ```
 
 Config file at `~/.opsterm/config.yaml`:
 
 ```yaml
+default_provider: default
+providers:
+  default:
+    api_key: "sk-..."
+    api_url: "https://api.deepseek.com/v1/chat/completions"
+    model: "deepseek-chat"
+
 ai:
-  provider: opencode       # or: openai, deepseek, openrouter, ollama
-  api_url: "https://opencode.ai/zen/go/v1/chat/completions"
-  api_key: "sk-..."
-  model: deepseek-v4-flash
   temperature: 0.3
   max_tokens: 1024
 ```
@@ -80,7 +96,8 @@ ai:
 | DeepSeek | `https://api.deepseek.com/v1/chat/completions` | `deepseek-chat`, `deepseek-coder` |
 | OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | `anthropic/claude-sonnet-4` |
 | Ollama (local) | `http://localhost:11434/v1/chat/completions` | `llama3`, `qwen2.5` |
-| OpenCode | `https://opencode.ai/zen/go/v1/chat/completions` | `deepseek-v4-flash` |
+|| OpenCode Zen | `https://opencode.ai/zen/v1/chat/completions` | `deepseek-v4-flash` (curated) |
+|| OpenCode Go | `https://opencode.ai/zen/v1/chat/completions` | `deepseek-v4-flash` (subscription) |
 
 ## Verify Installation
 
@@ -108,17 +125,39 @@ This adds:
 
 ## Updating
 
+### Single-file install
+
 ```bash
-# Single-file install — just re-download
+# Re-download the script
 curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+
+# Check for new features
+opsterm --help
 ```
 
-Or if you installed via clone:
+### Clone install
 
 ```bash
 cd ~/opsterm && git pull && ./setup.sh
 ```
+
+### Post-update
+
+After updating, check if there are new subcommands or config options:
+
+```bash
+# List all commands
+opsterm --help
+
+# Migrate config if needed (adds new default sections)
+opsterm init --force
+
+# Check current provider
+opsterm provider list
+```
+
+> 💡 **Tip:** `opsterm init --force` will regenerate your config without overwriting existing servers, workflows, or providers. Run it after updates to get new config defaults.
 
 ## Uninstall
 

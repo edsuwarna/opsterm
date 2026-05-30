@@ -78,17 +78,17 @@ opsterm --help
 > macOS Ventura/Sonoma/Sequoia udah include Python 3.
 > Kalo belum ada: `brew install python@3`
 
-### ⚙️ Setelah Install (Linux & macOS)
+### 🔧 Setelah Install
 
 ```bash
-# Set API key permanen di ~/.bashrc atau ~/.zshrc
-echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
+# Tambah provider AI
+opsterm provider add default --api-key 'sk-...' --model gpt-4o
 
-# Tambah server pertama
-opsterm servers add
+# Lihat daftar provider
+opsterm provider list
 
-# Atau edit langsung file config
-nano ~/.opsterm/config.yaml
+# Ganti provider
+opsterm provider default openai
 ```
 
 ---

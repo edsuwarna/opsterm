@@ -23,7 +23,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
 | ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete servers/workflows |
 | 📋 **History** | `opsterm history` | Command history |
-| 🛠️ **Custom Provider** | `opsterm config set ai.model gpt-4` | Choose any AI provider |
+| 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
 
 ---
 
@@ -32,40 +32,39 @@ SSH into any server without losing AI access — because the AI runs on your **l
 ### 🐧 Linux / 🍎 macOS
 
 ```bash
-# 1. Clone repo
-git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
-cd ~/opsterm
+# 1. Install (single file, zero deps)
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
 
-# 2. Run setup (symlink + init config)
-./setup.sh
+# 2. Init config
+opsterm init
 
-# 3. Set API key (OpenAI, DeepSeek, OpenRouter, etc.)
-export OPSTERM_API_KEY='sk-...'
+# 3. Add your AI provider
+opsterm provider add default --api-key 'sk-...' --model gpt-4o
 
 # 4. Tab completion (bash)
 echo 'source <(opsterm completion bash)' >> ~/.bashrc
 source ~/.bashrc
 
-# 5. Zsh plugin (optional — explain-last, last)
-echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
-
-# 6. Try it
+# 5. Try it!
 opsterm --help
 ```
+
+> 💡 Make sure `~/.local/bin` is in your `PATH`. If using Zsh, add `source ~/opsterm/zsh/opsterm.plugin.zsh` to `~/.zshrc` for `opsterm last` and `opsterm explain-last`.
 
 > **macOS**: Python 3 ships with macOS Ventura+ or `brew install python@3`
 
 ### 🔧 Post-Install
 
 ```bash
-# Set API key permanently
-echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
+# Add your AI provider (one-time)
+opsterm provider add default --api-key 'sk-...' --model gpt-4o
 
-# Add your first server
-opsterm servers add
+# List providers
+opsterm provider list
 
-# Or edit config directly
-nano ~/.opsterm/config.yaml
+# Switch provider later
+opsterm provider default openai
 ```
 
 ### 🗑️ Uninstall

@@ -13,6 +13,7 @@ Usage:
   opsterm servers               Manage server list
   opsterm workflows             Manage workflow list
   opsterm config                Manage config
+  opsterm provider              Manage AI providers — smart add with auto-detect + model list
   opsterm vault                 Encrypted credentials
   opsterm last                  Lihat output command terakhir
   opsterm explain-last          Explain output pake AI
@@ -26,13 +27,16 @@ import argparse
 import base64
 import hashlib
 import hmac
+import itertools
 import json
 import os
+import re
 import shlex
 import sqlite3
 import subprocess
 import sys
 import textwrap
+import threading
 import time
 import urllib.request
 import urllib.error
@@ -72,6 +76,251 @@ HISTORY_DB = CONFIG_DIR / "history.db"
 VAULT_FILE = CONFIG_DIR / "vault.json"
 LAST_OUTPUT_FILE = CONFIG_DIR / "last_output.txt"
 LAST_CMD_FILE = CONFIG_DIR / "last_command.txt"
+
+# ═══════════════════════════════════════════════════════════
+# KNOWN PROVIDERS — auto-detect + model fetching
+# ═══════════════════════════════════════════════════════════
+
+KNOWN_PROVIDERS = {
+    "opencode-zen": {
+        "name": "OpenCode Zen",
+        "url": "https://opencode.ai/zen/v1/chat/completions",
+        "models_url": "https://opencode.ai/zen/v1/models",
+        "default_model": "deepseek-v4-flash",
+    },
+    "opencode-go": {
+        "name": "OpenCode Go",
+        "url": "https://opencode.ai/zen/v1/chat/completions",
+        "models_url": "https://opencode.ai/zen/v1/models",
+        "default_model": "deepseek-v4-flash",
+    },
+    "openai": {
+        "name": "OpenAI",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "models_url": "https://api.openai.com/v1/models",
+        "default_model": "gpt-4o",
+    },
+    "deepseek": {
+        "name": "DeepSeek",
+        "url": "https://api.deepseek.com/v1/chat/completions",
+        "models_url": "https://api.deepseek.com/v1/models",
+        "default_model": "deepseek-chat",
+    },
+    "openrouter": {
+        "name": "OpenRouter",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "models_url": "https://openrouter.ai/api/v1/models",
+        "default_model": "anthropic/claude-sonnet-4",
+    },
+    "groq": {
+        "name": "Groq",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "models_url": "https://api.groq.com/openai/v1/models",
+        "default_model": "llama-3.3-70b-versatile",
+    },
+    "together": {
+        "name": "Together AI",
+        "url": "https://api.together.xyz/v1/chat/completions",
+        "models_url": "https://api.together.xyz/v1/models",
+        "default_model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    },
+    "ollama": {
+        "name": "Ollama (local)",
+        "url": "http://localhost:11434/v1/chat/completions",
+        "models_url": "http://localhost:11434/api/tags",
+        "default_model": "llama3.2",
+        "no_key": True,
+    },
+    "xai": {
+        "name": "xAI (Grok)",
+        "url": "https://api.x.ai/v1/chat/completions",
+        "models_url": "https://api.x.ai/v1/models",
+        "default_model": "grok-3",
+    },
+    "gemini": {
+        "name": "Google Gemini",
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "models_url": "https://generativelanguage.googleapis.com/v1beta/openai/models",
+        "default_model": "gemini-2.5-pro",
+    },
+    "zhipu": {
+        "name": "Z.AI (Zhipu)",
+        "url": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+        "models_url": "https://open.bigmodel.cn/api/paas/v4/models",
+        "default_model": "GLM-5.1",
+    },
+    "perplexity": {
+        "name": "Perplexity",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "models_url": "https://api.perplexity.ai/models",
+        "default_model": "sonar-pro",
+    },
+    "mistral": {
+        "name": "Mistral AI",
+        "url": "https://api.mistral.ai/v1/chat/completions",
+        "models_url": "https://api.mistral.ai/v1/models",
+        "default_model": "mistral-large-latest",
+    },
+    "fireworks": {
+        "name": "Fireworks AI",
+        "url": "https://api.fireworks.ai/inference/v1/chat/completions",
+        "models_url": "https://api.fireworks.ai/inference/v1/models",
+        "default_model": "accounts/fireworks/models/llama-v3p3-70b-instruct",
+    },
+}
+
+
+# ── Loading spinner ───────────────────────────────────────────
+def _loading_spinner(stop_event: threading.Event, msg: str = "AI mikir") -> None:
+    """Print a spinning indicator in TTY until stop_event is set."""
+    if not sys.stdout.isatty():
+        return
+    for c in itertools.cycle(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]):
+        if stop_event.is_set():
+            sys.stdout.write("\r\033[K")
+            sys.stdout.flush()
+            return
+        sys.stdout.write(f"\r  {c} {msg}... ")
+        sys.stdout.flush()
+        time.sleep(0.1)
+
+
+# ── Read-only vs write command patterns for auto-exec ────────
+# Commands matching READONLY_PATTERNS run without confirmation.
+# Commands matching WRITE_PATTERNS always ask for confirmation.
+READONLY_PATTERNS = [
+    re.compile(r"^cat\b"), re.compile(r"^ls\b"), re.compile(r"^echo\b"),
+    re.compile(r"^head\b"), re.compile(r"^tail\b"), re.compile(r"^grep\b"),
+    re.compile(r"^find\b"), re.compile(r"^df\b"), re.compile(r"^du\b"),
+    re.compile(r"^free\b"), re.compile(r"^uptime\b"), re.compile(r"^ps\b"),
+    re.compile(r"^whoami\b"), re.compile(r"^pwd\b"), re.compile(r"^which\b"),
+    re.compile(r"^date\b"), re.compile(r"^wc\b"), re.compile(r"^sort\b"),
+    re.compile(r"^tree\b"), re.compile(r"^env\b"), re.compile(r"^printenv\b"),
+    re.compile(r"^dig\b"), re.compile(r"^nslookup\b"), re.compile(r"^ping\b"),
+    re.compile(r"^traceroute\b"), re.compile(r"^tracepath\b"),
+    re.compile(r"^curl\b"), re.compile(r"^wget\b"),
+    re.compile(r"^git status"), re.compile(r"^git log"), re.compile(r"^git diff"),
+    re.compile(r"^git branch"), re.compile(r"^git show"), re.compile(r"^git remote"),
+    re.compile(r"^pip list"), re.compile(r"^pip show"),
+    re.compile(r"^npm list"), re.compile(r"^npm view"),
+    re.compile(r"^systemctl status"), re.compile(r"^journalctl\b"),
+    re.compile(r"^docker ps"), re.compile(r"^docker images"),
+    re.compile(r"^docker inspect"), re.compile(r"^docker logs"),
+    re.compile(r"^kubectl get"), re.compile(r"^kubectl describe"),
+    re.compile(r"^kubectl logs"), re.compile(r"^docker compose ps"),
+]
+
+WRITE_PATTERNS = [
+    re.compile(r"^rm\b"), re.compile(r"^mv\b"), re.compile(r"^cp\b"),
+    re.compile(r"^dd\b"),
+    re.compile(r"^reboot\b"), re.compile(r"^shutdown\b"),
+    re.compile(r"^poweroff\b"), re.compile(r"^halt\b"),
+    re.compile(r"^kill\b"), re.compile(r"^pkill\b"),
+    re.compile(r"^chmod\b"), re.compile(r"^chown\b"),
+    re.compile(r"^apt (install|remove|purge|autoremove)"),
+    re.compile(r"^dpkg -[ipPrR]"),
+    re.compile(r"^pip (install|uninstall|download)"),
+    re.compile(r"^npm (install|uninstall|publish|run )"),
+    re.compile(r"^git push"), re.compile(r"^git commit"),
+    re.compile(r"^git merge"), re.compile(r"^git rebase"),
+    re.compile(r"^git reset"), re.compile(r"^git checkout -b"),
+    re.compile(r"^docker (rm|rmi|kill|stop|compose down|compose rm)"),
+    re.compile(r"^systemctl (stop|restart|disable|kill|mask)"),
+    re.compile(r"^mkfs"), re.compile(r"^fdisk"), re.compile(r"^parted\b"),
+    re.compile(r"^crontab\b"),
+]
+
+
+def _is_readonly_cmd(cmd: str) -> bool:
+    """Check if command is read-only (safe to auto-exec without confirmation)."""
+    for pat in READONLY_PATTERNS:
+        if pat.search(cmd):
+            return True
+    return False
+
+
+def _is_destructive_cmd(cmd: str) -> bool:
+    """Check if command is destructive (always ask confirmation)."""
+    for pat in WRITE_PATTERNS:
+        if pat.search(cmd):
+            return True
+    return False
+
+def _fetch_models(url: str, api_key: str = "") -> list:
+    """Fetch list of available models from OpenAI-compatible /v1/models endpoint.
+    Returns list of model ID strings, or empty list on failure."""
+    headers = {"User-Agent": "opsterm/1.0"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        resp = urllib.request.urlopen(req, timeout=8)
+        data = json.loads(resp.read().decode())
+        # OpenAPI-compatible: {"data": [{"id": "model-name", ...}]}
+        if isinstance(data, dict) and "data" in data:
+            return [m["id"] for m in data["data"] if "id" in m]
+        # Ollama: {"models": [{"name": "model-name", ...}]}
+        if isinstance(data, dict) and "models" in data:
+            return [m["name"] for m in data["models"] if "name" in m]
+        # Fallback: if it's a list
+        if isinstance(data, list):
+            return [m.get("id", str(m)) for m in data if isinstance(m, dict)]
+    except Exception:
+        pass
+    return []
+
+
+def _pick_model(models: list, default: str = "") -> str:
+    """Interactive model picker. Returns selected model ID."""
+    if not models:
+        return input(f"  Model [{default}]: ").strip() or default
+
+    # Deduplicate + sort
+    seen = set()
+    unique = []
+    for m in models:
+        if m not in seen:
+            seen.add(m)
+            unique.append(m)
+    unique.sort()
+
+    print(f"  📡 Available models ({len(unique)} found):")
+    page_size = 20
+    page = 0
+    total_pages = (len(unique) + page_size - 1) // page_size
+    selected = default
+
+    while True:
+        start = page * page_size
+        end = min(start + page_size, len(unique))
+        for i, m in enumerate(unique[start:end], start + 1):
+            marker = " ⬅️" if m == default else ""
+            print(f"     {i}. {m}{marker}")
+        if total_pages > 1:
+            print(f"     — Page {page + 1}/{total_pages} (n=next, p=prev) —")
+
+        choice = input(f"  Select model (1-{end}, or type custom) [{default}]: ").strip().lower()
+        if not choice:
+            return default
+        if choice in ("n", "next") and page < total_pages - 1:
+            page += 1
+            continue
+        if choice in ("p", "prev") and page > 0:
+            page -= 1
+            continue
+        if choice.isdigit():
+            idx = int(choice) - 1
+            if 0 <= idx < len(unique):
+                return unique[idx]
+        # Treat as custom model name
+        return choice
+
+
+def _list_known_providers() -> list:
+    """Return sorted list of (key, display_name) for known providers."""
+    items = [(k, v["name"]) for k, v in KNOWN_PROVIDERS.items()]
+    items.sort(key=lambda x: x[1].lower())
+    return items
 
 
 def _set_secure_permissions(path: Path):
@@ -276,6 +525,8 @@ def load_config() -> dict:
             "temperature": 0.3,
             "max_tokens": 1024,
         },
+        "providers": {},
+        "default_provider": "",
         "shell": {
             "confirm_before_exec": True,
             "auto_exec_patterns": ["^ssh ", "^kubectl ", "^docker ", "^cd "],
@@ -289,6 +540,20 @@ def load_config() -> dict:
     for k, v in defaults.get("shell", {}).items():
         shell.setdefault(k, v)
     cfg["shell"] = shell
+    cfg.setdefault("providers", {})
+    cfg.setdefault("default_provider", "")
+
+    # Resolve active provider from providers dict
+    provider_name = cfg.get("default_provider", "") or ai.get("provider", "")
+    if provider_name and provider_name in cfg["providers"]:
+        prov = cfg["providers"][provider_name]
+        if prov.get("api_key"):
+            ai["api_key"] = prov["api_key"]
+        if prov.get("api_url"):
+            ai["api_url"] = prov["api_url"]
+        if prov.get("model"):
+            ai["model"] = prov["model"]
+
     env_key = os.environ.get("OPSTERM_API_KEY", "")
     if env_key:
         ai["api_key"] = env_key
@@ -305,6 +570,194 @@ def get_workflows() -> dict:
 
 def save_workflows(workflows: dict):
     save_yaml(WORKFLOWS_FILE, {"workflows": workflows})
+
+def do_provider(raw_args):
+    """Manage AI providers — add, list, rm, set-default."""
+    cfg = load_yaml(CONFIG_FILE)
+    providers = cfg.setdefault("providers", {})
+
+    if len(raw_args) == 1 or (len(raw_args) > 1 and raw_args[1] == "list"):
+        # ── list ──
+        if not providers:
+            print("📭 No providers configured.")
+            print("   Use: opsterm provider add [name]")
+            return
+        default = cfg.get("default_provider", "")
+        for name, prov in providers.items():
+            marker = "⭐" if name == default else "  "
+            print(f"  {marker} {name}")
+            if prov.get("api_url"):
+                print(f"         URL:   {prov['api_url']}")
+            if prov.get("model"):
+                print(f"         Model: {prov['model']}")
+            key = prov.get("api_key", "")
+            masked = (key[:8] + "..." + key[-4:]) if len(key) > 14 else "(no key)"
+            print(f"         Key:   {masked}")
+        print(f"\n  Default: {cfg.get('default_provider', '(none)')}")
+        return
+
+    action = raw_args[1]
+
+    # ── add ──
+    if action == "add":
+        name = raw_args[2] if len(raw_args) > 2 else ""
+        if not name:
+            try:
+                name = input("Provider name (e.g. openai, deepseek): ").strip()
+            except EOFError:
+                name = "default"
+        if not name:
+            print("❌ Provider name required.")
+            return
+
+        is_new = name not in providers
+        prov = providers.get(name, {})
+
+        # Check if --flags provided
+        if len(raw_args) > 3 and any(a.startswith("--") for a in raw_args[3:]):
+            i = 3
+            while i < len(raw_args):
+                a = raw_args[i]
+                if a == "--api-key" and i + 1 < len(raw_args):
+                    prov["api_key"] = raw_args[i + 1]; i += 2
+                elif a == "--api-url" and i + 1 < len(raw_args):
+                    prov["api_url"] = raw_args[i + 1]; i += 2
+                elif a == "--model" and i + 1 < len(raw_args):
+                    prov["model"] = raw_args[i + 1]; i += 2
+                else:
+                    i += 1
+        else:
+            # ── Interactive mode (restructured: type → creds → model) ──
+            def _prompt(msg, default=""):
+                p = f"  {msg}"
+                if default:
+                    p += f" [{default}]"
+                try:
+                    return input(p + ": ").strip() or default
+                except EOFError:
+                    return default
+
+            # 1. Provider type FIRST (like other AI tools)
+            known = _list_known_providers()
+            print("  Select provider type:")
+            for i, (k, dname) in enumerate(known, 1):
+                print(f"    {i}. {dname}")
+            print(f"    {len(known) + 1}. Manual (custom URL)")
+
+            current_idx = len(known) + 1
+            existing_url = prov.get("api_url", "")
+            for i, (k, dname) in enumerate(known, 1):
+                if KNOWN_PROVIDERS[k]["url"] == existing_url:
+                    current_idx = i
+                    break
+
+            pick = _prompt("Choose provider type", str(current_idx))
+            selected_provider = None
+            if pick.isdigit():
+                idx = int(pick) - 1
+                if 0 <= idx < len(known):
+                    selected_provider = known[idx][0]
+
+            if selected_provider:
+                pinfo = KNOWN_PROVIDERS[selected_provider]
+                prov["api_url"] = pinfo["url"]
+                if not prov.get("model"):
+                    prov["model"] = pinfo["default_model"]
+                print(f"  ✓ Base URL: {pinfo['url']}")
+
+                # 2. API key
+                needs_key = not pinfo.get("no_key", False)
+                if needs_key:
+                    key_in = _prompt("API key (leave blank to keep existing)", prov.get("api_key", ""))
+                    if key_in:
+                        prov["api_key"] = key_in
+
+                # 3. Model selection (fetch or manual)
+                models_url = pinfo.get("models_url", "")
+                if models_url:
+                    print("  📡 Fetching available models...")
+                    api_key_for_fetch = prov.get("api_key", "") if needs_key else ""
+                    models = _fetch_models(models_url, api_key_for_fetch)
+                    if models:
+                        prov["model"] = _pick_model(models, prov.get("model", pinfo["default_model"]))
+                    else:
+                        print("  ⚠️ Could not fetch models. Enter manually.")
+                        prov["model"] = _prompt("Model", prov.get("model", pinfo["default_model"]))
+                else:
+                    prov["model"] = _prompt("Model", prov.get("model", pinfo["default_model"]))
+            else:
+                # Manual: Base URL first
+                raw_url = _prompt(
+                    "Base URL (just the domain, e.g. https://api.example.com)",
+                    existing_url or "https://api.openai.com",
+                )
+                if "/chat/completions" not in raw_url:
+                    raw_url = raw_url.rstrip("/")
+                    if not raw_url.endswith("/v1"):
+                        raw_url += "/v1"
+                    raw_url += "/chat/completions"
+                    print(f"  ✓ Auto-appended /v1/chat/completions")
+                prov["api_url"] = raw_url
+                print(f"  ✓ Using: {raw_url}")
+
+                # 2. API key
+                key_in = _prompt("API key (leave blank to keep existing)", prov.get("api_key", ""))
+                if key_in:
+                    prov["api_key"] = key_in
+
+                # 3. Model
+                prov["model"] = _prompt("Model", prov.get("model", "gpt-4o"))
+
+        providers[name] = prov
+        cfg["providers"] = providers
+
+        if is_new and not cfg.get("default_provider"):
+            cfg["default_provider"] = name
+            print(f"  ⭐ Set '{name}' as default provider.")
+
+        save_yaml(CONFIG_FILE, cfg)
+        tag = "➕ Added" if is_new else "🔄 Updated"
+        print(f"  {tag} provider '{name}'.")
+
+    # ── rm ──
+    elif action == "rm" and len(raw_args) > 2:
+        name = raw_args[2]
+        if name not in providers:
+            print(f"❌ Provider '{name}' not found.")
+            return
+        try:
+            confirm = input(f"Remove provider '{name}'? [y/N] ").strip().lower()
+        except EOFError:
+            confirm = "y"
+        if confirm in ("y", "yes"):
+            del providers[name]
+            if cfg.get("default_provider") == name:
+                remaining = list(providers.keys())
+                cfg["default_provider"] = remaining[0] if remaining else ""
+            save_yaml(CONFIG_FILE, cfg)
+            print(f"✅ Provider '{name}' removed.")
+        else:
+            print("Cancelled.")
+
+    # ── set-default ──
+    elif action in ("default", "set-default") and len(raw_args) > 2:
+        name = raw_args[2]
+        if name not in providers:
+            print(f"❌ Provider '{name}' not found.")
+            return
+        cfg["default_provider"] = name
+        save_yaml(CONFIG_FILE, cfg)
+        print(f"⭐ Default provider set to '{name}'.")
+
+    else:
+        print("Usage:")
+        print("  opsterm provider [list]                       List configured providers")
+        print("  opsterm provider add [name]                   Add/edit interactively")
+        print("  opsterm provider add <name> --api-key KEY     Add with flags")
+        print("                          --api-url URL")
+        print("                          --model MODEL")
+        print("  opsterm provider rm <name>                    Remove a provider")
+        print("  opsterm provider default <name>               Set default provider")
 
 def _fuzzy_match(name: str, items: dict) -> Optional[str]:
     """Find item by exact name or fuzzy match."""
@@ -393,14 +846,30 @@ def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None) -> str
         },
         method="POST",
     )
+    # ── Loading spinner ──
+    stop_spinner = threading.Event()
+    spinner_started = False
+    spinner_thread = threading.Thread(target=_loading_spinner, args=(stop_spinner, "AI mikir"), daemon=True)
+    if sys.stdout.isatty():
+        spinner_thread.start()
+        spinner_started = True
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read().decode("utf-8"))
+        if spinner_started:
+            stop_spinner.set()
+            spinner_thread.join(timeout=1)
         return result["choices"][0]["message"]["content"].strip()
     except urllib.error.HTTPError as e:
+        if spinner_started:
+            stop_spinner.set()
+            spinner_thread.join(timeout=1)
         body = e.read().decode("utf-8", errors="replace")
         return f"❌ HTTP {e.code}: {body[:300]}"
     except Exception as e:
+        if spinner_started:
+            stop_spinner.set()
+            spinner_thread.join(timeout=1)
         return f"❌ Error: {e}"
 
 # ═══════════════════════════════════════════════════════════
@@ -899,7 +1368,7 @@ COMPLETION_BASH = """# OpsTerm Bash Completion
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config history init scp vault last explain-last completion"
+    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion"
     cur="${{words[cword]}}"
     prev="${{words[cword-1]}}"
     case "${{prev}}" in
@@ -937,6 +1406,7 @@ _opsterm() {
         'servers:Manage server list'
         'workflows:Manage workflow list'
         'config:Lihat/set konfigurasi'
+        'provider:Manage AI provider'
         'history:Riwayat command'
         'init:Setup konfigurasi awal'
         'scp:Upload/download file'
@@ -1135,11 +1605,15 @@ def do_init():
     os.chmod(str(CONFIG_DIR), 0o700)
     if not CONFIG_FILE.exists():
         save_yaml(CONFIG_FILE, {
+            "default_provider": "default",
+            "providers": {
+                "default": {
+                    "api_key": "",
+                    "api_url": "https://api.deepseek.com/v1/chat/completions",
+                    "model": "deepseek-chat",
+                },
+            },
             "ai": {
-                "provider": "deepseek",
-                "api_url": "https://api.deepseek.com/v1/chat/completions",
-                "api_key": "",
-                "model": "deepseek-chat",
                 "temperature": 0.3,
                 "max_tokens": 1024,
             },
@@ -1160,7 +1634,8 @@ def do_init():
 
     print(f"""
 📁 Config dir: {CONFIG_DIR}
-🔑 Set API key:  export OPSTERM_API_KEY='sk-...'
+🔑 Set API key:  opsterm provider add default --api-key 'sk-...'
+   Or:           export OPSTERM_API_KEY='sk-...'
 🔐 Vault:         opsterm vault init
 📁 SCP:           opsterm scp vps-utama:file.txt .
 ⚡ Coba:          opsterm ssh vps-utama
@@ -1173,33 +1648,45 @@ def do_init():
 # ═══════════════════════════════════════════════════════════
 
 def main():
-    # Check for stdin pipe
-    stdin_data = ""
-    if not sys.stdin.isatty():
-        try:
-            stdin_data = sys.stdin.read()
-        except Exception:
-            pass
-
+    # Determine subcommand first (before consuming stdin)
     parser = argparse.ArgumentParser(
         prog="opsterm",
-        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop, SCP, vault.",
+        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP, vault.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
+            Available Commands:
+              <prompt>                   Ask AI — get command suggestions, explain output, any question
+              ssh <server>               SSH to server (fuzzy name match, ProxyJump via --via)
+              scp <src> <dst>            Transfer files to/from servers (local:, server:path, --via)
+              run <workflow>             Execute a multi-step YAML workflow
+              vault <action> [args]      Encrypted credential store — init, set, get, list, rm, lock
+              config <action> [key]      Manage config — list, get <key>, set <key> <val>
+              provider <action> [name]   Manage AI providers — smart add with auto-fetch models
+              servers <action> [name]    Manage servers — list, add, edit <name>, rm <name>
+              workflows <action> [name]  Manage workflows — list, add, edit <name>, rm <name>
+              history [limit]            Show past queries and responses
+              last                       View the last shell command's output
+              explain-last               Explain the last command's output with AI
+              init                       Initialize config directory
+              completion <shell>         Generate tab completion (bash|zsh)
+
+            Pipe mode:
+              cmd | opsterm [prompt]     Pipe command output to AI for analysis
+
             Examples:
               opsterm how to find large files
               opsterm ssh vps-utama
-              opsterm ssh internal-server --via bastion
+              opsterm ssh internal --via bastion
               opsterm scp file.txt vps-utama:/home/ubuntu/
-              opsterm scp vps-utama:logs/app.log .
               opsterm run deploy-app
               opsterm vault set db_password
+              opsterm provider add openai --api-key sk-... --model gpt-4o
               docker ps | opsterm "any errors?"
         """),
     )
     parser.add_argument("args", nargs="*", help="Command or prompt")
-    args = parser.parse_args()
-    raw_args = args.args
+    known_args, extra = parser.parse_known_args()
+    raw_args = known_args.args + extra  # keep --flags for provider subcommand
     if not raw_args and not stdin_data:
         parser.print_help()
         return
@@ -1249,6 +1736,10 @@ def main():
             print(f"✅ {key} = {val}")
         else:
             print("Usage: ai config [list|get <key>|set <key> <value>]")
+
+    # ── provider ──
+    elif subcmd == "provider":
+        do_provider(raw_args)
 
     # ── servers ──
     elif subcmd == "servers":
@@ -1463,6 +1954,14 @@ def main():
 
     # ── AI mode (default) ──
     else:
+        # Read stdin only when it's actually needed (pipe mode)
+        stdin_data = ""
+        if not sys.stdin.isatty():
+            try:
+                stdin_data = sys.stdin.read()
+            except Exception:
+                pass
+
         prompt = " ".join(raw_args) if raw_args else ""
         if not prompt and stdin_data:
             prompt = "Jelaskan output ini"
@@ -1475,8 +1974,12 @@ def main():
         add_history("pipe" if stdin_data else "ai", prompt, response)
         print(response)
 
-        # Auto-exec suggestion
-        if config.get("shell", {}).get("confirm_before_exec", True):
+        # Auto-exec suggestion — smart: read-only auto-runs, write asks
+        shell_cfg = config.get("shell", {})
+        auto_patterns = shell_cfg.get("auto_exec_patterns", [])
+        auto_regexes = [re.compile(p) for p in auto_patterns]
+
+        if shell_cfg.get("confirm_before_exec", True):
             lines = response.strip().split("\n")
             exec_candidates = []
             for line in lines:
@@ -1486,8 +1989,44 @@ def main():
             if exec_candidates:
                 print()
                 for candidate in exec_candidates:
+                    # 1) Matches user-defined auto_exec_patterns? → auto-run
+                    if any(pat.search(candidate) for pat in auto_regexes):
+                        print(f"  ⚡ {candidate}")
+                        result = subprocess.run(shlex.split(candidate), capture_output=True)
+                        out = result.stdout.decode() + result.stderr.decode()
+                        _save_last_output(out, candidate)
+                        if out:
+                            print(out[:2000])
+                        add_history("shell", candidate)
+                        continue
+                    # 2) Destructive? → always ask
+                    if _is_destructive_cmd(candidate):
+                        try:
+                            resp = input(f"  ⚠️ {candidate}? [y/N] ").strip().lower()
+                        except (EOFError, KeyboardInterrupt):
+                            resp = "n"
+                        if resp in ("y", "yes"):
+                            result = subprocess.run(shlex.split(candidate), capture_output=True)
+                            out = result.stdout.decode() + result.stderr.decode()
+                            _save_last_output(out, candidate)
+                            if out:
+                                print(out[:2000])
+                            add_history("shell", candidate)
+                            _save_last_output(out, candidate)
+                        continue
+                    # 3) Read-only? → auto-run
+                    if _is_readonly_cmd(candidate):
+                        print(f"  ⚡ {candidate}")
+                        result = subprocess.run(shlex.split(candidate), capture_output=True)
+                        out = result.stdout.decode() + result.stderr.decode()
+                        _save_last_output(out, candidate)
+                        if out:
+                            print(out[:2000])
+                        add_history("shell", candidate)
+                        continue
+                    # 4) Unknown/unclassified? → ask
                     try:
-                        resp = input(f"💻 Jalanin: {candidate}? [y/N] ").strip().lower()
+                        resp = input(f"  💻 Jalanin: {candidate}? [y/N] ").strip().lower()
                     except (EOFError, KeyboardInterrupt):
                         resp = "n"
                     if resp in ("y", "yes"):
@@ -1497,7 +2036,6 @@ def main():
                         if out:
                             print(out[:2000])
                         add_history("shell", candidate)
-                        # Auto-save for explain-last
                         _save_last_output(out, candidate)
 
 if __name__ == "__main__":

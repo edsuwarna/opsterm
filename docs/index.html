@@ -152,8 +152,8 @@
 <span class="prompt-c">$</span> chmod +x ~/.local/bin/opsterm
 <span class="prompt-c">$</span> opsterm init
 
-<span class="cm"># 2. Set API key & try it</span>
-<span class="prompt-c">$</span> <span class="k">export</span> OPSTERM_API_KEY=<span class="s">'sk-...'</span>
+<span class="cm"># 2. Add your AI provider</span>
+<span class="prompt-c">$</span> <span class="k">opsterm provider add</span> default --api-key <span class="s">'sk-...'</span> --model gpt-4o
 <span class="prompt-c">$</span> opsterm --help</span>
       </div>
       <button class="copy-btn" onclick="copyInstall(this)">📋</button>
