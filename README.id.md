@@ -92,6 +92,35 @@ opsterm provider list
 opsterm provider default openai
 ```
 
+### 🔄 Update
+
+OpsTerm punya **self-update** bawaan:
+
+```bash
+# Cek & install update
+opsterm update
+```
+
+Auto-check tiap 24 jam dan ngasih notif:
+
+```
+╭─ ⚡ OpsTerm Update ──────────────────────────────────────
+│  Version 1.0.0 → 1.1.0 available!
+│  Run: opsterm update
+╰──────────────────────────────────────────────────────────
+```
+
+Cek version sekarang:
+
+```bash
+opsterm --version
+```
+
+> **Note:** Install version spesifik pake tag:
+> ```bash
+> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v1.0.0/bin/opsterm -o ~/.local/bin/opsterm
+>```
+
 ---
 
 ## 📖 Pemakaian

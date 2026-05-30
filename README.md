@@ -24,6 +24,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
 | ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete servers/workflows |
 | 📋 **History** | `opsterm history` | Command history |
+| 🔄 **Self-Update** | `opsterm update` | Check & install latest version |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
 
 ---
@@ -81,6 +82,35 @@ rm -rf ~/.opsterm
 # Remove shell integration lines from ~/.bashrc or ~/.zshrc
 # then: source ~/.bashrc
 ```
+
+### 🔄 Updating
+
+OpsTerm has a **built-in self-update** mechanism:
+
+```bash
+# Check & install update
+opsterm update
+```
+
+OpsTerm auto-checks for updates once per day and notifies you when running commands:
+
+```
+╭─ ⚡ OpsTerm Update ──────────────────────────────────────
+│  Version 1.0.0 → 1.1.0 available!
+│  Run: opsterm update
+╰──────────────────────────────────────────────────────────
+```
+
+You can also check your current version anytime:
+
+```bash
+opsterm --version
+```
+
+> **Note:** To install a specific version, use a version tag in the download URL:
+> ```bash
+> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v1.0.0/bin/opsterm -o ~/.local/bin/opsterm
+>```
 
 ---
 
