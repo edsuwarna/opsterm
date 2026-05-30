@@ -88,7 +88,7 @@ echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
 opsterm servers add
 
 # Atau edit langsung file config
-nano ~/.ai-workflows/servers.yaml
+nano ~/.opsterm/config.yaml
 ```
 
 ---
@@ -224,15 +224,17 @@ opsterm config set shell.confirm_before_exec true
 
 ## 🔧 File Konfigurasi
 
-Config disimpan di `~/.ai-workflows/`:
+Config disimpan di `~/.opsterm/`:
+
+> 📦 Pindah dari `~/.ai-workflows` → `~/.opsterm/` (auto-migrasi pas pertama jalan)
 
 ```
-~/.ai-workflows/
+~/.opsterm/
 ├── config.yaml       # AI provider & shell settings
 ├── servers.yaml      # Daftar server (+ proxy jump)
-├── workflows.yaml    # Daftar workflow (SSH/SCP/local)
+├── workflows.yaml    # Workflow (SSH/SCP/local)
 ├── vault.json        # Credential terenkripsi (AES-128)
-├── history.db        # Riwayat (SQLite, auto)
+├── history.db        # Riwayat (SQLite, otomatis)
 ├── last_output.txt   # Output command terakhir
 └── last_command.txt  # Command terakhir
 ```

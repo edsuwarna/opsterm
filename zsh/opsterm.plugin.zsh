@@ -11,8 +11,8 @@
 #   - opsterm-explain atau opsterm explain-last: explain output pake AI
 #   - opsterm-ti: jalankan AI command langsung di terminal
 
-OPS_LAST_FILE="${OPSTERM_DIR:-$HOME/.ai-workflows}/last_output.txt"
-OPS_LAST_CMD="${OPSTERM_DIR:-$HOME/.ai-workflows}/last_command.txt"
+OPS_LAST_FILE="${OPSTERM_DIR:-$HOME/.opsterm}/last_output.txt"
+OPS_LAST_CMD="${OPSTERM_DIR:-$HOME/.opsterm}/last_command.txt"
 
 # ── Hook: capture command output ───────────────────────────
 # Simpan command sebelum dijalankan

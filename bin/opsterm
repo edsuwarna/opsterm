@@ -50,7 +50,17 @@ except ImportError:
 
 # ── Paths ──────────────────────────────────────────────────
 HOME = Path.home()
-CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".ai-workflows"))
+# Default config dir — migrate from legacy ~/.ai-workflows if needed
+CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".opsterm"))
+LEGACY_DIR = HOME / ".ai-workflows"
+if "OPSTERM_DIR" not in os.environ and LEGACY_DIR.exists() and not CONFIG_DIR.exists():
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    for f in ["config.yaml", "servers.yaml", "workflows.yaml", "history.db", "vault.json", "last_output.txt", "last_command.txt"]:
+        src = LEGACY_DIR / f
+        if src.exists():
+            src.rename(CONFIG_DIR / f)
+    os.chmod(str(CONFIG_DIR), 0o700)
+    print(f"📦 Migrated config from {LEGACY_DIR} → {CONFIG_DIR}")
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 # 🔒 Set secure permissions on config dir (owner-only)
 os.chmod(str(CONFIG_DIR), 0o700)
@@ -379,6 +389,7 @@ def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None) -> str
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
         },
         method="POST",
     )
@@ -808,7 +819,11 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
         # Local command
         elif command:
             print(f"    $ {command}")
-            result = subprocess.run(shlex.split(command), capture_output=False)
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            if result.stdout:
+                print(result.stdout.rstrip())
+            if result.stderr:
+                print(f"    ⚠️ {result.stderr.rstrip()}")
             if result.returncode != 0:
                 print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
                 if i < total:
@@ -1471,7 +1486,10 @@ def main():
             if exec_candidates:
                 print()
                 for candidate in exec_candidates:
-                    resp = input(f"💻 Jalanin: {candidate}? [y/N] ").strip().lower()
+                    try:
+                        resp = input(f"💻 Jalanin: {candidate}? [y/N] ").strip().lower()
+                    except (EOFError, KeyboardInterrupt):
+                        resp = "n"
                     if resp in ("y", "yes"):
                         result = subprocess.run(shlex.split(candidate), capture_output=True)
                         out = result.stdout.decode() + result.stderr.decode()

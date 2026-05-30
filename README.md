@@ -29,66 +29,57 @@ SSH into any server without losing AI access — because the AI runs on your **l
 
 ## ⚡ Installation
 
-### 🐧 Linux
+### 🐧 Linux / 🍎 macOS
 
 ```bash
 # 1. Clone repo
 git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
 cd ~/opsterm
 
-# 2. Setup (creates symlink + init config)
+# 2. Run setup (symlink + init config)
 ./setup.sh
 
-# 3. Set API key
-export OPSTERM_API_KEY='sk-deepseek-...'
+# 3. Set API key (OpenAI, DeepSeek, OpenRouter, etc.)
+export OPSTERM_API_KEY='sk-...'
 
 # 4. Tab completion (bash)
 echo 'source <(opsterm completion bash)' >> ~/.bashrc
 source ~/.bashrc
 
-# 5. Try it
-opsterm --help
-```
-
-### 🍎 macOS
-
-```bash
-# 1. Clone repo
-git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
-cd ~/opsterm
-
-# 2. Setup (creates symlink + init config)
-./setup.sh
-
-# 3. Set API key
-export OPSTERM_API_KEY='sk-deepseek-...'
-
-# 4. Tab completion — macOS uses Zsh by default
-echo 'source <(opsterm completion zsh)' >> ~/.zshrc
-source ~/.zshrc
-
-# 5. Zsh plugin (optional — for ai-last, ai-explain)
+# 5. Zsh plugin (optional — explain-last, last)
 echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
 
 # 6. Try it
 opsterm --help
 ```
 
-> **macOS Note**: Make sure Python 3 is available (`python3 --version`).
-> macOS Ventura/Sonoma/Sequoia ships with Python 3 built-in.
-> If missing: `brew install python@3`
+> **macOS**: Python 3 ships with macOS Ventura+ or `brew install python@3`
 
-### ⚙️ Post-Install (Linux & macOS)
+### 🔧 Post-Install
 
 ```bash
-# Set API key permanently in ~/.bashrc or ~/.zshrc
+# Set API key permanently
 echo 'export OPSTERM_API_KEY="sk-..."' >> ~/.bashrc
 
 # Add your first server
 opsterm servers add
 
-# Or edit the config file directly
-nano ~/.ai-workflows/servers.yaml
+# Or edit config directly
+nano ~/.opsterm/config.yaml
+```
+
+### 🗑️ Uninstall
+
+```bash
+# Remove symlink + repo
+rm ~/.local/bin/opsterm
+rm -rf ~/opsterm
+
+# Remove config (⚠️ deletes servers, workflows, vault, history)
+rm -rf ~/.opsterm
+
+# Remove shell integration lines from ~/.bashrc or ~/.zshrc
+# then: source ~/.bashrc
 ```
 
 ---
@@ -224,10 +215,10 @@ opsterm config set shell.confirm_before_exec true
 
 ## 🔧 Config Files
 
-Config is stored in `~/.ai-workflows/`:
+Config is stored in `~/.opsterm/`:
 
 ```
-~/.ai-workflows/
+~/.opsterm/
 ├── config.yaml       # AI provider & shell settings
 ├── servers.yaml      # Server list (+ proxy jump)
 ├── workflows.yaml    # Workflow list (SSH/SCP/local)
@@ -236,6 +227,8 @@ Config is stored in `~/.ai-workflows/`:
 ├── last_output.txt   # Last command output
 └── last_command.txt  # Last command
 ```
+
+> ⚡ Changed from `~/.ai-workflows` to `~/.opsterm/` — auto-migrates on first run.
 
 Environment variables:
 ```bash
@@ -296,16 +289,20 @@ workflows:
 - [x] AI chat with custom provider
 - [x] Smart SSH connector
 - [x] Saved workflows (SSH/local/SCP)
-- [x] Pipe mode
-- [x] Command history
+- [x] Pipe mode (stdin + AI prompt)
+- [x] Command history (SQLite)
 - [x] Tab completion (bash + zsh)
 - [x] Shell integration (zsh plugin)
 - [x] Multi-hop SSH (jump host)
 - [x] SCP/file transfer in workflows
 - [x] Vault encrypted credentials (AES-128 + PBKDF2)
+- [x] Shell operators (`&&`, `|`, `>`) in local commands
+- [x] Auto-migrate config `~/.ai-workflows` → `~/.opsterm/`
+- [x] EOFError-safe auto-exec prompt
 - [ ] Tmux/screen session manager
 - [ ] Docker exec shortcut (`opsterm exec <container>`)
 - [ ] SSH config parser (import from ~/.ssh/config)
+- [ ] Web dashboard (see workflows and servers in browser)
 
 ---
 

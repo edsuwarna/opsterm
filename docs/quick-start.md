@@ -1,50 +1,61 @@
 # ⚡ Quick Start
 
-Get OpsTerm running in under 5 minutes.
+Get OpsTerm running in less than 2 minutes.
 
-## 5-Minute Setup
+## 1. Install
 
 ```bash
-# 1. Clone or download
-git clone https://github.com/edsuwarna/opsterm.git
-cd opsterm
-
-# 2. Add to PATH
-echo 'export PATH=$PATH:'"$(pwd)"'/bin' >> ~/.bashrc
-source ~/.bashrc
-
-# 3. Set AI provider
-mkdir -p ~/.ai-workflows
-cat > ~/.ai-workflows/config.yaml << 'EOF'
-provider: openai
-api_key: sk-your-key-here
-model: gpt-4o
-EOF
-
-# 4. Verify it works
-opsterm "say hello in one word"
+git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
+cd ~/opsterm && ./setup.sh
 ```
 
-> **Tip:** See [Installation](installation.md) for other methods (Homebrew, Zsh plugin, etc.)
-
-## First Commands
+## 2. Set API Key
 
 ```bash
-# AI chat
-opsterm "how to check disk usage"
+export OPSTERM_API_KEY='sk-your-key'
+```
 
-# SSH into a server
+Or edit `~/.opsterm/config.yaml`:
+
+```yaml
+ai:
+  api_key: "sk-your-key"
+  model: "gpt-4o"  # or deepseek-chat, claude-sonnet-4, etc.
+```
+
+## 3. Try It
+
+```bash
+opsterm "hello from opsterm"
+opsterm how to check disk space
+```
+
+## 4. Add a Server (Optional)
+
+```bash
+opsterm servers add
+```
+
+Or edit `~/.opsterm/servers.yaml`:
+
+```yaml
+servers:
+  my-server:
+    host: "1.2.3.4"
+    user: "root"
+    port: 22
+    desc: "My VPS"
+```
+
+## 5. SSH Without IPs
+
+```bash
 opsterm ssh my-server
-
-# Pipe mode — explain command output
-docker ps | opsterm "any errors?"
-
-# List saved servers
-opsterm servers
 ```
 
-## What's Next?
+## Next Steps
 
-- [📦 Installation](installation.md) — detailed install options
-- [🚀 Usage Guide](usage-guide.md) — day-to-day workflows
-- [⚙️ Configuration](configuration.md) — customize everything
+- [Installation Guide](installation.md) — full install/uninstall
+- [Usage Guide](usage-guide.md) — all features
+- [Configuration](configuration.md) — advanced settings
+- [Workflows](features.md#workflows) — multi-step automation

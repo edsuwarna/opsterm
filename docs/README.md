@@ -60,18 +60,20 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ├── zsh/
 │   └── opsterm.plugin.zsh    ← Zsh shell integration plugin
 ├── docs/                     ← This documentation
-│   ├── en/                   ← English documentation
-│   │   ├── README.md         ← Index
-│   │   ├── architecture.md   ← Architecture & system design
-│   │   ├── tech-stack.md     ← Tech stack details
-│   │   ├── design-decisions.md← Design rationale
-│   │   └── features.md       ← All features
-│   ├── id/                   ← Indonesian documentation
-│   │   ├── README.md         ← Index
-│   │   ├── architecture.md   ← Arsitektur & system design
-│   │   ├── tech-stack.md     ← Tech stack
-│   │   ├── design-decisions.md← Design decisions
-│   │   └── features.md       ← Fitur lengkap
+│   ├── README.md             ← Index
+│   ├── architecture.md       ← Architecture & system design
+│   ├── tech-stack.md         ← Tech stack details
+│   ├── design-decisions.md   ← Design rationale
+│   ├── features.md           ← All features
+│   ├── installation.md       ← Installation guide
+│   ├── configuration.md      ← Configuration reference
+│   ├── usage-guide.md        ← Usage examples
+│   ├── quick-start.md        ← Quick start
+│   ├── development.md        ← Contributing
+│   ├── security.md           ← Security notes
+│   ├── troubleshooting.md    ← Common issues
+│   ├── index.html            ← Web landing page
+│   ├── docs.html             ← Web documentation viewer
 │   ├── ops-term-architecture.excalidraw ← Excalidraw diagram
 │   └── ops-term-architecture.png        ← PNG architecture diagram
 ├── setup.sh                  ← Install script
@@ -80,9 +82,9 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 └── .gitignore
 ```
 
-**User config** (gitignored, stored at `~/.ai-workflows/`):
+**User config** (gitignored, stored at `~/.opsterm/`):
 ```
-~/.ai-workflows/
+~/.opsterm/
 ├── config.yaml       ← AI provider settings
 ├── servers.yaml      ← Server list + proxy config
 ├── workflows.yaml    ← Workflow definitions
@@ -90,6 +92,8 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ├── history.db        ← SQLite history
 └── last_*.txt        ← Last command output
 ```
+
+> 📦 Changed from `~/.ai-workflows` → `~/.opsterm/` (auto-migrates on first run)
 
 ---
 
