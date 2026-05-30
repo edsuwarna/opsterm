@@ -19,9 +19,14 @@ Usage:
   opsterm explain-last          Explain output pake AI
   opsterm history               Riwayat command
   opsterm init                  Setup awal
+  opsterm update                Check & install update
   opsterm completion bash|zsh   Generate completion script
   <cmd> | opsterm <prompt>      Pipe mode
 """
+
+VERSION = "1.0.0"
+VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
+OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
 import argparse
 import base64
@@ -1792,6 +1797,116 @@ def do_init():
                   opsterm how to check disk
 """)
 
+
+# ── version check ──────────────────────────────────────────
+VERSION_CHECK_INTERVAL = 86400  # 24 jam
+
+def _should_check_version() -> bool:
+    """Cek apakah udah waktunya ngecek version (1x per 24 jam)."""
+    stamp = CONFIG_DIR / ".version_check"
+    if stamp.exists():
+        try:
+            age = time.time() - stamp.stat().st_mtime
+            if age < VERSION_CHECK_INTERVAL:
+                return False
+        except OSError:
+            pass
+    return True
+
+def _check_version_startup():
+    """Async version check — tampilkan notif kalo ada update."""
+    if not _should_check_version():
+        return
+    try:
+        req = urllib.request.Request(VERSION_CHECK_URL)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            latest = resp.read().decode().strip()
+        # Update timestamp regardless
+        stamp = CONFIG_DIR / ".version_check"
+        stamp.touch()
+    except Exception:
+        return  # silent fail — jangan ganggu user kalo offline
+
+    if latest and latest != VERSION:
+        print(f"")
+        print(f"╭─ ⚡ OpsTerm Update —" + "─" * 35)
+        print(f"│  Version {VERSION} → {latest} available!")
+        print(f"│  Run: opsterm update")
+        print(f"╰" + "─" * 50)
+
+
+# ── update ─────────────────────────────────────────────────
+def cmd_update():
+    """Check for updates and self-update."""
+    try:
+        req = urllib.request.Request(VERSION_CHECK_URL)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            latest = resp.read().decode().strip()
+    except Exception as e:
+        print(f"❌ Gagal cek update: {e}")
+        return
+
+    if latest == VERSION:
+        print(f"✅ OpsTerm {VERSION} — sudah yang terbaru!")
+        return
+
+    print(f"⚡ Update tersedia: v{VERSION} → v{latest}")
+    try:
+        resp = input("  Install update? [Y/n] ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        resp = ""
+    if resp not in ("", "y", "yes"):
+        print("  dibatalkan.")
+        return
+
+    script_path = Path(__file__).resolve()
+    download_url = OPSTERM_RAW_URL.format(version=latest)
+
+    print(f"  Downloading v{latest}...")
+    try:
+        dl_req = urllib.request.Request(download_url)
+        with urllib.request.urlopen(dl_req, timeout=30) as dl_resp:
+            new_content = dl_resp.read()
+    except Exception as e:
+        print(f"❌ Gagal download update: {e}")
+        return
+
+    # Verify it's valid Python before overwriting
+    try:
+        compile(new_content, f"opsterm-v{latest}", "exec")
+    except SyntaxError as e:
+        print(f"❌ File update rusak (syntax error): {e}")
+        return
+
+    # Backup old version
+    backup_path = script_path.with_name(script_path.name + ".bak")
+    try:
+        import shutil
+        shutil.copy2(script_path, backup_path)
+    except Exception:
+        pass
+
+    # Overwrite
+    try:
+        script_path.write_bytes(new_content)
+        script_path.chmod(0o755)
+    except Exception as e:
+        print(f"❌ Gagal nulis update: {e}")
+        # Restore backup
+        if backup_path.exists():
+            shutil.copy2(backup_path, script_path)
+        return
+
+    # Cleanup backup
+    try:
+        backup_path.unlink()
+    except Exception:
+        pass
+
+    print(f"✅ Update ke v{latest} berhasil!")
+    print(f"♻️  Restart OpsTerm untuk pakai version baru.")
+
+
 # ═══════════════════════════════════════════════════════════
 # MAIN CLI
 # ═══════════════════════════════════════════════════════════
@@ -1833,6 +1948,7 @@ def main():
               docker ps | opsterm "any errors?"
         """),
     )
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}")
     parser.add_argument("args", nargs="*", help="Command or prompt")
     known_args, extra = parser.parse_known_args()
     raw_args = known_args.args + extra  # keep --flags for provider subcommand
@@ -1841,6 +1957,15 @@ def main():
         return
 
     subcmd = raw_args[0] if raw_args else ""
+
+    # ── version check (pasif, 1x/24jam) ──
+    if subcmd not in ("update", "completion", "init"):
+        _check_version_startup()
+
+    # ── update ──
+    if subcmd == "update":
+        cmd_update()
+        return
 
     # ── completion ──
     if subcmd == "completion":
