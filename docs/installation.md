@@ -10,13 +10,15 @@ OpsTerm is a zero-dependency Python script — just Python 3 and a terminal.
 
 ## Quick Install (Linux / macOS)
 
-```bash
-# 1. Clone repo
-git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
-cd ~/opsterm
+No repo needed — download the single Python file and go:
 
-# 2. Run setup (creates symlink + inits config)
-./setup.sh
+```bash
+# 1. Download the script (single file, zero deps)
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
+
+# 2. Init config
+opsterm init
 
 # 3. Set API key
 export OPSTERM_API_KEY='sk-...'
@@ -25,27 +27,25 @@ export OPSTERM_API_KEY='sk-...'
 echo 'source <(opsterm completion bash)' >> ~/.bashrc
 source ~/.bashrc
 
-# 5. Zsh plugin (optional — explain-last, last)
-echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
-
-# 6. Try it
+# 5. Try it
 opsterm --help
 ```
+
+> 💡 Make sure `~/.local/bin` is in your `PATH`. If not, add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc` or `~/.zshrc`.
 
 ### macOS Notes
 - Python 3 ships with macOS Ventura (13.0+) and newer
 - If missing: `brew install python@3`
 - macOS defaults to Zsh — tab completion: `opsterm completion zsh`
 
-## Single-File Install (no repo)
+## Clone Install (with shell plugin)
+
+For the Zsh plugin (`opsterm last`, `opsterm explain-last`) or to browse the full source:
 
 ```bash
-# Download just the script
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
-chmod +x ~/.local/bin/opsterm
-
-# Init config
-opsterm init
+git clone https://github.com/edsuwarna/opsterm.git ~/opsterm
+cd ~/opsterm && ./setup.sh
+echo 'source ~/opsterm/zsh/opsterm.plugin.zsh' >> ~/.zshrc
 ```
 
 ## Post-Install: Configure AI Provider
@@ -109,14 +109,15 @@ This adds:
 ## Updating
 
 ```bash
-cd ~/opsterm && git pull
-```
-
-Or if you installed via single file:
-
-```bash
+# Single-file install — just re-download
 curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+```
+
+Or if you installed via clone:
+
+```bash
+cd ~/opsterm && git pull && ./setup.sh
 ```
 
 ## Uninstall

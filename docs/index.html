@@ -144,12 +144,13 @@
 
   <!-- Quick Install -->
   <div class="install-box">
-    <h2>⚡ Quick Install</h2>
+    <h2>⚡ Quick Install <span style="color:var(--text3);font-weight:400;font-size:12px;">— one command, no repo</span></h2>
     <div class="code-wrap">
       <div class="term-body">
-        <code><span class="cm"># 1. Clone & setup</span>
-<span class="prompt-c">$</span> <span class="k">git clone</span> https://github.com/edsuwarna/opsterm.git ~/opsterm
-<span class="prompt-c">$</span> cd ~/opsterm && ./setup.sh
+        <code><span class="cm"># 1. Download & run (single file, zero deps)</span>
+<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm <span class="k">-o</span> ~/.local/bin/opsterm
+<span class="prompt-c">$</span> chmod +x ~/.local/bin/opsterm
+<span class="prompt-c">$</span> opsterm init
 
 <span class="cm"># 2. Set API key & try it</span>
 <span class="prompt-c">$</span> <span class="k">export</span> OPSTERM_API_KEY=<span class="s">'sk-...'</span>
