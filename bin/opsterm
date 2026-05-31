@@ -18,7 +18,7 @@ Core Commands:
 Management Commands:
   servers <action> [<name>]        Manage server list — list, add, edit <name>, rm <name>
   workflows <action> [<name>]      Manage workflow list — list, add, edit <name>, rm <name>
-  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>
+  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>, supported
   config <action> [<key>]          Manage config — list, get <key>, set <key> <val>
   vault <action> [<args>]          Encrypted credential store — init, set <key>, get <key>, list, rm <key>, lock
 
@@ -732,6 +732,7 @@ def do_provider(raw_args):
         if not providers:
             print("📭 No providers configured.")
             print("   Use: opsterm provider add [name]")
+            print("   See: opsterm provider supported   (list available provider types)")
             print(f"  {_rtk_status_icon()}")
             return
         default = cfg.get("default_provider", "")
@@ -902,9 +903,27 @@ def do_provider(raw_args):
         save_yaml(CONFIG_FILE, cfg)
         print(f"⭐ Default provider set to '{name}'.")
 
+    # ── supported ──
+    elif action == "supported":
+        known = _list_known_providers()
+        if not known:
+            print("❌ No known providers defined.")
+            return
+        max_key = max(len(k) for k, _ in known)
+        max_name = max(len(n) for _, n in known)
+        print("  Supported providers — add one with `opsterm provider add`:\n")
+        for key, dname in known:
+            pinfo = KNOWN_PROVIDERS[key]
+            model = pinfo.get("default_model", "—")
+            needs_key = not pinfo.get("no_key", False)
+            no_key_tag = "  (no key needed)" if not needs_key else ""
+            print(f"    {key:<{max_key}}   {dname:<{max_name}}   {model}{no_key_tag}")
+        print(f"\n  Use `opsterm provider add` to configure one.")
+
     else:
         print("Usage:")
         print("  opsterm provider [list]                       List configured providers")
+        print("  opsterm provider supported                    List supported provider types")
         print("  opsterm provider add [name]                   Add/edit interactively")
         print("  opsterm provider add <name> --api-key KEY     Add with flags")
         print("                          --api-url URL")
@@ -1958,7 +1977,7 @@ def main():
             Management Commands:
               servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>
               workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
-              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>
+              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported
               config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
               vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
