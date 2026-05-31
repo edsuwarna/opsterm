@@ -15,10 +15,10 @@ Usage:
   opsterm config                Manage config
   opsterm provider              Manage AI providers — smart add with auto-detect + model list
   opsterm vault                 Encrypted credentials
-  opsterm last                  View last command output
-  opsterm explain-last          Explain last output with AI
-  opsterm history               Command history
-  opsterm init                  Initialize config
+  opsterm last                  Lihat output command terakhir
+  opsterm explain-last          Explain output pake AI
+  opsterm history               Riwayat command
+  opsterm init                  Setup awal
   opsterm update                Check & install update
   opsterm completion bash|zsh   Generate completion script
   <cmd> | opsterm <prompt>      Pipe mode
@@ -661,7 +661,6 @@ def load_config() -> dict:
             "model": "deepseek-chat",
             "temperature": 0.3,
             "max_tokens": 1024,
-            "response_style": "concise",
         },
         "providers": {},
         "default_provider": "",
@@ -965,14 +964,12 @@ def show_history(limit: int = 20):
 # AI CLIENT
 # ═══════════════════════════════════════════════════════════
 
-def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None,
-            temperature: Optional[float] = None,
-            max_tokens: Optional[int] = None) -> str:
+def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None) -> str:
     cfg = config or load_config()
     ai_cfg = cfg["ai"]
     api_key = ai_cfg.get("api_key", "")
     if not api_key:
-        return "❌ API key not set. Set in config.yaml or export OPSTERM_API_KEY."
+        return "❌ API key belum di-set. Set di config.yaml atau export OPSTERM_API_KEY."
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -980,8 +977,8 @@ def ai_chat(prompt: str, system: str = "", config: Optional[dict] = None,
     payload = {
         "model": ai_cfg.get("model", "deepseek-chat"),
         "messages": messages,
-        "temperature": temperature if temperature is not None else ai_cfg.get("temperature", 0.3),
-        "max_tokens": max_tokens if max_tokens is not None else ai_cfg.get("max_tokens", 1024),
+        "temperature": ai_cfg.get("temperature", 0.3),
+        "max_tokens": ai_cfg.get("max_tokens", 1024),
         "stream": False,
     }
     req = urllib.request.Request(
@@ -1029,8 +1026,8 @@ def _server_lookup(name: str, servers: dict) -> Optional[dict]:
     exact = _fuzzy_match(name, servers)
     if exact:
         return servers[exact]
-    print(f"❌ Server '{name}' not found.")
-    print(f"   Usage: opsterm servers list")
+    print(f"❌ Server '{name}' tidak ditemukan.")
+    print(f"   Gunakan: opsterm servers list")
     return None
 
 def _build_ssh_cmd(s: dict, proxy_cmd: Optional[str] = None) -> List[str]:
@@ -1148,9 +1145,9 @@ def scp_transfer(source: str, dest: str, servers: dict, proxy_name: str = ""):
     print(f"📁 SCP: {' → '.join([source, dest])}")
     result = subprocess.run(cmd)
     if result.returncode == 0:
-        print("✅ Transfer complete!")
+        print("✅ Transfer selesai!")
     else:
-        print(f"❌ Transfer failed (exit code {result.returncode})")
+        print(f"❌ Transfer gagal (exit code {result.returncode})")
 
 # ═══════════════════════════════════════════════════════════
 # VAULT — Encrypted Credentials
@@ -1205,7 +1202,7 @@ class Vault:
             if confirm:
                 pw2 = getpass.getpass("🔐 Konfirmasi: ")
                 if pw != pw2:
-                    print("❌ Password mismatch!")
+                    print("❌ Password tidak cocok!")
                     return None
         except (EOFError, getpass.GetPassWarning):
             # Non-interactive: fallback ke env var prompt
@@ -1218,7 +1215,7 @@ class Vault:
     def init(self):
         """Initialize vault with a master password."""
         if VAULT_FILE.exists() and VAULT_FILE.stat().st_size > 10:
-            resp = input("⚠️ Vault already exists. Reset? [y/N] ").strip().lower()
+            resp = input("⚠️ Vault sudah ada. Reset? [y/N] ").strip().lower()
             if resp not in ("y", "yes"):
                 return
         pw = self._get_password(confirm=True)
@@ -1235,7 +1232,7 @@ class Vault:
         # Verify by deriving key
         key = self._derive_key(pw, salt)
         print(f"✅ Vault initialized di {VAULT_FILE}")
-        print("   Usage: opsterm vault set <key>")
+        print("   Gunakan: opsterm vault set <key>")
         if not HAS_CRYPTOGRAPHY:
             print("   ⚠️  cryptography not installed — using fallback encryption")
             print("      Install: pip install cryptography")
@@ -1249,7 +1246,7 @@ class Vault:
             return False
         data = self._load_data()
         if not data or "salt" not in data:
-            print("❌ Vault not initialized. Run: opsterm vault init")
+            print("❌ Vault belum di-init. Jalankan: opsterm vault init")
             return False
         salt = base64.b64decode(data["salt"])
         key = self._derive_key(pw, salt)
@@ -1326,7 +1323,7 @@ class Vault:
             data["keys"] = {}
         data["keys"][key] = {"data": encrypted}
         self._save_data(data)
-        print(f"✅ Vault: '{key}' saved!")
+        print(f"✅ Vault: '{key}' tersimpan!")
 
     def get(self, key: str) -> Optional[str]:
         if not self._unlock():
@@ -1334,12 +1331,12 @@ class Vault:
         data = self._load_data()
         entry = data.get("keys", {}).get(key)
         if not entry:
-            print(f"❌ Key '{key}' not found in vault.")
+            print(f"❌ Key '{key}' tidak ditemukan di vault.")
             return None
         try:
             return self._decrypt(entry["data"])
         except Exception as e:
-            print(f"❌ Decrypt failed: {e}")
+            print(f"❌ Decrypt gagal: {e}")
             return None
 
     def list_keys(self):
@@ -1359,9 +1356,9 @@ class Vault:
         if key in data.get("keys", {}):
             del data["keys"][key]
             self._save_data(data)
-            print(f"✅ Key '{key}' removed from vault.")
+            print(f"✅ Key '{key}' dihapus dari vault.")
         else:
-            print(f"❌ Key '{key}' not found.")
+            print(f"❌ Key '{key}' tidak ditemukan.")
 
     def lock(self):
         self._fernet = None
@@ -1375,15 +1372,15 @@ class Vault:
 def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
     exact = _fuzzy_match(name, workflows)
     if not exact:
-        print(f"❌ Workflow '{name}' not found.")
-        print(f"   Usage: opsterm workflows list")
+        print(f"❌ Workflow '{name}' tidak ditemukan.")
+        print(f"   Gunakan: opsterm workflows list")
         return
     name = exact
     wf = workflows[name]
     steps = wf.get("steps", [])
     total = len(steps)
     if not steps:
-        print(f"⚠️ Workflow '{name}' has no steps.")
+        print(f"⚠️ Workflow '{name}' tidak punya steps.")
         return
 
     print(f"⚡ Workflow: {name}")
@@ -1403,7 +1400,7 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
         print(f"  [{i}/{total}] {desc or command[:60]}")
 
         if need_confirm:
-            resp = input("    Continue? [Y/n] ").strip().lower()
+            resp = input("    Lanjut? [Y/n] ").strip().lower()
             if resp in ("n", "no"):
                 print("    ⏭️  Skipped.")
                 continue
@@ -1427,9 +1424,9 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
             print(f"    🔑 {ssh_target} $ {command}")
             result = subprocess.run(full_cmd, capture_output=False)
             if result.returncode != 0:
-                print(f"    ❌ Step {i} failed (exit code {result.returncode})")
+                print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
                 if i < total:
-                    cont = input("    Continue to next step? [y/N] ").strip().lower()
+                    cont = input("    Lanjut ke step selanjutnya? [y/N] ").strip().lower()
                     if cont not in ("y", "yes"):
                         print("⛔ Workflow dihentikan.")
                         return
@@ -1442,9 +1439,9 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
             if result.stderr:
                 print(f"    ⚠️ {result.stderr.rstrip()}")
             if result.returncode != 0:
-                print(f"    ❌ Step {i} failed (exit code {result.returncode})")
+                print(f"    ❌ Step {i} gagal (exit code {result.returncode})")
                 if i < total:
-                    cont = input("    Continue? [y/N] ").strip().lower()
+                    cont = input("    Lanjut? [y/N] ").strip().lower()
                     if cont not in ("y", "yes"):
                         print("⛔ Workflow dihentikan.")
                         return
@@ -1453,36 +1450,26 @@ def run_workflow(name: str, workflows: dict, servers: dict, config: dict):
             print(f"    ⏳ Menunggu {wait_sec}s...")
             time.sleep(wait_sec)
 
-    print(f"\n✅ Workflow '{name}' complete!")
+    print(f"\n✅ Workflow '{name}' selesai!")
 
 # ═══════════════════════════════════════════════════════════
 # SHELL COMMAND GENERATOR
 # ═══════════════════════════════════════════════════════════
 
-SHELL_SYSTEM_PROMPT = """You are a terminal assistant helping users with shell commands.
-Answer CONCISELY and to the point.
-If a command starts with $, user can copy-paste it directly.
-FORMAT GUIDE:
-- For shell commands: write the command directly, prefixed with $
-- For explanations: keep it brief and focused
-- For file content: start with the file path on first line
-- Never use markdown code blocks — just write the command directly"""
+SHELL_SYSTEM_PROMPT = """Kamu adalah asisten terminal yang membantu user dengan perintah shell.
+Jawab dengan SINGKAT dan PADAT. 
 
-SHELL_SYSTEM_PROMPT_DETAILED = """You are a terminal assistant helping users with shell commands.
-Provide DETAILED and THOROUGH answers with helpful context.
+Jika user minta command, berikan command yang siap pakai.
+Jika command dimulai dengan $, user bisa langsung copy-paste.
 
-If the user asks for a command, provide a ready-to-use command with clear explanation.
-For complex commands, explain important options and provide usage examples.
-If a command starts with $, user can copy-paste it directly.
+KAPAN MENGGUNAKAN FORMAT:
+- Untuk command shell: langsung tulis command-nya, diawali dengan $
+  Contoh: $ find /var/log -type f -size +1G
+- Untuk penjelasan: berikan penjelasan singkat 1-2 kalimat
+- Untuk file content: mulai dengan path file di baris pertama
+- Jangan pernah kasih markdown code blocks — langsung tulis commandnya"""
 
-FORMAT GUIDE:
-- For shell commands: write the command directly, prefixed with $
-- For explanations: provide complete and detailed explanation (3-5 sentences)
-- For file content: start with the file path on first line
-- If relevant, provide alternative commands or usage variations"""
-
-def generate_command(prompt: str, config: dict, stdin_data: str = "",
-                     style_override: Optional[str] = None) -> str:
+def generate_command(prompt: str, config: dict, stdin_data: str = "") -> str:
     full_prompt = prompt
 
     # ── RTK: pipe stdin_data through RTK before AI context ──
@@ -1494,20 +1481,10 @@ def generate_command(prompt: str, config: dict, stdin_data: str = "",
             ctx_data = filtered
 
     if stdin_data:
-        full_prompt = f"Previous command output:\\n```\\n{ctx_data[:3000]}\\n```\\n\\nQuestion: {prompt}"
-
-    # ── Response style ──
-    style = style_override or config.get("ai", {}).get("response_style", "concise")
-    if style == "detailed":
-        system = SHELL_SYSTEM_PROMPT_DETAILED
-        temp = 0.7
-        toks = 2048
-    else:
-        system = SHELL_SYSTEM_PROMPT
-        temp = None  # use config default
-        toks = None
-    system += "\n\nEnvironment: Linux, bash shell, ubuntu user."
-    return ai_chat(full_prompt, system, config, temperature=temp, max_tokens=toks)
+        full_prompt = f"Output dari command sebelumnya:\n```\n{ctx_data[:3000]}\n```\n\nPertanyaan: {prompt}"
+    system = SHELL_SYSTEM_PROMPT
+    system += "\n\nLingkungan: Linux, shell bash, user ubuntu."
+    return ai_chat(full_prompt, system, config)
 
 # ═══════════════════════════════════════════════════════════
 # SHELL INTEGRATION — last / explain-last
@@ -1578,7 +1555,7 @@ COMPLETION_ZSH = """# OpsTerm Zsh Completion
 _opsterm() {
     local -a cmds
     cmds=(
-        'ssh:SSH to saved server'
+        'ssh:SSH ke server tersimpan'
         'run:Jalanin workflow'
         'servers:Manage server list'
         'workflows:Manage workflow list'
@@ -1588,8 +1565,8 @@ _opsterm() {
         'init:Setup konfigurasi awal'
         'scp:Upload/download file'
         'vault:Encrypted credentials'
-        'last:Last command output'
-        'explain-last:Explain last output with AI'
+        'last:Output command terakhir'
+        'explain-last:Explain output pake AI'
         'completion:Generate completion script'
     )
     _arguments -C '1: :->command' '*: :->args'
@@ -1623,7 +1600,7 @@ compdef _opsterm opsterm
 
 def print_server_table(servers: dict):
     if not servers:
-        print("📭 No servers saved.")
+        print("📭 Belum ada server tersimpan.")
         return
     header = f"{'NAMA':<20} {'HOST':<22} {'USER':<12} {'PORT':<6} {'PROXY':<15} DESKRIPSI"
     sep = "-" * 100
@@ -1634,7 +1611,7 @@ def print_server_table(servers: dict):
 
 def print_workflow_table(workflows: dict):
     if not workflows:
-        print("📭 No workflows saved.")
+        print("📭 Belum ada workflow tersimpan.")
         return
     for name, w in sorted(workflows.items()):
         steps = len(w.get("steps", []))
@@ -1673,33 +1650,33 @@ def _validate_ssh_key_path(path: str) -> bool:
 
 
 def interactive_add_server():
-    print("== Add New Server ==")
+    print("== Tambah Server Baru ==")
     name = input("  Nama: ").strip()
     if not name:
         print("❌ Nama wajib diisi."); return
     if not _validate_hostname(name):
-        print("❌ Invalid server name (restricted characters)."); return
+        print("❌ Nama server tidak valid (karakter terlarang)."); return
     servers = get_servers()
     if name in servers:
-        ov = input(f"⚠️ Server '{name}' already exists. Overwrite? [y/N] ").strip().lower()
+        ov = input(f"⚠️ Server '{name}' sudah ada. Timpa? [y/N] ").strip().lower()
         if ov not in ("y", "yes"): return
     host = input("  Host/IP: ").strip()
     if not _validate_hostname(host):
-        print("❌ Invalid hostname (restricted characters)."); return
+        print("❌ Host tidak valid (karakter terlarang)."); return
     user = input("  User [root]: ").strip() or "root"
     if not _validate_username(user):
-        print("❌ Invalid username (only alphanumeric, _, -, .)."); return
+        print("❌ Username tidak valid (hanya alfanumerik, _, -, .)."); return
     port_str = input("  Port [22]: ").strip()
     port = int(port_str) if port_str else 22
     if port < 1 or port > 65535:
-        print("❌ Port must be between 1-65535."); return
+        print("❌ Port harus antara 1-65535."); return
     key = input("  SSH key path [~/.ssh/id_ed25519]: ").strip() or "~/.ssh/id_ed25519"
     if not _validate_ssh_key_path(key):
-        print("❌ Invalid key path (restricted characters)."); return
-    desc = input("  Description: ").strip()
-    proxy = input("  Proxy/jump host (server name): ").strip()
+        print("❌ Key path tidak valid (karakter terlarang)."); return
+    desc = input("  Deskripsi: ").strip()
+    proxy = input("  Proxy/jump host (nama server): ").strip()
     if proxy and not _validate_hostname(proxy):
-        print("❌ Invalid proxy name (restricted characters)."); return
+        print("❌ Nama proxy tidak valid (karakter terlarang)."); return
     s = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
     if proxy:
         s["proxy"] = proxy
@@ -1708,21 +1685,21 @@ def interactive_add_server():
     print(f"✅ Server '{name}' ditambahkan!")
 
 def interactive_add_workflow():
-    print("== Add New Workflow ==")
+    print("== Tambah Workflow Baru ==")
     name = input("  Nama workflow: ").strip()
     if not name:
         print("❌ Nama wajib diisi."); return
     workflows = get_workflows()
     if name in workflows:
-        ov = input(f"⚠️ Workflow '{name}' already exists. Overwrite? [y/N] ").strip().lower()
+        ov = input(f"⚠️ Workflow '{name}' sudah ada. Timpa? [y/N] ").strip().lower()
         if ov not in ("y", "yes"): return
-    desc = input("  Description: ").strip()
-    print("  Add steps (empty description to finish):")
+    desc = input("  Deskripsi: ").strip()
+    print("  Tambah steps (kosongkan deskripsi untuk selesai):")
     steps = []
     while True:
         print(f"    Step {len(steps)+1}:")
         step_type = input("      Tipe [local/ssh/scp] (local): ").strip().lower() or "local"
-        step_desc = input("      Description: ").strip()
+        step_desc = input("      Deskripsi: ").strip()
         if not step_desc:
             break
         if step_type == "scp":
@@ -1753,7 +1730,7 @@ EXAMPLE_SERVERS = {
         "user": "root",
         "port": 22,
         "key": "~/.ssh/id_ed25519",
-        "desc": "Replace with your server",
+        "desc": "Ganti dengan server lu",
     },
 }
 
@@ -1771,7 +1748,7 @@ EXAMPLE_WORKFLOWS = {
         "steps": [
             {"scp": "deploy/config.yaml", "to": "/home/ubuntu/config.yaml", "ssh": "vps-utama", "desc": "Upload config"},
             {"ssh": "vps-utama", "command": "cd /home/ubuntu/app && git pull && docker compose restart", "desc": "Pull & restart"},
-            {"command": "echo '✅ Deploy done!'", "desc": "Done"},
+            {"command": "echo '✅ Deploy selesai!'", "desc": "Done"},
         ],
     },
 }
@@ -1793,7 +1770,6 @@ def do_init():
             "ai": {
                 "temperature": 0.3,
                 "max_tokens": 1024,
-                "response_style": "concise",
             },
             "shell": {
                 "confirm_before_exec": True,
@@ -1804,7 +1780,7 @@ def do_init():
     if not SERVERS_FILE.exists():
         save_yaml(SERVERS_FILE, {"servers": EXAMPLE_SERVERS})
         print(f"✅ Servers file created: {SERVERS_FILE}")
-        print("   📌 Edit the example server in that file with your data.")
+        print("   📌 Edit contoh server di file tersebut dengan data lu.")
     if not WORKFLOWS_FILE.exists():
         save_yaml(WORKFLOWS_FILE, {"workflows": EXAMPLE_WORKFLOWS})
         print(f"✅ Workflows file created: {WORKFLOWS_FILE}")
@@ -1838,7 +1814,7 @@ def _should_check_version() -> bool:
     return True
 
 def _check_version_startup():
-    """Async version check — show notification if update available."""
+    """Async version check — tampilkan notif kalo ada update."""
     if not _should_check_version():
         return
     try:
@@ -1849,7 +1825,7 @@ def _check_version_startup():
         stamp = CONFIG_DIR / ".version_check"
         stamp.touch()
     except Exception:
-        return  # silent fail — don't bother user if offline
+        return  # silent fail — jangan ganggu user kalo offline
 
     if latest and latest != VERSION:
         print(f"")
@@ -1867,20 +1843,20 @@ def cmd_update():
         with urllib.request.urlopen(req, timeout=10) as resp:
             latest = resp.read().decode().strip()
     except Exception as e:
-        print(f"❌ Update check failed: {e}")
+        print(f"❌ Gagal cek update: {e}")
         return
 
     if latest == VERSION:
-        print(f"✅ OpsTerm {VERSION} — already up to date!")
+        print(f"✅ OpsTerm {VERSION} — sudah yang terbaru!")
         return
 
-    print(f"⚡ Update available: v{VERSION} → v{latest}")
+    print(f"⚡ Update tersedia: v{VERSION} → v{latest}")
     try:
         resp = input("  Install update? [Y/n] ").strip().lower()
     except (EOFError, KeyboardInterrupt):
         resp = ""
     if resp not in ("", "y", "yes"):
-        print("  Cancelled.")
+        print("  dibatalkan.")
         return
 
     script_path = Path(__file__).resolve()
@@ -1892,14 +1868,14 @@ def cmd_update():
         with urllib.request.urlopen(dl_req, timeout=30) as dl_resp:
             new_content = dl_resp.read()
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f"❌ Gagal download update: {e}")
         return
 
     # Verify it's valid Python before overwriting
     try:
         compile(new_content, f"opsterm-v{latest}", "exec")
     except SyntaxError as e:
-        print(f"❌ Update file corrupted (syntax error): {e}")
+        print(f"❌ File update rusak (syntax error): {e}")
         return
 
     # Backup old version
@@ -1915,7 +1891,7 @@ def cmd_update():
         script_path.write_bytes(new_content)
         script_path.chmod(0o755)
     except Exception as e:
-        print(f"❌ Failed to write update: {e}")
+        print(f"❌ Gagal nulis update: {e}")
         # Restore backup
         if backup_path.exists():
             shutil.copy2(backup_path, script_path)
@@ -1927,8 +1903,8 @@ def cmd_update():
     except Exception:
         pass
 
-    print(f"✅ Updated to v{latest}!")
-    print(f"♻️  Restart OpsTerm to use the new version.")
+    print(f"✅ Update ke v{latest} berhasil!")
+    print(f"♻️  Restart OpsTerm untuk pakai version baru.")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1948,11 +1924,11 @@ def main():
               scp <src> <dst>            Transfer files to/from servers (local:, server:path, --via)
               run <workflow>             Execute a multi-step YAML workflow
               vault <action> [args]      Encrypted credential store — init, set, get, list, rm, lock
-              config <action> [key]      Manage config — list, get <key>, set <key> <val>. e.g. ai.response_style (concise|detailed)
-              provider <action> [name]   Manage AI providers — list, add [name], rm <name>, default <name>
+              config <action> [key]      Manage config — list, get <key>, set <key> <val>
+              provider <action> [name]   Manage AI providers — smart add with auto-fetch models
               servers <action> [name]    Manage servers — list, add, edit <name>, rm <name>
               workflows <action> [name]  Manage workflows — list, add, edit <name>, rm <name>
-              history [limit]            Show past queries — default 20, e.g. history 5
+              history [limit]            Show past queries and responses
               last                       View the last shell command's output
               explain-last               Explain the last command's output with AI
               init                       Initialize config directory
@@ -1973,8 +1949,6 @@ def main():
         """),
     )
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}")
-    parser.add_argument("--verbose", "-V", action="store_true", help="Detailed AI response (verbose mode)")
-    parser.add_argument("--concise", "-C", action="store_true", help="Concise AI response (override config)")
     parser.add_argument("args", nargs="*", help="Command or prompt")
     known_args, extra = parser.parse_known_args()
     raw_args = known_args.args + extra  # keep --flags for provider subcommand
@@ -2026,10 +2000,6 @@ def main():
         elif raw_args[1] == "set" and len(raw_args) > 3:
             key = raw_args[2]
             val = raw_args[3]
-            # Validate ai.response_style values
-            if key == "ai.response_style" and val not in ("concise", "detailed"):
-                print(f"❌ Invalid value '{val}' for ai.response_style. Use: concise or detailed")
-                return
             current = load_yaml(CONFIG_FILE)
             parts = key.split(".")
             d = current
@@ -2051,7 +2021,7 @@ def main():
         if len(raw_args) == 1:
             print_server_table(servers)
             print(f"\n  Total: {len(servers)} server(s)")
-            print("  Usage: ai servers [list|add|edit|rm]")
+            print("  Gunakan: ai servers [list|add|edit|rm]")
         elif raw_args[1] == "list":
             print_server_table(servers)
         elif raw_args[1] == "add":
@@ -2059,41 +2029,41 @@ def main():
         elif raw_args[1] == "edit" and len(raw_args) > 2:
             target = raw_args[2]
             if target not in servers:
-                print(f"❌ Server '{target}' not found."); return
-            print(f"Edit server '{target}' (leave empty to skip):")
+                print(f"❌ Server '{target}' tidak ditemukan."); return
+            print(f"Edit server '{target}' (kosongkan untuk skip):")
             s = servers[target]
             host = input(f"  Host [{s.get('host','')}]: ").strip() or s.get('host','')
             if host and not _validate_hostname(host):
-                print("❌ Invalid hostname (restricted characters)."); return
+                print("❌ Host tidak valid (karakter terlarang)."); return
             user = input(f"  User [{s.get('user','')}]: ").strip() or s.get('user','')
             if user and not _validate_username(user):
-                print("❌ Invalid username (only alphanumeric, _, -, .)."); return
+                print("❌ Username tidak valid (hanya alfanumerik, _, -, .)."); return
             port_str = input(f"  Port [{s.get('port',22)}]: ").strip()
             port = int(port_str) if port_str else s.get('port',22)
             if port < 1 or port > 65535:
-                print("❌ Port must be between 1-65535."); return
+                print("❌ Port harus antara 1-65535."); return
             key = input(f"  SSH key [{s.get('key','')}]: ").strip() or s.get('key','')
             if key and not _validate_ssh_key_path(key):
-                print("❌ Invalid key path (restricted characters)."); return
-            desc = input(f"  Description [{s.get('desc','')}]: ").strip() or s.get('desc','')
+                print("❌ Key path tidak valid (karakter terlarang)."); return
+            desc = input(f"  Deskripsi [{s.get('desc','')}]: ").strip() or s.get('desc','')
             proxy = input(f"  Proxy [{s.get('proxy','')}]: ").strip() or s.get('proxy','')
             if proxy and not _validate_hostname(proxy):
-                print("❌ Invalid proxy name (restricted characters)."); return
+                print("❌ Nama proxy tidak valid (karakter terlarang)."); return
             servers[target] = {"host": host, "user": user, "port": port, "key": key, "desc": desc}
             if proxy:
                 servers[target]["proxy"] = proxy
             save_servers(servers)
-            print(f"✅ Server '{target}' updated!")
+            print(f"✅ Server '{target}' diupdate!")
         elif raw_args[1] == "rm" and len(raw_args) > 2:
             target = raw_args[2]
             if target in servers:
-                confirm = input(f"Delete server '{target}'? [y/N] ").strip().lower()
+                confirm = input(f"Hapus server '{target}'? [y/N] ").strip().lower()
                 if confirm in ("y", "yes"):
                     del servers[target]
                     save_servers(servers)
-                    print(f"✅ Server '{target}' removed.")
+                    print(f"✅ Server '{target}' dihapus.")
             else:
-                print(f"❌ Server '{target}' not found.")
+                print(f"❌ Server '{target}' tidak ditemukan.")
         else:
             print("Usage: ai servers [list|add|edit <name>|rm <name>]")
 
@@ -2103,7 +2073,7 @@ def main():
         if len(raw_args) == 1:
             print_workflow_table(workflows)
             print(f"\n  Total: {len(workflows)} workflow(s)")
-            print("  Usage: ai workflows [list|add|edit|rm]")
+            print("  Gunakan: ai workflows [list|add|edit|rm]")
         elif raw_args[1] == "list":
             print_workflow_table(workflows)
         elif raw_args[1] == "add":
@@ -2111,22 +2081,22 @@ def main():
         elif raw_args[1] == "edit" and len(raw_args) > 2:
             target = raw_args[2]
             if target not in workflows:
-                print(f"❌ Workflow '{target}' not found."); return
-            print(f"📝 Edit workflow '{target}' — edit the file directly:")
+                print(f"❌ Workflow '{target}' tidak ditemukan."); return
+            print(f"📝 Edit workflow '{target}' — langsung edit filenya:")
             print(f"   {WORKFLOWS_FILE}")
             editor = os.environ.get("EDITOR", "nano")
             subprocess.run([editor, str(WORKFLOWS_FILE)])
         elif raw_args[1] == "rm" and len(raw_args) > 2:
             target = raw_args[2]
             if target in workflows:
-                confirm = input(f"Delete workflow '{target}'? [y/N] ").strip().lower()
+                confirm = input(f"Hapus workflow '{target}'? [y/N] ").strip().lower()
                 if confirm in ("y", "yes"):
                     workflows = get_workflows()
                     del workflows[target]
                     save_workflows(workflows)
-                    print(f"✅ Workflow '{target}' removed.")
+                    print(f"✅ Workflow '{target}' dihapus.")
             else:
-                print(f"❌ Workflow '{target}' not found.")
+                print(f"❌ Workflow '{target}' tidak ditemukan.")
         else:
             print("Usage: ai workflows [list|add|edit <name>|rm <name>]")
 
@@ -2178,7 +2148,7 @@ def main():
             print("  set    — Simpan credential (opsterm vault set <key>)")
             print("  get    — Ambil credential (opsterm vault get <key>)")
             print("  list   — Lihat semua key")
-            print("  rm     — Remove key")
+            print("  rm     — Hapus key")
             print("  lock   — Kunci vault")
             print(f"\n  File: {VAULT_FILE}")
             print("  Env:   OPSTERM_VAULT_PASSWORD")
@@ -2220,9 +2190,9 @@ def main():
     elif subcmd == "last":
         out, cmd = get_last_output()
         if not out and not cmd:
-            print("📭 No saved output yet.")
-            print("   Last command auto-saved by zsh plugin.")
-            print("   Without plugin: use pipe mode | opsterm explain")
+            print("📭 Belum ada output tersimpan.")
+            print("   Command terakhir otomatis disimpan oleh zsh plugin.")
+            print("   Tanpa plugin: gunakan pipe mode | opsterm explain")
         else:
             if cmd:
                 print(f"💻 Command: {cmd}")
@@ -2233,8 +2203,8 @@ def main():
     elif subcmd in ("explain-last", "explain_last"):
         out, cmd = get_last_output()
         if not out and not cmd:
-            print("📭 No output to explain yet.")
-            print("   Run a command first, or pipe: cmd | opsterm explain")
+            print("📭 Belum ada output yang bisa di-explain.")
+            print("   Jalankan command dulu, atau pipe: cmd | opsterm explain")
             return
         config = load_config()
         # ── RTK: filter saved output before AI context ──
@@ -2244,14 +2214,8 @@ def main():
             filtered = _rtk_pipe(out)
             if filtered and len(filtered) < len(out):
                 ctx_out = filtered
-        prompt = f"Explain this output from command '{cmd}':\n```\n{ctx_out[:3000]}\n```"
-        # Determine style override from flags
-        style_override = None
-        if known_args.verbose:
-            style_override = "detailed"
-        elif known_args.concise:
-            style_override = "concise"
-        response = generate_command(prompt, config, style_override=style_override)
+        prompt = f"Explain output dari command '{cmd}' ini:\n```\n{ctx_out[:3000]}\n```"
+        response = generate_command(prompt, config)
         add_history("pipe" if out else "ai", cmd or "(last)", response)
         print(response)
 
@@ -2286,15 +2250,8 @@ def main():
             print("❌ Masukkan pertanyaan.")
             return
 
-        # Determine style override from flags
-        style_override = None
-        if known_args.verbose:
-            style_override = "detailed"
-        elif known_args.concise:
-            style_override = "concise"
-
         config = load_config()
-        response = generate_command(prompt, config, stdin_data, style_override=style_override)
+        response = generate_command(prompt, config, stdin_data)
         add_history("pipe" if stdin_data else "ai", prompt, response)
         print(response)
 
