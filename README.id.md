@@ -29,7 +29,10 @@ SSH ke server mana pun tanpa kehilangan akses AI — karena AI jalan di **termin
 | ⌨️ **Tab Completion** | `source <(opsterm completion bash)` | Auto-complete servers/workflows |
 | 📋 **History** | `opsterm history` | Riwayat semua command |
 | 🔄 **Self-Update** | `opsterm update` | Cek & install versi terbaru |
-| 🛠️ **Custom Provider** | `opsterm config set ai.model gpt-4` | Bebas pilih provider AI |
+| 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Bebas pilih provider AI |
+| 🏥 **Diagnostics** | `opsterm doctor` | Cek konfigurasi & diagnosis masalah |
+| 📋 **Detail Server** | `opsterm servers show <name>` | Lihat detail koneksi server |
+| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Ubah kepribadian AI |
 
 > 💡 Semua list command (`provider list`, `servers list`, `history`) support `--json` flag buat scripting.
 
@@ -42,9 +45,20 @@ SSH ke server mana pun tanpa kehilangan akses AI — karena AI jalan di **termin
 **Linux/macOS** — satu perintah curl, gak perlu clone repo:
 
 ```bash
+# Install latest (branch main)
 curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
+
+Atau pake **versi release tertentu** (direkomendasiin biar stabil):
+
+```bash
+# Install v0.4.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.4.0/bin/opsterm -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
+```
+
+Cek [Releases page](https://github.com/edsuwarna/opsterm/releases) buat versi terbaru.
 
 Pastiin `~/.local/bin` ada di `PATH` kamu:
 
@@ -71,6 +85,23 @@ opsterm provider list
 ```bash
 opsterm --help
 ```
+
+### Update
+
+OpsTerm punya fitur update otomatis:
+
+```bash
+# Cek update & install
+opsterm update
+```
+
+Caranya:
+1. Cek versi terbaru dari GitHub
+2. Download & verifikasi script baru
+3. Backup versi lama sebagai `opsterm.bak`
+4. Replace dengan versi baru
+
+> 💡 OpsTerm otomatis ngecek update setiap 24 jam sekali — bakal muncul notif kalo ada versi baru.
 
 ---
 
@@ -207,6 +238,23 @@ opsterm what about inodes?
 # → Ngerti lo masih bahas disk commands
 ```
 
+### Custom System Prompt
+
+Sesuaiin system prompt AI sesuai kebutuhan:
+
+```bash
+# Biar jawabnya singkat dan teknis
+opsterm config set ai.system_prompt "Kamu asisten terminal, jawab pake command langsung."
+
+# Pake bahasa Indonesia
+opsterm config set ai.system_prompt "Jawab pake bahasa Indonesia santai."
+
+# Mode edukasi
+opsterm config set ai.system_prompt "Jelasin kayak lagi ngajar anak SMA."
+```
+
+> 💡 System prompt ditambahin ke setiap request AI. Cocok buat ngatur tone, gaya, atau konteks.
+
 ---
 
 ## 💻 Pemakaian
@@ -231,6 +279,7 @@ opsterm scp file.txt vps-utama:/home/ubuntu/
 opsterm scp vps-utama:/var/log/syslog .
 opsterm scp file.txt vps-utama:/tmp --via bastion
 opsterm servers ping vps-utama           # Cek koneksi SSH
+opsterm servers show vps-utama           # Lihat detail server
 ```
 
 ### Workflows
@@ -246,7 +295,25 @@ opsterm run deploy-app
 opsterm completion bash > ~/.opsterm/completion.sh
 source ~/.opsterm/completion.sh
 
-# Atau tambah ke shell config:
+```
+
+### Diagnostics
+
+Cek instalasi dan konfigurasi OpsTerm:
+
+```bash
+opsterm doctor
+```
+
+Yang dicek:
+- ✅ File konfigurasi ada dan valid
+- ✅ API key terisi
+- ✅ Provider URL reachable
+- ✅ Versi terbaru vs terinstall
+- ✅ `~/.local/bin` ada di PATH
+
+```bash
+# Atau tambah ke shell config biar permanen:
 echo "source ~/.opsterm/completion.sh" >> ~/.bashrc
 
 opsterm ssh [Tab]    # Daftar server
@@ -256,6 +323,7 @@ opsterm run [Tab]    # Daftar workflow
 ### 🛠️ Server Management
 ```bash
 opsterm servers list           # Lihat semua server (dengan kolom PROXY)
+opsterm servers show vps       # Lihat detail server
 opsterm servers add            # Tambah server baru
 opsterm servers edit vps       # Edit server
 opsterm servers rm vps         # Hapus server

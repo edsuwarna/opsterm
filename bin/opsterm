@@ -1649,6 +1649,12 @@ def generate_command(prompt: str, config: dict, stdin_data: str = "",
         temp = None  # use config default
         toks = None
     system += "\n\nEnvironment: Linux, bash shell, ubuntu user."
+
+    # ── Custom system prompt ──
+    custom_prompt = config.get("ai", {}).get("system_prompt", "")
+    if custom_prompt:
+        system += f"\n\n{custom_prompt}"
+
     return ai_chat(full_prompt, system, config, temperature=temp, max_tokens=toks)
 
 # ═══════════════════════════════════════════════════════════
@@ -1687,7 +1693,7 @@ COMPLETION_BASH = """# OpsTerm Bash Completion
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion"
+    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor"
     cur="${{words[cword]}}"
     prev="${{words[cword-1]}}"
     case "${{prev}}" in
@@ -1698,7 +1704,7 @@ _opsterm_completions() {
         run)
             local workflows; workflows=$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{{print $2}}')
             mapfile -t COMPREPLY < <(compgen -W "${{workflows}}" -- "${{cur}}"); return 0 ;;
-        servers) mapfile -t COMPREPLY < <(compgen -W "list add edit rm" -- "${{cur}}"); return 0 ;;
+        servers) mapfile -t COMPREPLY < <(compgen -W "list add edit rm ping show" -- "${{cur}}"); return 0 ;;
         workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm" -- "${{cur}}"); return 0 ;;
         config) mapfile -t COMPREPLY < <(compgen -W "list get set" -- "${{cur}}"); return 0 ;;
         vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${{cur}}"); return 0 ;;
@@ -1732,6 +1738,7 @@ _opsterm() {
         'vault:Encrypted credentials'
         'last:Last command output'
         'explain-last:Explain last output with AI'
+        'doctor:Diagnose installation and configuration'
         'completion:Generate completion script'
     )
     _arguments -C '1: :->command' '*: :->args'
@@ -1936,6 +1943,7 @@ def do_init():
                 "temperature": 0.3,
                 "max_tokens": 1024,
                 "response_style": "concise",
+                "system_prompt": "",
             },
             "shell": {
                 "confirm_before_exec": True,
@@ -2073,6 +2081,111 @@ def cmd_update():
     print(f"♻️  Restart OpsTerm to use the new version.")
 
 
+# ═══════════════════════════════════════════════════════════
+# DOCTOR — Diagnostics
+# ═══════════════════════════════════════════════════════════
+
+def cmd_doctor():
+    """Diagnose OpsTerm installation and configuration."""
+    print("\n🔍 OpsTerm Doctor — Diagnose installation")
+    print("─" * 50)
+    all_ok = True
+
+    # 1. Config directory
+    print(f"\n  📁 Config dir: {CONFIG_DIR}")
+    if CONFIG_DIR.exists():
+        mode = oct(CONFIG_DIR.stat().st_mode)[-4:]
+        print(f"     ✅ Exists (permissions: {mode})")
+    else:
+        print(f"     ❌ Not found — run 'opsterm init'")
+        all_ok = False
+
+    # 2. Config file
+    if CONFIG_FILE.exists():
+        print(f"  ⚙️  Config file: ✅ Found")
+        cfg = load_config()
+        ai_cfg = cfg.get("ai", {})
+        default_prov = cfg.get("default_provider", "default")
+        providers = cfg.get("providers", {})
+        prov_cfg = providers.get(default_prov, ai_cfg)
+
+        api_key = prov_cfg.get("api_key", "") or ai_cfg.get("api_key", "")
+        api_url = prov_cfg.get("api_url", ai_cfg.get("api_url", ""))
+
+        if api_key:
+            masked = api_key[:6] + "…" + api_key[-4:] if len(api_key) > 12 else "***"
+            print(f"  🔑 API key:      ✅ {masked}")
+        else:
+            print(f"  🔑 API key:      ❌ Not set")
+            print(f"     Set with: opsterm provider add <name> --api-key 'sk-...'")
+            print(f"     Or: export OPSTERM_API_KEY='sk-...'")
+            all_ok = False
+
+        model = prov_cfg.get("model", ai_cfg.get("model", "?"))
+        print(f"  🤖 Model:        {model}")
+        print(f"  🌐 API URL:      {api_url}")
+
+        # Network check
+        if api_url:
+            try:
+                import urllib.request as _req
+                from urllib.parse import urlparse
+                parsed = urlparse(api_url)
+                base = f"{parsed.scheme}://{parsed.netloc}"
+                start = time.time()
+                r = _req.Request(base, method="HEAD")
+                with _req.urlopen(r, timeout=5) as resp:
+                    elapsed = time.time() - start
+                    print(f"  🌐 Network:       ✅ Reachable ({elapsed:.1f}s)")
+            except Exception as e:
+                print(f"  🌐 Network:       ⚠️  {str(e)[:60]}")
+    else:
+        print(f"  ⚙️  Config file: ❌ Not found — run 'opsterm init'")
+        all_ok = False
+
+    # 3. Servers file
+    if SERVERS_FILE.exists():
+        servers = get_servers()
+        print(f"  🖥️  Servers:      ✅ {len(servers)} configured")
+    else:
+        print(f"  🖥️  Servers:      ⚠️  No servers file (optional)")
+
+    # 4. Version
+    print(f"  🏷️  Version:      {VERSION}")
+    try:
+        req = urllib.request.Request(VERSION_CHECK_URL)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            latest = resp.read().decode().strip()
+        if latest and latest != VERSION:
+            print(f"     ⚠️  Update available: {latest}")
+            print(f"     Run: opsterm update")
+        else:
+            print(f"     ✅ Latest")
+    except Exception:
+        print(f"     ⚠️  Could not check latest version")
+
+    # 5. PATH check
+    bin_dir = os.path.expanduser("~/.local/bin")
+    path_dirs = os.environ.get("PATH", "").split(":")
+    if bin_dir in path_dirs:
+        print(f"  📍 ~/.local/bin:  ✅ In PATH")
+    else:
+        print(f"  📍 ~/.local/bin:  ⚠️  Not in PATH")
+        print(f"     Add to ~/.bashrc: export PATH=\"$HOME/.local/bin:$PATH\"")
+
+    # 6. Script location
+    script_path = Path(__file__).resolve()
+    script_size = script_path.stat().st_size
+    print(f"  📄 Script:       {script_path} ({script_size:,} bytes)")
+
+    print()
+    if all_ok:
+        print("  ✅ All checks passed!")
+    else:
+        print("  ⚠️  Some checks failed — see above for details.")
+    print()
+
+
 def cmd_chat(raw_args):
     """Interactive chat REPL — type messages, get AI responses, /exit to quit."""
     config = load_config()
@@ -2162,11 +2275,131 @@ def cmd_chat(raw_args):
 VERSION_CHECK_INTERVAL = 86400  # 24 jam
 
 # ═══════════════════════════════════════════════════════════
+# SUBCOMMAND HELP
+# ═══════════════════════════════════════════════════════════
+
+SUBCOMMAND_HELP = {
+    "servers": """Usage: opsterm servers <action> [<name>]
+
+Actions:
+  list               Show all servers
+  add                Add a new server (interactive)
+  show <name>        Show server details
+  edit <name>        Edit server config (interactive)
+  rm <name>          Remove a server
+  ping <name>        Test SSH connectivity & latency
+
+Examples:
+  opsterm servers list
+  opsterm servers show vps-utama
+  opsterm servers add
+  opsterm servers ping vps-utama
+""",
+    "provider": """Usage: opsterm provider <action> [<name>]
+
+Actions:
+  list                 Show configured providers
+  supported            List all supported providers
+  add [name]           Add a provider (interactive, or via --api-key/--url/--model)
+  rm <name>            Remove a provider
+  default <name>       Set default provider
+  test <name>          Test provider connection
+  models <name>        List available models for a provider
+
+Examples:
+  opsterm provider list
+  opsterm provider supported
+  opsterm provider add deepseek --api-key 'sk-...' --model deepseek-chat
+  opsterm provider test openai
+""",
+    "config": """Usage: opsterm config <action> [<key>] [<value>]
+
+Actions:
+  list               Show all config
+  get <key>          Get a config value (e.g., ai.temperature)
+  set <key> <val>    Set a config value
+
+Keys:
+  ai.temperature       Model temperature (0-2)
+  ai.max_tokens        Max response tokens (>0)
+  ai.response_style    Response style (concise|detailed)
+  ai.system_prompt     Custom system prompt for AI
+
+Examples:
+  opsterm config list
+  opsterm config set ai.temperature 0.5
+  opsterm config set ai.response_style detailed
+  opsterm config set ai.system_prompt "You are a Linux expert"
+""",
+    "workflows": """Usage: opsterm workflows <action> [<name>]
+
+Actions:
+  list               Show all workflows
+  add                Add a new workflow (interactive)
+  edit <name>        Edit a workflow
+  rm <name>          Remove a workflow
+
+Examples:
+  opsterm workflows list
+  opsterm workflows add
+  opsterm workflows edit deploy-app
+""",
+    "vault": """Usage: opsterm vault <action> [<args>]
+
+Actions:
+  init               Create a new vault
+  set <key> [val]    Store a credential (value optional, prompted if empty)
+  get <key>          Retrieve a credential
+  list               List all keys
+  rm <key>           Delete a credential
+  lock               Lock the vault
+
+Examples:
+  opsterm vault init
+  opsterm vault set db_password
+  opsterm vault get db_password
+""",
+    "doctor": """Usage: opsterm doctor
+
+Diagnose OpsTerm installation and configuration.
+Checks:
+  Config file exists and is valid
+  API key is configured
+  Provider URL is reachable
+  Version status (latest vs installed)
+  ~/.local/bin is in PATH
+
+Examples:
+  opsterm doctor
+""",
+}
+
+
+def _show_help(subcmd: str):
+    """Print subcommand-specific help."""
+    text = SUBCOMMAND_HELP.get(subcmd)
+    if text:
+        # Headers have trailing colons stripped for cleaner look
+        print(text.strip())
+    else:
+        # Fallback: show main help
+        print(f"Unknown command: {subcmd!r}. See 'opsterm --help' for usage.")
+
+
+# ═══════════════════════════════════════════════════════════
 # MAIN CLI
 # ═══════════════════════════════════════════════════════════
 
 def main():
     # Determine subcommand first (before consuming stdin)
+    # Manual -h/--help intercept for subcommand support
+    if ("-h" in sys.argv or "--help" in sys.argv) and any(a in sys.argv[1:] for a in ("servers", "provider", "config", "workflows", "vault", "doctor")):
+        for arg in sys.argv[1:]:
+            if arg in ("servers", "provider", "config", "workflows", "vault", "doctor"):
+                _show_help(arg)
+                return
+        return
+
     parser = argparse.ArgumentParser(
         prog="opsterm",
         description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP, vault.",
@@ -2179,7 +2412,7 @@ def main():
               run <workflow>               Execute a multi-step YAML workflow
 
             Management Commands:
-              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>, ping <name>
+              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>, ping <name>, show <name>
               workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
               provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported, test <name>, models <name>
               config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
@@ -2192,6 +2425,7 @@ def main():
               explain-last                   Explain last command output with AI
               init                           Initialize config directory (~/.opsterm)
               update                         Check and install latest version
+              doctor                         Diagnose installation and configuration
               completion <shell>             Generate tab completion (bash|zsh)
 
             Pipe Mode:
@@ -2231,8 +2465,18 @@ def main():
 
     subcmd = raw_args[0] if raw_args else ""
 
+    # ── subcommand --help ──
+    if "-h" in raw_args or "--help" in raw_args:
+        _show_help(subcmd)
+        return
+
+    # ── doctor ──
+    if subcmd == "doctor":
+        cmd_doctor()
+        return
+
     # ── version check (pasif, 1x/24jam) ──
-    if subcmd not in ("update", "completion", "init"):
+    if subcmd not in ("doctor", "update", "completion", "init"):
         _check_version_startup()
 
     # ── update ──
@@ -2288,6 +2532,12 @@ def main():
                 if not isinstance(parsed, (int, float)) or parsed < 0 or parsed > 2:
                     print(f"❌ temperature must be a number between 0 and 2.")
                     return
+            elif key == "ai.system_prompt":
+                # Store as raw string, skip _parse_scalar
+                d[parts[-1]] = val
+                save_yaml(CONFIG_FILE, current)
+                print(f"✅ {key} = {val}")
+                return
             elif key == "ai.max_tokens":
                 if not isinstance(parsed, (int, float)) or parsed < 1:
                     print(f"❌ max_tokens must be a positive number.")
@@ -2312,13 +2562,31 @@ def main():
         if len(raw_args) == 1:
             print_server_table(servers)
             print(f"\n  Total: {len(servers)} server(s)")
-            print("  Usage: ai servers [list|add|edit <name>|rm <name>|ping <name>]")
+            print("  Usage: ai servers [list|add|edit <name>|rm <name>|ping <name>|show <name>]")
         elif raw_args[1] == "list":
             if hasattr(known_args, 'json') and known_args.json:
                 import json as _json
                 print(_json.dumps(servers, indent=2))
             else:
                 print_server_table(servers)
+        elif raw_args[1] == "show" and len(raw_args) > 2:
+            target = raw_args[2]
+            srv = servers.get(target)
+            if not srv:
+                exact = _fuzzy_match(target, servers)
+                if not exact:
+                    print(f"❌ Server '{target}' not found.")
+                    return
+                srv = servers[exact]
+                target = exact
+            print(f"\n  ┌─ \033[1m{target}\033[0m " + "─" * 50)
+            print(f"  │ Host:        {srv.get('host', '')}")
+            print(f"  │ User:        {srv.get('user', 'root')}")
+            print(f"  │ Port:        {srv.get('port', 22)}")
+            print(f"  │ SSH Key:     {srv.get('key', '—') or '—'}")
+            print(f"  │ Proxy:       {srv.get('proxy', '—') or '—'}")
+            print(f"  │ Description: {srv.get('desc', '—') or '—'}")
+            print(f"  └" + "─" * 60)
         elif raw_args[1] == "ping" and len(raw_args) > 2:
             target = raw_args[2]
             srv = servers.get(target)
@@ -2394,7 +2662,7 @@ def main():
             else:
                 print(f"❌ Server '{target}' not found.")
         else:
-            print("Usage: ai servers [list|add|edit <name>|rm <name>]")
+            print("Usage: opsterm servers [list|add|edit <name>|rm <name>|ping <name>|show <name>]")
 
     # ── workflows ──
     elif subcmd == "workflows":
