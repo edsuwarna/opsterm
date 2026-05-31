@@ -2179,9 +2179,9 @@ def main():
               run <workflow>               Execute a multi-step YAML workflow
 
             Management Commands:
-              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>
+              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>, ping <name>
               workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
-              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported
+              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported, test <name>, models <name>
               config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
               vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
