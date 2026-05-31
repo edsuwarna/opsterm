@@ -23,6 +23,11 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 13 | 📖 **History** | `opsterm history` | Management |
 | 14 | 🗜️ **RTK AI** | `auto` (pipe/explain-last) | Core |
 | 15 | 🚀 **Init** | `opsterm init` | Setup |
+| 16 | 💬 **Chat REPL** | `opsterm chat` | Core |
+| 17 | 🏓 **Server Ping** | `opsterm servers ping <name>` | Management |
+| 18 | 🔌 **Provider Test** | `opsterm provider test <name>` | Management |
+| 19 | 📡 **Provider Models** | `opsterm provider models <name>` | Management |
+| 20 | 🎯 **JSON Output** | `--json` flag | Utility |
 
 ---
 
@@ -467,10 +472,97 @@ First-time setup — creates default configuration files.
 opsterm init
 ```
 
-**Created files:**
-- `~/.ai-workflows/config.yaml` — AI provider template
-- `~/.ai-workflows/servers.yaml` — example server config
-- `~/.ai-workflows/workflows.yaml` — example workflow config
+---
+
+## 1️⃣6️⃣ 💬 Chat REPL
+
+Interactive chat mode with conversation history within the session.
+
+```bash
+opsterm chat
+```
+
+**Chat REPL commands:**
+| Command | Description |
+|---------|-------------|
+| `/exit` or `/quit` | Exit chat |
+| `/clear` | Clear screen |
+| Any text | Send to AI (uses default provider) |
+
+**Features:**
+- Full conversation context — AI remembers previous messages in the session
+- History saved to SQLite
+- Supports all configured providers
+- RTK compression on pipe input
+
+---
+
+## 1️⃣7️⃣ 🏓 Server Ping
+
+Check SSH connectivity and latency to configured servers.
+
+```bash
+# Ping a specific server
+opsterm servers ping vps-utama
+
+# Ping all servers
+opsterm servers ping all
+```
+
+**Output:**
+- ✅ Connection successful + latency (ms)
+- ❌ Connection failed + error message
+
+---
+
+## 1️⃣8️⃣ 🔌 Provider Test
+
+Test AI provider connectivity by sending a simple ping request.
+
+```bash
+opsterm provider test openai
+opsterm provider test deepseek
+```
+
+**What it does:**
+1. Connects to provider's API endpoint
+2. Sends a minimal "ping" message
+3. Returns response time + status
+
+**Useful for:**
+- Verifying API key is valid
+- Checking endpoint reachability
+- Debugging provider configuration
+
+---
+
+## 1️⃣9️⃣ 📡 Provider Models
+
+List available models for a configured provider.
+
+```bash
+opsterm provider models openai
+opsterm provider models deepseek
+```
+
+**Note:** For some providers (like Ollama), this fetches from the local instance. For others, it shows known/pre-configured models.
+
+---
+
+## 2️⃣0️⃣ 🎯 JSON Output
+
+All list commands support `--json` flag for structured output — perfect for scripting with `jq`.
+
+```bash
+# List providers as JSON
+opsterm provider list --json | jq '.providers[] | {name, model}'
+
+# List servers as JSON
+opsterm servers list --json | jq '.servers[] | {name, host}'
+
+# History as JSON
+opsterm history --json | jq '.history[:5]'
+```
 
 ---
 
@@ -489,7 +581,11 @@ opsterm init
 | **Explain last command** | `opsterm explain-last` |
 | **Store a password** | `opsterm vault set db_pass` |
 | **Retrieve a password** | `opsterm vault get db_pass` |
-| **Auto-complete** | `opsterm [Tab]` |
+| **Test provider connection** | `opsterm provider test openai` |
+| **List provider models** | `opsterm provider models openai` |
+| **Chat interactively** | `opsterm chat` |
+| **Check server connectivity** | `opsterm servers ping vps-utama` |
+| **Get JSON output** | `opsterm provider list --json` |
 | **View history** | `opsterm history` |
 | **Setup from scratch** | `opsterm init` |
 
