@@ -19,7 +19,6 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH through jump host |
 | 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download via server |
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
-
 | 🔗 **Pipe Mode** | `docker ps \| opsterm "any errors?"` | Explain command output with AI |
 | 🗜️ **RTK AI** | `auto` | Compress command output 60-95% before AI (saves tokens) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
@@ -314,12 +313,6 @@ This checks:
 - ✅ PATH includes `~/.local/bin`
 
 Use it when setting up OpsTerm for the first time or troubleshooting issues.
-
-Or add to your shell config:
-
-opsterm ssh [Tab]    # List server names
-opsterm run [Tab]    # List workflow names
-```
 
 ### 🛠️ Server Management
 ```bash
