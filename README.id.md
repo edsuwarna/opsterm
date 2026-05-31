@@ -30,9 +30,19 @@ SSH ke server mana pun tanpa kehilangan akses AI — karena AI jalan di **termin
 | 📋 **History** | `opsterm history` | Riwayat semua command |
 | 🔄 **Self-Update** | `opsterm update` | Cek & install versi terbaru |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Bebas pilih provider AI |
-| 🏥 **Diagnostics** | `opsterm doctor` | Cek konfigurasi & diagnosis masalah |
-| 📋 **Detail Server** | `opsterm servers show <name>` | Lihat detail koneksi server |
-| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Ubah kepribadian AI |
+|| 🏥 **Diagnostics** | `opsterm doctor` | Cek konfigurasi & diagnosis masalah |
+|| 📋 **Detail Server** | `opsterm servers show <name>` | Lihat detail koneksi server |
+|| 🔄 **Rename Server** | `opsterm servers rename <old> <new>` | Ganti nama server |
+|| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import server dari ~/.ssh/config |
+|| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Ubah kepribadian AI |
+|| ✅ **Validasi Config** | `opsterm config validate` | Validasi semua file YAML |
+|| 📚 **Cari History** | `opsterm search <query>` | Cari riwayat chat |
+|| 🔄 **Lanjutkan Chat** | `opsterm chat --continue` | Lanjutkan sesi chat sebelumnya |
+|| 📦 **Export Config** | `opsterm export [<file>]` | Export config ke tar.gz (key di-mask) |
+|| 📥 **Import Config** | `opsterm import <file>` | Import config dari tar.gz |
+|| 🗑️ **Reset Config** | `opsterm reset` | Reset config ke default |
+|| 📋 **Init Workflow** | `opsterm workflows init` | Buat contoh workflow |
+|| 🌐 **SSH Batch** | `opsterm ssh --all <command>` | Jalanin command di semua server |
 
 > 💡 Semua list command (`provider list`, `servers list`, `history`) support `--json` flag buat scripting.
 
@@ -53,8 +63,8 @@ chmod +x ~/.local/bin/opsterm
 Atau pake **versi release tertentu** (direkomendasiin biar stabil):
 
 ```bash
-# Install v0.4.0
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.4.0/bin/opsterm -o ~/.local/bin/opsterm
+# Install v0.6.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
 

@@ -151,14 +151,10 @@
     <h2>⚡ Quick Install <span style="color:var(--text3);font-weight:400;font-size:12px;">— one command, no repo</span></h2>
     <div class="code-wrap">
       <div class="term-body">
-        <code><span class="cm"># 1. Download & run (single file, zero deps)</span>
-<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm <span class="k">-o</span> ~/.local/bin/opsterm
+        <code><span class="cm"># 1. Download (single file, zero deps)</span>
+<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm <span class="k">-o</span> ~/.local/bin/opsterm
 <span class="prompt-c">$</span> chmod +x ~/.local/bin/opsterm
-<span class="prompt-c">$</span> opsterm init
-
-<span class="cm"># 2. Add your AI provider</span>
-<span class="prompt-c">$</span> <span class="k">opsterm provider add</span> default --api-key <span class="s">'sk-...'</span> --model gpt-4o
-<span class="prompt-c">$</span> opsterm --help</span>
+<span class="prompt-c">$</span> <span class="k">opsterm provider add</span> default --api-key <span class="s">'sk-...'</span></span>
       </div>
       <button class="copy-btn" onclick="copyInstall(this)">📋</button>
     </div>
@@ -299,7 +295,7 @@
 
 <script>
 function copyInstall(btn) {
-  const text = `git clone https://github.com/edsuwarna/opsterm.git ~/opsterm\ncd ~/opsterm && ./setup.sh\nexport OPSTERM_API_KEY='sk-...'\nopsterm --help`;
+  const text = `curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm\nchmod +x ~/.local/bin/opsterm\nopsterm provider add default --api-key 'sk-...'`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => copyDone(btn)).catch(() => fallbackCopy(text, btn));
   } else { fallbackCopy(text, btn); }

@@ -30,9 +30,19 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 📋 **History** | `opsterm history` | Command history |
 | 🔄 **Self-Update** | `opsterm update` | Check & install latest version |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
-| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
-| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
-| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
+|| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
+|| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
+|| 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Rename a server |
+|| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import servers from ~/.ssh/config |
+|| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
+|| ✅ **Config Validate** | `opsterm config validate` | Validate all YAML config files |
+|| 📚 **Search History** | `opsterm search <query>` | Search chat history by keyword |
+|| 🔄 **Chat Resume** | `opsterm chat --continue` | Resume last chat session |
+|| 📦 **Config Export** | `opsterm export [<file>]` | Export config to tar.gz (keys masked) |
+|| 📥 **Config Import** | `opsterm import <file>` | Import config from tar.gz |
+|| 🗑️ **Config Reset** | `opsterm reset` | Reset config to defaults |
+|| 📋 **Workflow Init** | `opsterm workflows init` | Create sample workflows |
+|| 🌐 **Batch SSH** | `opsterm ssh --all <command>` | Run command on all servers |
 
 > 💡 All list commands (`provider list`, `servers list`, `history`) support `--json` flag for scripting.
 
@@ -53,8 +63,8 @@ chmod +x ~/.local/bin/opsterm
 Or pin to a **specific release version** (recommended for stability):
 
 ```bash
-# Install v0.4.0
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.4.0/bin/opsterm -o ~/.local/bin/opsterm
+# Install v0.6.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
 
@@ -292,10 +302,17 @@ opsterm run deploy-app
 ### Tab Completion
 
 ```bash
-opsterm completion bash > ~/.opsterm/completion.sh
-source ~/.opsterm/completion.sh
+# Temporary (current session only)
+source <(opsterm completion bash)   # or: opsterm completion zsh
 
+# Permanent (auto-detect shell, adds to .bashrc/.zshrc)
+opsterm completion install
 ```
+
+After install, tab-complete server names, workflows, and subcommands:
+  `opsterm ssh [Tab]` → server names
+  `opsterm run [Tab]` → workflow names
+  `opsterm servers [Tab]` → subcommands
 
 ### Diagnostics
 

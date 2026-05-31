@@ -16,23 +16,29 @@ Core Commands:
   run <workflow>                   Execute a multi-step YAML workflow
 
 Management Commands:
-  servers <action> [<name>]        Manage server list — list, add, edit <name>, rm <name>
-  workflows <action> [<name>]      Manage workflow list — list, add, edit <name>, rm <name>
-  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>, supported
-  config <action> [<key>]          Manage config — list, get <key>, set <key> <val>
-  vault <action> [<args>]          Encrypted credential store — init, set <key>, get <key>, list, rm <key>, lock
+  servers <action> [<name>]        Manage server list — list, add, edit, rm, show, ping, rename
+  workflows <action> [<name>]      Manage workflow list — list, add, edit, rm, init
+  provider <action> [<name>]       Manage AI providers — list, add, rm, default, test, models, supported
+  config <action> [<key>]          Manage config — list, get, set, validate
+  vault <action> [<args>]          Encrypted credential store — init, set, get, list, rm, lock
 
 Utility Commands:
   history [<limit>]                Show past queries (default: 20)
-  chat                             Interactive chat REPL with history
+  search <query>                   Search chat history
+  chat [--continue, -c]            Interactive chat REPL (--continue to resume)
   last                             View the last shell command's output
   explain-last                     Explain last command output with AI
   init                             Initialize config directory (~/.opsterm)
   update                           Check and install latest version
+  doctor                           Diagnose installation and configuration
+  export [<file>]                  Export config to tar.gz (API keys masked)
+  import <file>                    Import config from tar.gz
+  reset                            Reset config to defaults
   completion <shell>               Generate tab completion (bash|zsh)
+  completion install               Auto-detect shell, install permanently
 """
 
-VERSION = "v0.5.0"
+VERSION = "v0.6.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
@@ -1103,6 +1109,33 @@ def show_history(limit: int = 20, use_json: bool = False):
         inp_short = inp[:60] + "..." if len(inp) > 60 else inp
         print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
 
+
+def cmd_search(query: str, limit: int = 20, use_json: bool = False):
+    """Search history by query text."""
+    conn = init_db()
+    like = f"%{query}%"
+    rows = conn.execute(
+        "SELECT id, timestamp, mode, input, output FROM history WHERE input LIKE ? OR output LIKE ? ORDER BY id DESC LIMIT ?",
+        (like, like, limit)
+    ).fetchall()
+    conn.close()
+    if not rows:
+        print(f"📭 No results for '{query}'.")
+        return
+    if use_json:
+        import json as _json
+        items = []
+        for rid, ts, mode, inp, out in rows:
+            items.append({"id": rid, "timestamp": ts, "mode": mode, "input": inp[:200], "output": out[:500]})
+        print(_json.dumps({"query": query, "results": items}, indent=2))
+        return
+    for rid, ts, mode, inp, _ in rows:
+        icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
+                "pipe": "🔗", "scp": "📁", "vault": "🔐", "chat": "💬"}.get(mode, "❓")
+        inp_short = inp[:80] + "..." if len(inp) > 80 else inp
+        print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
+
+
 # ═══════════════════════════════════════════════════════════
 # AI CLIENT
 # ═══════════════════════════════════════════════════════════
@@ -1693,32 +1726,34 @@ COMPLETION_BASH = """# OpsTerm Bash Completion
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor"
-    cur="${{words[cword]}}"
-    prev="${{words[cword-1]}}"
-    case "${{prev}}" in
-        opsterm) mapfile -t COMPREPLY < <(compgen -W "${{cmds}}" -- "${{cur}}"); return 0 ;;
+    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor search export import reset"
+    cur="${words[cword]}"
+    prev="${words[cword-1]}"
+    case "${prev}" in
+        opsterm) mapfile -t COMPREPLY < <(compgen -W "${cmds}" -- "${cur}"); return 0 ;;
         ssh|--via|-v)
-            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1}}')
-            mapfile -t COMPREPLY < <(compgen -W "${{servers}}" -- "${{cur}}"); return 0 ;;
+            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1}')
+            mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}"); return 0 ;;
         run)
-            local workflows; workflows=$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{{print $2}}')
-            mapfile -t COMPREPLY < <(compgen -W "${{workflows}}" -- "${{cur}}"); return 0 ;;
-        servers) mapfile -t COMPREPLY < <(compgen -W "list add edit rm ping show" -- "${{cur}}"); return 0 ;;
-        workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm" -- "${{cur}}"); return 0 ;;
-        config) mapfile -t COMPREPLY < <(compgen -W "list get set" -- "${{cur}}"); return 0 ;;
-        vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${{cur}}"); return 0 ;;
+            local workflows; workflows=$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')
+            mapfile -t COMPREPLY < <(compgen -W "${workflows}" -- "${cur}"); return 0 ;;
+        servers) mapfile -t COMPREPLY < <(compgen -W "list add edit rm ping show rename import-ssh-config" -- "${cur}"); return 0 ;;
+        workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm init" -- "${cur}"); return 0 ;;
+        config) mapfile -t COMPREPLY < <(compgen -W "list get set validate" -- "${cur}"); return 0 ;;
+        provider) mapfile -t COMPREPLY < <(compgen -W "list add rm default test models supported" -- "${cur}"); return 0 ;;
+        vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${cur}"); return 0 ;;
         scp)
-            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {{print $1":"}}')
-            mapfile -t COMPREPLY < <(compgen -W "${{servers}}" -- "${{cur}}"); return 0 ;;
-        completion) mapfile -t COMPREPLY < <(compgen -W "bash zsh" -- "${{cur}}"); return 0 ;;
+            local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')
+            mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}"); return 0 ;;
+        completion) mapfile -t COMPREPLY < <(compgen -W "bash zsh install" -- "${cur}"); return 0 ;;
     esac
-    if [[ "${{cword}}" -eq 1 ]]; then
-        mapfile -t COMPREPLY < <(compgen -W "${{cmds}}" -- "${{cur}}")
+    if [[ "${cword}" -eq 1 ]]; then
+        mapfile -t COMPREPLY < <(compgen -W "${cmds}" -- "${cur}")
     fi
 }
-complete -F _opsterm_completions ai
+complete -F _opsterm_completions opsterm
 """
+
 
 COMPLETION_ZSH = """# OpsTerm Zsh Completion
 # Add to .zshrc:  source <(opsterm completion zsh)
@@ -1739,6 +1774,10 @@ _opsterm() {
         'last:Last command output'
         'explain-last:Explain last output with AI'
         'doctor:Diagnose installation and configuration'
+        'search:Search chat history'
+        'export:Export config to tar.gz'
+        'import:Import config from tar.gz'
+        'reset:Reset config to defaults'
         'completion:Generate completion script'
     )
     _arguments -C '1: :->command' '*: :->args'
@@ -1752,22 +1791,68 @@ _opsterm() {
                 run)
                     local workflows; workflows=(${(f)"$(opsterm workflows list 2>/dev/null | grep '⚡' | awk '{print $2}')"})
                     _describe 'workflow' workflows ;;
-                servers) _values 'action' list add edit rm ;;
-                workflows) _values 'action' list add edit rm ;;
-                config) _values 'action' list get set ;;
+                servers) _values 'action' list add edit rm ping show rename import-ssh-config ;;
+                workflows) _values 'action' list add edit rm init ;;
+                config) _values 'action' list get set validate ;;
+                provider) _values 'action' list add rm default test models supported ;;
                 vault) _values 'action' init set get list rm lock ;;
                 scp)
-                    local servers; servers=(${(f)"$(ai servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')"})
+                    local servers; servers=(${(f)"$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')"})
                     _describe 'server' servers ;;
-                completion) _values 'shell' bash zsh ;;
+                completion) _values 'action' bash zsh install ;;
             esac ;;
     esac
 }
 compdef _opsterm opsterm
 """
 
+
+def cmd_completion_install():
+    """Detect shell, save completion script, and add to shell config."""
+    shell_path = os.environ.get("SHELL", "")
+    if not shell_path:
+        print("❌ Could not detect shell from $SHELL environment variable.")
+        return
+
+    shell_name = os.path.basename(shell_path)
+    if shell_name == "zsh":
+        completion_content = COMPLETION_ZSH
+        rc_file = Path.home() / ".zshrc"
+        completion_file = CONFIG_DIR / "completion.zsh"
+        source_line = f"source {completion_file}"
+    elif shell_name == "bash":
+        completion_content = COMPLETION_BASH
+        rc_file = Path.home() / ".bashrc"
+        completion_file = CONFIG_DIR / "completion.bash"
+        source_line = f"source {completion_file}"
+    else:
+        print(f"❌ Shell '{shell_name}' not supported. Use bash or zsh.")
+        return
+
+    # Save completion file
+    completion_file.write_text(completion_content)
+    _set_secure_permissions(completion_file)
+    print(f"✅ Saved completion script: {completion_file}")
+
+    # Check if already installed
+    if rc_file.exists():
+        existing = rc_file.read_text()
+        if source_line in existing:
+            print(f"✅ Already sourced in {rc_file}")
+            print(f"   Run: source {completion_file}")
+            return
+
+    # Add to .bashrc/.zshrc
+    with open(rc_file, "a") as f:
+        f.write(f"\n# OpsTerm completion\n{source_line}\n")
+    print(f"✅ Added to {rc_file}")
+    print(f"   Run: source {completion_file}")
+    print(f"   Or open a new terminal.")
+
+
 # ═══════════════════════════════════════════════════════════
-# DISPLAY HELPERS
+# DISPLAY HELPERS — print_server_table / print_workflow_table
+# ═══════════════════════════════════════════════════════════
 # ═══════════════════════════════════════════════════════════
 
 def print_server_table(servers: dict):
@@ -1949,6 +2034,11 @@ def do_init():
                 "confirm_before_exec": True,
                 "auto_exec_patterns": ["^ssh ", "^kubectl ", "^docker ", "^cd "],
             },
+            "rtk": {
+                "enabled": True,
+                "auto_detect": True,
+                "ultra_compact": False,
+            },
         })
         print(f"✅ Config created: {CONFIG_FILE}")
     if not SERVERS_FILE.exists():
@@ -1970,6 +2060,44 @@ def do_init():
                   opsterm run cek-server
                   opsterm how to check disk
 """)
+
+
+# ── Ensure config exists (silent auto-init) ─────────────────
+
+def _ensure_config():
+    """Silently create config files if they don't exist (auto-init on first run)."""
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(str(CONFIG_DIR), 0o700)
+    if not CONFIG_FILE.exists():
+        save_yaml(CONFIG_FILE, {
+            "default_provider": "default",
+            "providers": {
+                "default": {
+                    "api_key": "",
+                    "api_url": "https://api.deepseek.com/v1/chat/completions",
+                    "model": "deepseek-chat",
+                },
+            },
+            "ai": {
+                "temperature": 0.3,
+                "max_tokens": 1024,
+                "response_style": "concise",
+                "system_prompt": "",
+            },
+            "shell": {
+                "confirm_before_exec": True,
+                "auto_exec_patterns": ["^ssh ", "^kubectl ", "^docker ", "^cd "],
+            },
+            "rtk": {
+                "enabled": True,
+                "auto_detect": True,
+                "ultra_compact": False,
+            },
+        })
+    if not SERVERS_FILE.exists():
+        save_yaml(SERVERS_FILE, {"servers": EXAMPLE_SERVERS})
+    if not WORKFLOWS_FILE.exists():
+        save_yaml(WORKFLOWS_FILE, {"workflows": EXAMPLE_WORKFLOWS})
 
 
 # ── version check ──────────────────────────────────────────
@@ -2187,7 +2315,8 @@ def cmd_doctor():
 
 
 def cmd_chat(raw_args):
-    """Interactive chat REPL — type messages, get AI responses, /exit to quit."""
+    """Interactive chat REPL — type messages, get AI responses, /exit to quit.
+    Use --continue to resume the last session."""
     config = load_config()
     ai_cfg = config["ai"]
     api_key = ai_cfg.get("api_key", "")
@@ -2195,9 +2324,24 @@ def cmd_chat(raw_args):
         print("❌ No API key configured. Add a provider first: opsterm provider add")
         return
 
+    # Check for --continue flag
+    resume = "--continue" in raw_args or "-c" in raw_args
+
     messages = [
         {"role": "system", "content": "You are OpsTerm, an AI terminal assistant. Help the user with commands, technical questions, explanations, and system administration. Be concise and practical."}
     ]
+
+    if resume and CHAT_SESSION_FILE.exists():
+        try:
+            saved = json.loads(CHAT_SESSION_FILE.read_text())
+            saved_msgs = saved.get("messages", [])
+            for m in saved_msgs:
+                if m.get("role") in ("user", "assistant"):
+                    messages.append(m)
+            msg_count = len(saved_msgs)
+            print(f"💬 Resumed previous session ({msg_count} messages)")
+        except Exception:
+            pass
 
     provider_name = config.get("default_provider", "default")
     print(f"💬 Opsterm Chat — /exit to quit, /clear to reset")
@@ -2270,6 +2414,340 @@ def cmd_chat(raw_args):
                 spinner_thread.join(timeout=1)
             print(f"\n  ❌ Error: {e}\n")
 
+    # Save session on exit
+    try:
+        CHAT_SESSION_FILE.write_text(json.dumps({"messages": messages[1:]}))
+    except Exception:
+        pass
+
+
+CHAT_SESSION_FILE = CONFIG_DIR / "chat_session.json"
+
+
+# ═══════════════════════════════════════════════════════════
+# NEW FEATURES — v0.6.0
+# ═══════════════════════════════════════════════════════════
+
+def cmd_validate_config() -> bool:
+    """Validate all YAML config files. Returns True if all OK."""
+    all_ok = True
+    files = [
+        ("Config", CONFIG_FILE, False),
+        ("Servers", SERVERS_FILE, True),
+        ("Workflows", WORKFLOWS_FILE, True),
+    ]
+    for name, path, optional in files:
+        if not path.exists():
+            if optional:
+                print(f"  ⚠️  {name}: {path.name} not found (optional)")
+            else:
+                print(f"  ❌ {name}: {path.name} not found — run 'opsterm init'")
+                all_ok = False
+            continue
+        try:
+            text = path.read_text("utf-8")
+            parsed = _parse_yaml(text)
+            if not isinstance(parsed, dict):
+                print(f"  ❌ {name}: {path.name} — root must be a mapping")
+                all_ok = False
+                continue
+            # Specific validations
+            if name == "Config":
+                providers = parsed.get("providers", {})
+                for pname, p in providers.items():
+                    if not isinstance(p, dict):
+                        print(f"  ⚠️  Config: provider '{pname}' should be a mapping")
+                        continue
+                    if p.get("api_url") and "/chat/completions" not in str(p.get("api_url", "")):
+                        print(f"  ⚠️  Config: provider '{pname}' api_url seems wrong (missing /chat/completions)")
+                default = parsed.get("default_provider", "")
+                if default and default not in providers:
+                    print(f"  ⚠️  Config: default_provider '{default}' not in configured providers")
+            if name == "Servers":
+                servers = parsed.get("servers", {})
+                for sname, s in servers.items():
+                    if not isinstance(s, dict):
+                        continue
+                    if not s.get("host"):
+                        print(f"  ⚠️  Servers: '{sname}' has no host")
+                    port = s.get("port", 22)
+                    if not isinstance(port, (int, float)) or port < 1 or port > 65535:
+                        print(f"  ⚠️  Servers: '{sname}' has invalid port {port}")
+            if name == "Workflows":
+                workflows = parsed.get("workflows", {})
+                for wname, w in workflows.items():
+                    if not isinstance(w, dict) or "steps" not in w:
+                        print(f"  ⚠️  Workflows: '{wname}' has no steps")
+                        continue
+                    if not w["steps"]:
+                        print(f"  ⚠️  Workflows: '{wname}' has empty steps")
+            print(f"  ✅ {name}: {path.name} — valid")
+        except Exception as e:
+            print(f"  ❌ {name}: {path.name} — parse error: {e}")
+            all_ok = False
+    return all_ok
+
+
+def cmd_ssh_all(command: str, servers: dict):
+    """Run a command on all configured servers."""
+    if not servers:
+        print("📭 No servers configured.")
+        return
+    results = {}
+    for name, s in sorted(servers.items()):
+        host = s.get("host", "")
+        user = s.get("user", "root")
+        port = s.get("port", 22)
+        key = s.get("key", "")
+        proxy_str = ""
+        if s.get("proxy"):
+            ps = _server_lookup(s["proxy"], servers)
+            if ps:
+                proxy_str = _resolve_proxy(s["proxy"], servers)
+        print(f"  🔑 [{name}] ({user}@{host}:{port})...", end=" ", flush=True)
+        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no",
+               "-o", "BatchMode=yes"]
+        if key:
+            cmd.extend(["-i", os.path.expanduser(key)])
+        if port != 22:
+            cmd.extend(["-p", str(port)])
+        if proxy_str:
+            cmd.extend(["-J", proxy_str])
+        cmd.append(f"{user}@{host}")
+        cmd.append(command)
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            if result.returncode == 0:
+                print("✅")
+                results[name] = ("ok", result.stdout.strip()[:500])
+            else:
+                err = result.stderr.strip()[:100]
+                print(f"❌ {err}")
+                results[name] = ("fail", err)
+        except subprocess.TimeoutExpired:
+            print("⏰ Timeout")
+            results[name] = ("timeout", "")
+        except Exception as e:
+            print(f"❌ {e}")
+            results[name] = ("error", str(e)[:100])
+
+    # Summary
+    ok_count = sum(1 for v in results.values() if v[0] == "ok")
+    print(f"\n  📊 Results: {ok_count}/{len(servers)} OK")
+    for name, (status, out) in results.items():
+        icon = "✅" if status == "ok" else "❌"
+        print(f"    {icon} {name}: {out[:120]}")
+    print()
+
+
+def cmd_import_ssh_config(servers: dict) -> dict:
+    """Import servers from ~/.ssh/config. Returns updated servers dict."""
+    ssh_config_path = Path.home() / ".ssh" / "config"
+    if not ssh_config_path.exists():
+        print(f"❌ {ssh_config_path} not found.")
+        return servers
+
+    text = ssh_config_path.read_text("utf-8")
+    imported = 0
+    skipped = 0
+    current_host = ""
+    current = {}
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.lower().startswith("host "):
+            # Save previous
+            if current_host and current_host != "*":
+                key = current_host
+                if key not in servers:
+                    servers[key] = current
+                    imported += 1
+                else:
+                    skipped += 1
+            # Start new
+            parts = stripped.split()
+            current_host = parts[1] if len(parts) > 1 else ""
+            current = {"user": "root", "port": 22, "key": "~/.ssh/id_ed25519"}
+            if "*" in current_host or "?" in current_host:
+                current_host = ""
+        elif current_host and current_host != "*":
+            if stripped.lower().startswith("hostname "):
+                current["host"] = stripped.split(None, 1)[1]
+            elif stripped.lower().startswith("user "):
+                current["user"] = stripped.split(None, 1)[1]
+            elif stripped.lower().startswith("port "):
+                try:
+                    current["port"] = int(stripped.split(None, 1)[1])
+                except ValueError:
+                    pass
+            elif stripped.lower().startswith("identityfile "):
+                path = stripped.split(None, 1)[1]
+                path = path.replace("~", str(Path.home()))
+                for p in path.split():
+                    expanded = os.path.expanduser(p)
+                    if os.path.exists(expanded):
+                        current["key"] = p
+                        break
+                else:
+                    current["key"] = path.split()[0] if path.split() else "~/.ssh/id_ed25519"
+            elif stripped.lower().startswith("proxyjump "):
+                current["proxy"] = stripped.split(None, 1)[1]
+
+    # Last host save
+    if current_host and current_host != "*" and current.get("host"):
+        if current_host not in servers:
+            servers[current_host] = current
+            imported += 1
+        else:
+            skipped += 1
+
+    print(f"  ✅ Imported {imported} server(s) from ~/.ssh/config", end="")
+    if skipped:
+        print(f" ({skipped} skipped — already exist)")
+    else:
+        print()
+    return servers
+
+
+def cmd_workflow_init():
+    """Initialize sample workflows file if not exists."""
+    if WORKFLOWS_FILE.exists():
+        overwrite = input(f"⚠️  {WORKFLOWS_FILE} already exists. Overwrite? [y/N] ").strip().lower()
+        if overwrite not in ("y", "yes"):
+            print("  Cancelled.")
+            return
+    save_yaml(WORKFLOWS_FILE, {"workflows": EXAMPLE_WORKFLOWS})
+    print(f"✅ Sample workflows created: {WORKFLOWS_FILE}")
+    print(f"   Run: opsterm workflows list")
+    print(f"   Run: opsterm run cek-server")
+
+
+def cmd_export(path: str = ""):
+    """Export config to a tar.gz file."""
+    import shutil
+    import tarfile
+    if not path:
+        path = f"opsterm-export-{time.strftime('%Y%m%d-%H%M%S')}.tar.gz"
+    export_path = Path(path)
+    with tarfile.open(str(export_path), "w:gz") as tar:
+        for name, filepath in [
+            ("config.yaml", CONFIG_FILE),
+            ("servers.yaml", SERVERS_FILE),
+            ("workflows.yaml", WORKFLOWS_FILE),
+        ]:
+            if filepath.exists():
+                tar.add(str(filepath), arcname=name)
+        cfg = load_yaml(CONFIG_FILE)
+        export_cfg = {"export_version": VERSION, "exported_at": time.strftime("%Y-%m-%d %H:%M:%S")}
+        providers = cfg.get("providers", {})
+        export_providers = {}
+        for pname, p in providers.items():
+            ep = dict(p)
+            if "api_key" in ep and ep["api_key"]:
+                k = ep["api_key"]
+                ep["api_key"] = f"__MASKED__:{k[:6]}...{k[-4:]}"
+            export_providers[pname] = ep
+        export_cfg["providers"] = export_providers
+        export_cfg["default_provider"] = cfg.get("default_provider", "")
+        export_cfg["ai_settings"] = {
+            "temperature": cfg.get("ai", {}).get("temperature", 0.3),
+            "max_tokens": cfg.get("ai", {}).get("max_tokens", 1024),
+            "response_style": cfg.get("ai", {}).get("response_style", "concise"),
+        }
+        import json as _json
+        meta_bytes = _json.dumps(export_cfg, indent=2).encode()
+        from io import BytesIO
+        info = tarfile.TarInfo(name="export.json")
+        info.size = len(meta_bytes)
+        tar.addfile(info, BytesIO(meta_bytes))
+    print(f"✅ Config exported to: {export_path.resolve()}")
+    print(f"   API keys are MASKED — re-add with: opsterm provider add <name> --api-key '...'")
+
+
+def cmd_import(path: str):
+    """Import config from a tar.gz file."""
+    import tarfile
+    import json as _json
+    import_path = Path(path)
+    if not import_path.exists():
+        print(f"❌ File not found: {path}")
+        return
+    extracted = {}
+    try:
+        with tarfile.open(str(import_path), "r:gz") as tar:
+            for member in tar.getmembers():
+                if member.isfile():
+                    f = tar.extractfile(member)
+                    if f:
+                        extracted[member.name] = f.read().decode("utf-8")
+    except Exception as e:
+        print(f"❌ Failed to read export: {e}")
+        return
+
+    meta = {}
+    if "export.json" in extracted:
+        try:
+            meta = _json.loads(extracted["export.json"])
+        except Exception:
+            pass
+
+    print(f"  📦 Export version: {meta.get('export_version', '?')}")
+    print(f"  📅 Exported: {meta.get('exported_at', '?')}")
+    prov_count = len(meta.get("providers", {}))
+    print(f"  🔑 Providers: {prov_count} (keys masked — need re-entry)")
+
+    confirmed = input("  Restore config files? Existing files will be backed up. [y/N] ").strip().lower()
+    if confirmed not in ("y", "yes"):
+        print("  Cancelled.")
+        return
+
+    import shutil
+    for name, filepath in [
+        ("config.yaml", CONFIG_FILE),
+        ("servers.yaml", SERVERS_FILE),
+        ("workflows.yaml", WORKFLOWS_FILE),
+    ]:
+        if name in extracted:
+            if filepath.exists():
+                backup = filepath.with_suffix(filepath.suffix + ".bak")
+                shutil.copy2(str(filepath), str(backup))
+                print(f"  💾 Backed up {filepath.name} → {backup.name}")
+            filepath.write_text(extracted[name])
+            print(f"  ✅ Restored {filepath.name}")
+
+    print("⚠️  API keys need to be re-entered for each provider.")
+    for pname in meta.get("providers", {}):
+        print(f"     opsterm provider add {pname} --api-key '...'")
+
+
+def cmd_reset():
+    """Reset config to defaults — backup and recreate."""
+    import shutil
+    print("⚠️  This will reset all OpsTerm configuration.")
+    resp = input("  This CANNOT be undone. Are you sure? [y/N] ").strip().lower()
+    if resp not in ("y", "yes"):
+        print("  Cancelled.")
+        return
+    resp2 = input("  Backup existing config first? [Y/n] ").strip().lower()
+    backup_first = resp2 not in ("n", "no")
+
+    if backup_first and CONFIG_DIR.exists():
+        backup_dir = CONFIG_DIR.with_name(CONFIG_DIR.name + f"-bak-{time.strftime('%Y%m%d-%H%M%S')}")
+        shutil.copytree(str(CONFIG_DIR), str(backup_dir))
+        print(f"  💾 Backed up → {backup_dir}")
+
+    if CONFIG_DIR.exists():
+        import shutil as _sh
+        for item in CONFIG_DIR.iterdir():
+            if item.is_file():
+                item.unlink()
+        print(f"  🧹 Cleared {CONFIG_DIR}")
+    do_init()
+    print("✅ Config reset complete!")
+    print("   Run: opsterm provider add default --api-key 'sk-...'")
+
 
 # ── version check ──────────────────────────────────────────
 VERSION_CHECK_INTERVAL = 86400  # 24 jam
@@ -2286,12 +2764,16 @@ Actions:
   add                Add a new server (interactive)
   show <name>        Show server details
   edit <name>        Edit server config (interactive)
+  rename <old> <new> Rename a server
   rm <name>          Remove a server
   ping <name>        Test SSH connectivity & latency
+  import-ssh-config  Import servers from ~/.ssh/config
 
 Examples:
   opsterm servers list
   opsterm servers show vps-utama
+  opsterm servers rename vps-utama vps-prod
+  opsterm servers import-ssh-config
   opsterm servers add
   opsterm servers ping vps-utama
 """,
@@ -2316,6 +2798,7 @@ Examples:
 
 Actions:
   list               Show all config
+  validate           Validate all YAML config files
   get <key>          Get a config value (e.g., ai.temperature)
   set <key> <val>    Set a config value
 
@@ -2327,6 +2810,7 @@ Keys:
 
 Examples:
   opsterm config list
+  opsterm config validate
   opsterm config set ai.temperature 0.5
   opsterm config set ai.response_style detailed
   opsterm config set ai.system_prompt "You are a Linux expert"
@@ -2338,10 +2822,12 @@ Actions:
   add                Add a new workflow (interactive)
   edit <name>        Edit a workflow
   rm <name>          Remove a workflow
+  init               Create sample workflows
 
 Examples:
   opsterm workflows list
   opsterm workflows add
+  opsterm workflows init
   opsterm workflows edit deploy-app
 """,
     "vault": """Usage: opsterm vault <action> [<args>]
@@ -2372,6 +2858,143 @@ Checks:
 Examples:
   opsterm doctor
 """,
+    "search": """Usage: opsterm search <query>
+
+Search chat history by keyword.
+Searches through all past queries and AI responses.
+
+Examples:
+  opsterm search docker
+  opsterm search deploy workflow
+""",
+    "export": """Usage: opsterm export [<file.tar.gz>]
+
+Export configuration to a tar.gz archive.
+API keys are masked — safe for sharing/backup.
+Default filename: opsterm-export-<timestamp>.tar.gz
+
+Examples:
+  opsterm export
+  opsterm export my-backup.tar.gz
+""",
+    "import": """Usage: opsterm import <file.tar.gz>
+
+Import configuration from a tar.gz archive.
+Existing files are backed up before overwriting.
+API keys must be re-entered after import.
+
+Examples:
+  opsterm import opsterm-export-20250101.tar.gz
+""",
+    "reset": """Usage: opsterm reset
+
+Reset all OpsTerm configuration to defaults.
+Backs up existing config before resetting.
+
+Examples:
+  opsterm reset
+""",
+    "ssh": """Usage: opsterm ssh <server> [--via <proxy>]
+
+SSH to a saved server (fuzzy name matching).
+Use --via <proxy> to jump through a bastion host.
+Use --all <command> to run a command on ALL servers.
+
+Examples:
+  opsterm ssh vps-utama
+  opsterm ssh internal --via bastion
+  opsterm ssh --all "uptime"
+""",
+    "scp": """Usage: opsterm scp <src> <dst> [--via <proxy>]
+
+Transfer files between local and remote servers.
+Use server:path syntax for remote paths.
+
+Examples:
+  opsterm scp file.txt vps-utama:/home/ubuntu/
+  opsterm scp vps-utama:log.txt ./log.txt
+  opsterm scp server-a:file.txt server-b:backup/ --via bastion
+""",
+    "run": """Usage: opsterm run <workflow>
+
+Execute a multi-step YAML workflow.
+Workflows combine SSH commands, SCP transfers, and local commands.
+
+Examples:
+  opsterm run cek-server
+  opsterm run deploy-app
+  opsterm workflows list
+""",
+    "history": """Usage: opsterm history [<limit>]
+
+Show past queries and commands (default: 20).
+Use --json flag for JSON output.
+
+Examples:
+  opsterm history
+  opsterm history 50
+  opsterm history --json
+""",
+    "chat": """Usage: opsterm chat [--continue | -c]
+
+Interactive chat REPL with AI.
+Use --continue or -c to resume the last session.
+
+Commands inside chat:
+  /exit, /quit, /q  Exit chat
+  /clear            Reset conversation
+
+Examples:
+  opsterm chat
+  opsterm chat --continue
+""",
+    "last": """Usage: opsterm last
+
+View the last shell command's output.
+Auto-saved by zsh plugin or pipe mode.
+
+Examples:
+  opsterm last
+""",
+    "explain-last": """Usage: opsterm explain-last
+
+Explain the last command's output using AI.
+Uses saved last command and output.
+
+Examples:
+  opsterm explain-last
+""",
+    "init": """Usage: opsterm init
+
+Initialize OpsTerm configuration directory (~/.opsterm).
+Creates config, servers, and workflows files with defaults.
+(Runs automatically on first use — manual init usually not needed.)
+
+Examples:
+  opsterm init
+""",
+    "update": """Usage: opsterm update
+
+Check for and install the latest OpsTerm version.
+Downloads from GitHub, verifies syntax, and self-updates.
+
+Examples:
+  opsterm update
+""",
+    "completion": """Usage: opsterm completion <bash|zsh|install>
+
+Generate shell completion scripts.
+
+Actions:
+  bash              Print bash completion script
+  zsh               Print zsh completion script
+  install           Auto-detect shell and install permanently
+
+Examples:
+  opsterm completion bash
+  opsterm completion zsh
+  opsterm completion install
+""",
 }
 
 
@@ -2393,9 +3016,17 @@ def _show_help(subcmd: str):
 def main():
     # Determine subcommand first (before consuming stdin)
     # Manual -h/--help intercept for subcommand support
-    if ("-h" in sys.argv or "--help" in sys.argv) and any(a in sys.argv[1:] for a in ("servers", "provider", "config", "workflows", "vault", "doctor")):
+    if ("-h" in sys.argv or "--help" in sys.argv) and any(a in sys.argv[1:] for a in (
+        "ssh", "scp", "run", "servers", "workflows", "config", "provider",
+        "vault", "history", "chat", "last", "explain-last", "explain_last",
+        "init", "update", "completion", "doctor", "search", "export", "import", "reset",
+    )):
         for arg in sys.argv[1:]:
-            if arg in ("servers", "provider", "config", "workflows", "vault", "doctor"):
+            if arg in (
+                "ssh", "scp", "run", "servers", "workflows", "config", "provider",
+                "vault", "history", "chat", "last", "explain-last", "explain_last",
+                "init", "update", "completion", "doctor", "search", "export", "import", "reset",
+            ):
                 _show_help(arg)
                 return
         return
@@ -2412,20 +3043,24 @@ def main():
               run <workflow>               Execute a multi-step YAML workflow
 
             Management Commands:
-              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>, ping <name>, show <name>
-              workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
-              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported, test <name>, models <name>
-              config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
+              servers <action> [<name>]      Manage server list — list, add, edit, rm, show, ping, rename, import-ssh-config
+              workflows <action> [<name>]    Manage workflow list — list, add, edit, rm, init
+              provider <action> [<name>]     Manage AI providers — list, add, rm, default, test, models, supported
+              config <action> [<key>]        Manage config — list, get, set, validate
               vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
             Utility Commands:
               history [<limit>]              Show past queries (default: 20)
-              chat                           Interactive chat REPL with history
+              search <query>                 Search chat history
+              chat [--continue, -c]          Interactive chat REPL (--continue to resume)
               last                           View the last shell command's output
               explain-last                   Explain last command output with AI
               init                           Initialize config directory (~/.opsterm)
               update                         Check and install latest version
               doctor                         Diagnose installation and configuration
+              export [<file>]                Export config to tar.gz (API keys masked)
+              import <file>                  Import config from tar.gz
+              reset                          Reset config to defaults
               completion <shell>             Generate tab completion (bash|zsh)
 
             Pipe Mode:
@@ -2470,6 +3105,10 @@ def main():
         _show_help(subcmd)
         return
 
+    # ── Auto-init on first use ──
+    if subcmd not in ("init",):
+        _ensure_config()
+
     # ── doctor ──
     if subcmd == "doctor":
         cmd_doctor()
@@ -2479,6 +3118,15 @@ def main():
     if subcmd not in ("doctor", "update", "completion", "init"):
         _check_version_startup()
 
+    # ── search ──
+    if subcmd == "search":
+        query = " ".join(raw_args[1:]) if len(raw_args) > 1 else ""
+        if not query:
+            print("Usage: opsterm search <query>")
+            return
+        cmd_search(query, use_json=known_args.json)
+        return
+
     # ── update ──
     if subcmd == "update":
         cmd_update()
@@ -2486,13 +3134,16 @@ def main():
 
     # ── completion ──
     if subcmd == "completion":
+        if len(raw_args) > 1 and raw_args[1] == "install":
+            cmd_completion_install()
+            return
         shell = raw_args[1] if len(raw_args) > 1 else "bash"
         if shell == "bash":
             print(COMPLETION_BASH)
         elif shell == "zsh":
             print(COMPLETION_ZSH)
         else:
-            print("❌ Shell not supported. Use: bash or zsh")
+            print("❌ Shell not supported. Use: bash, zsh, or install")
         return
 
     # ── init ──
@@ -2549,8 +3200,14 @@ def main():
             d[parts[-1]] = parsed
             save_yaml(CONFIG_FILE, current)
             print(f"✅ {key} = {val}")
+        elif raw_args[1] == "validate":
+            print("🔍 Validating configuration...")
+            if cmd_validate_config():
+                print("\n✅ All configuration files are valid!")
+            else:
+                print("\n⚠️  Some issues found — see above.")
         else:
-            print("Usage: ai config [list|get <key>|set <key> <value>]")
+            print("Usage: opsterm config [list|get <key>|set <key> <value>]")
 
     # ── provider ──
     elif subcmd == "provider":
@@ -2562,7 +3219,7 @@ def main():
         if len(raw_args) == 1:
             print_server_table(servers)
             print(f"\n  Total: {len(servers)} server(s)")
-            print("  Usage: ai servers [list|add|edit <name>|rm <name>|ping <name>|show <name>]")
+            print("  Usage: opsterm servers [list|add|edit <name>|rm <name>|ping <name>|show <name>]")
         elif raw_args[1] == "list":
             if hasattr(known_args, 'json') and known_args.json:
                 import json as _json
@@ -2661,6 +3318,23 @@ def main():
                     print(f"✅ Server '{target}' removed.")
             else:
                 print(f"❌ Server '{target}' not found.")
+        elif raw_args[1] == "rename" and len(raw_args) > 3:
+            old_name = raw_args[2]
+            new_name = raw_args[3]
+            if old_name not in servers:
+                print(f"❌ Server '{old_name}' not found.")
+                return
+            if new_name in servers:
+                print(f"❌ Server '{new_name}' already exists.")
+                return
+            servers[new_name] = servers.pop(old_name)
+            save_servers(servers)
+            print(f"✅ Server '{old_name}' → '{new_name}'")
+        elif raw_args[1] == "import-ssh-config":
+            old_count = len(servers)
+            servers = cmd_import_ssh_config(servers)
+            if len(servers) > old_count:
+                save_servers(servers)
         else:
             print("Usage: opsterm servers [list|add|edit <name>|rm <name>|ping <name>|show <name>]")
 
@@ -2670,7 +3344,7 @@ def main():
         if len(raw_args) == 1:
             print_workflow_table(workflows)
             print(f"\n  Total: {len(workflows)} workflow(s)")
-            print("  Usage: ai workflows [list|add|edit|rm]")
+            print("  Usage: opsterm workflows [list|add|edit|rm]")
         elif raw_args[1] == "list":
             print_workflow_table(workflows)
         elif raw_args[1] == "add":
@@ -2694,11 +3368,21 @@ def main():
                     print(f"✅ Workflow '{target}' removed.")
             else:
                 print(f"❌ Workflow '{target}' not found.")
+        elif raw_args[1] == "init":
+            cmd_workflow_init()
         else:
-            print("Usage: ai workflows [list|add|edit <name>|rm <name>]")
+            print("Usage: opsterm workflows [list|add|edit <name>|rm <name>]")
 
-    # ── ssh (with --via / multi-hop) ──
+    # ── ssh (with --via / multi-hop, --all for batch) ──
     elif subcmd == "ssh" and len(raw_args) > 1:
+        if "--all" in raw_args:
+            command = " ".join(a for a in raw_args[2:] if a != "--all")
+            if not command:
+                print("Usage: opsterm ssh --all <command>")
+                return
+            servers = get_servers()
+            cmd_ssh_all(command, servers)
+            return
         server_name = raw_args[1]
         proxy_name = ""
         if "--via" in raw_args:
@@ -2756,7 +3440,7 @@ def main():
         elif action == "set":
             key = raw_args[2] if len(raw_args) > 2 else ""
             if not key:
-                print("Usage: ai vault set <key> [value]")
+                print("Usage: opsterm vault set <key> [value]")
                 print("  (value optional, akan di-prompt jika kosong)")
                 return
             value = " ".join(raw_args[3:]) if len(raw_args) > 3 else ""
@@ -2765,7 +3449,7 @@ def main():
         elif action == "get":
             key = raw_args[2] if len(raw_args) > 2 else ""
             if not key:
-                print("Usage: ai vault get <key>")
+                print("Usage: opsterm vault get <key>")
                 return
             value = vault.get(key)
             if value:
@@ -2775,7 +3459,7 @@ def main():
         elif action == "rm":
             key = raw_args[2] if len(raw_args) > 2 else ""
             if not key:
-                print("Usage: ai vault rm <key>")
+                print("Usage: opsterm vault rm <key>")
                 return
             vault.rm(key)
         elif action == "lock":
@@ -2839,6 +3523,23 @@ def main():
     elif subcmd == "history":
         limit = int(raw_args[1]) if len(raw_args) > 1 and raw_args[1].isdigit() else 20
         show_history(limit, use_json=known_args.json)
+
+    # ── export ──
+    elif subcmd == "export":
+        path = raw_args[1] if len(raw_args) > 1 else ""
+        cmd_export(path)
+
+    # ── import ──
+    elif subcmd == "import":
+        path = raw_args[1] if len(raw_args) > 1 else ""
+        if not path:
+            print("Usage: opsterm import <file.tar.gz>")
+            return
+        cmd_import(path)
+
+    # ── reset ──
+    elif subcmd == "reset":
+        cmd_reset()
 
     # ── AI mode (default) ──
     else:
