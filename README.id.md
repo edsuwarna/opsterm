@@ -105,7 +105,7 @@ Auto-check tiap 24 jam dan ngasih notif:
 
 ```
 ╭─ ⚡ OpsTerm Update ──────────────────────────────────────
-│  Version 1.0.0 → 1.1.0 available!
+│  Version v0.1.0 → v0.1.1 available!
 │  Run: opsterm update
 ╰──────────────────────────────────────────────────────────
 ```
@@ -118,7 +118,7 @@ opsterm --version
 
 > **Note:** Install version spesifik pake tag:
 > ```bash
-> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v1.0.0/bin/opsterm -o ~/.local/bin/opsterm
+> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.0/bin/opsterm -o ~/.local/bin/opsterm
 >```
 
 ---

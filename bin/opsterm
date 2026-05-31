@@ -24,7 +24,7 @@ Usage:
   <cmd> | opsterm <prompt>      Pipe mode
 """
 
-VERSION = "1.0.0"
+VERSION = "v0.1.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 

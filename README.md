@@ -96,7 +96,7 @@ OpsTerm auto-checks for updates once per day and notifies you when running comma
 
 ```
 ╭─ ⚡ OpsTerm Update ──────────────────────────────────────
-│  Version 1.0.0 → 1.1.0 available!
+│  Version v0.1.0 → v0.1.1 available!
 │  Run: opsterm update
 ╰──────────────────────────────────────────────────────────
 ```
@@ -109,7 +109,7 @@ opsterm --version
 
 > **Note:** To install a specific version, use a version tag in the download URL:
 > ```bash
-> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v1.0.0/bin/opsterm -o ~/.local/bin/opsterm
+> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.0/bin/opsterm -o ~/.local/bin/opsterm
 >```
 
 ---
