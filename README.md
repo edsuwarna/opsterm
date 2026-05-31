@@ -19,7 +19,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH through jump host |
 | 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download via server |
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
-| 🔐 **Vault** | `opsterm vault set db_pass` | Encrypted credentials (AES-128) |
+
 | 🔗 **Pipe Mode** | `docker ps \| opsterm "any errors?"` | Explain command output with AI |
 | 🗜️ **RTK AI** | `auto` | Compress command output 60-95% before AI (saves tokens) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
@@ -30,19 +30,20 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 📋 **History** | `opsterm history` | Command history |
 | 🔄 **Self-Update** | `opsterm update` | Check & install latest version |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
-|| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
-|| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
-|| 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Rename a server |
-|| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import servers from ~/.ssh/config |
-|| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
-|| ✅ **Config Validate** | `opsterm config validate` | Validate all YAML config files |
-|| 📚 **Search History** | `opsterm search <query>` | Search chat history by keyword |
-|| 🔄 **Chat Resume** | `opsterm chat --continue` | Resume last chat session |
-|| 📦 **Config Export** | `opsterm export [<file>]` | Export config to tar.gz (keys masked) |
-|| 📥 **Config Import** | `opsterm import <file>` | Import config from tar.gz |
-|| 🗑️ **Config Reset** | `opsterm reset` | Reset config to defaults |
-|| 📋 **Workflow Init** | `opsterm workflows init` | Create sample workflows |
-|| 🌐 **Batch SSH** | `opsterm ssh --all <command>` | Run command on all servers |
+| 🖥️ **Web Dashboard** | `opsterm web [--port <port>] [--open]` | Browser UI to manage servers/workflows/config |
+| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
+| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
+| 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Rename a server |
+| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import servers from ~/.ssh/config |
+| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
+| ✅ **Config Validate** | `opsterm config validate` | Validate all YAML config files |
+| 📚 **Search History** | `opsterm search <query>` | Search chat history by keyword |
+| 🔄 **Chat Resume** | `opsterm chat --continue` | Resume last chat session |
+| 📦 **Config Export** | `opsterm export [<file>]` | Export config to tar.gz (keys masked) |
+| 📥 **Config Import** | `opsterm import <file>` | Import config from tar.gz |
+| 🗑️ **Config Reset** | `opsterm reset` | Reset config to defaults |
+| 📋 **Workflow Init** | `opsterm workflows init` | Create sample workflows |
+| 🌐 **Batch SSH** | `opsterm ssh --all <command>` | Run command on all servers |
 
 > 💡 All list commands (`provider list`, `servers list`, `history`) support `--json` flag for scripting.
 
@@ -55,16 +56,19 @@ SSH into any server without losing AI access — because the AI runs on your **l
 **Linux/macOS** — single curl command, no repo needed:
 
 ```bash
-# Install latest (main branch)
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+# Install latest release
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
+OPSTERM_VER=$(cat /tmp/opsterm_latest)
+curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+rm -f /tmp/opsterm_latest
 ```
 
 Or pin to a **specific release version** (recommended for stability):
 
 ```bash
-# Install v0.6.0
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm
+# Install v0.7.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.7.0/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
 
@@ -180,26 +184,6 @@ workflows:
 opsterm run deploy-app
 opsterm run check-all
 ```
-
-### 🔐 Vault — encrypted credentials
-
-Store sensitive data (API keys, passwords) locally with AES-128:
-
-```bash
-opsterm vault init                          # Create vault (set master password)
-opsterm vault set db_password               # Store credential
-opsterm vault get db_password               # Retrieve (prompts for master password)
-opsterm vault list                          # List stored keys
-opsterm vault rm db_password                # Delete
-opsterm vault lock                          # Re-encrypt and clear from memory
-
-# Use vault values in config
-opsterm vault set openai_key
-opsterm config set ai.api_key vault://openai_key
-```
-
----
-
 ## 🧠 AI Features
 
 ### Custom AI Providers
@@ -366,7 +350,7 @@ Config is stored in `~/.opsterm/`:
 ├── config.yaml       # AI provider & shell settings
 ├── servers.yaml      # Server list (+ proxy jump)
 ├── workflows.yaml    # Workflow list (SSH/SCP/local)
-├── vault.json        # Encrypted credentials (AES-128)
+
 ├── history.db        # History (SQLite, auto)
 ├── last_output.txt   # Last command output
 └── last_command.txt  # Last command
@@ -378,7 +362,7 @@ Environment variables:
 ```bash
 export OPSTERM_DIR="/path/to/custom/config"   # Override config dir
 export OPSTERM_API_KEY="sk-..."                # AI API key
-export OPSTERM_VAULT_PASSWORD="..."            # Vault master password
+
 ```
 
 ---
@@ -428,12 +412,12 @@ workflows:
 - [x] Smart SSH (fuzzy name match, ProxyJump)
 - [x] SCP file transfer (local ↔ server ↔ server)
 - [x] Multi-step workflows (SSH/SCP/local)
-- [x] Encrypted vault (AES-128)
+
 - [x] Command history (SQLite)
 - [x] Pipe mode (send command output to AI)
 - [x] SSH via jump host (--via)
 - [x] Tab completion (bash/zsh)
-- [x] Vault integration with config
+
 - [x] Shell operators (`&&`, `|`, `>`) in local commands
 - [x] Multi-hop SCP (file transfer through bastion)
 - [x] RTK token compression
@@ -442,8 +426,8 @@ workflows:
 - [x] Chat REPL (interactive mode)
 - [x] JSON output (`--json` flag)
 - [x] Config validation
-- [ ] Web dashboard (see workflows and servers in browser)
-- [ ] SSH config import (from `~/.ssh/config`)
+- [x] Import SSH config (~/.ssh/config)
+- [x] Web dashboard (browser UI for servers/workflows/config)
 - [ ] Multi-language AI responses
 - [ ] Plugin system
 

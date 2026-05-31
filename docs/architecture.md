@@ -23,7 +23,7 @@ This document explains in detail how OpsTerm works — from when the user types 
 │                   CLI ROUTER (argparse)                     │
 │                                                             │
 │  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────┐ ┌───────┐  │
-│  │ opsterm <ask> │ │ opsterm ssh   │ │ai scp  │ │ai run│ │ai vault│  │
+│  │ opsterm <ask> │ │ opsterm ssh   │ │ai scp  │ │ai run│ │        │  │
 │  │ (default)│ │          │ │        │ │      │ │        │  │
 │  └────┬─────┘ └────┬─────┘ └───┬────┘ └──┬───┘ └───┬───┘  │
 └───────┼────────────┼───────────┼─────────┼──────────┼──────┘
@@ -43,11 +43,6 @@ This document explains in detail how OpsTerm works — from when the user types 
 │  │  Step: SSH → SCP → Local → Confirm → Wait           │  │
 │  └──────────────────────┬───────────────────────────────┘  │
 │                         │                                   │
-│  ┌──────────────────────▼───────────────────────────────┐  │
-│  │              Vault (Encrypted)                      │  │
-│  │  AES-128-CBC + PBKDF2 (via cryptography)            │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
 │  ┌──────────────┐  ┌────────────┐                          │
 │  │ Config Loader│  │ History    │                          │
 │  │ (YAML/JSON)  │  │ (SQLite)   │                          │
@@ -61,7 +56,7 @@ This document explains in detail how OpsTerm works — from when the user types 
 │  ┌─────────────────┐  ┌──────────────┐  ┌───────────────┐ │
 │  │ AI Provider API  │  │ SSH Servers  │  │ Local File    │ │
 │  │ (DeepSeek,OpenAI,│  │ (VPS, cloud, │  │ System        │ │
-│  │  Ollama, etc)    │  │  instances)  │  │ (config, vault)│ │
+│  │  Ollama, etc)    │  │  instances)  │  │ (config)       │ │
 │  └─────────────────┘  └──────────────┘  └───────────────┘ │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -228,37 +223,6 @@ User input: "docker ps | opsterm any errors?"
     └──────────────────────────────────┘
 ```
 
-### Flow 5: Vault (`opsterm vault set db_password`)
-
-```
-User input: "opsterm vault set db_password"
-             │
-             ▼
-    ┌──────────────────────────────┐
-    │ 1. Unlock vault              │
-    │    - Check OPSTERM_VAULT_PASSWORD│ ← env var
-    │    - Or prompt for password   │ ← getpass()
-    │    - Derive key via PBKDF2    │ ← 600k iterations, SHA256
-    └──────────────┬───────────────┘
-                   │
-                   ▼
-    ┌──────────────────────────────┐
-    │ 2. Encrypt value             │
-    │    - cryptography.Fernet     │ ← AES-128-CBC
-    │    - or HMAC+XOR fallback    │
-    └──────────────┬───────────────┘
-                   │
-                   ▼
-    ┌──────────────────────────────┐
-    │ 3. Save to vault.json        │
-    │    {"keys": {                │
-    │      "db_password": {        │
-    │        "data": "<encrypted>" │
-    │      }                       │
-    │    }, "salt": "<base64>"}   │
-    └──────────────────────────────┘
-```
-
 ---
 
 ## 📁 State Management
@@ -270,7 +234,7 @@ OpsTerm **has no daemon or background process**. All state is stored in files:
 | `config.yaml` | YAML | AI provider, model, api_url, shell settings |
 | `servers.yaml` | YAML | Server list: host, user, port, key, proxy |
 | `workflows.yaml` | YAML | Workflow list: steps (ssh/scp/local) |
-| `vault.json` | JSON (encrypted) | Encrypted credentials (AES-128) |
+
 | `history.db` | SQLite | Command history (mode, input, output) |
 | `last_output.txt` | Text | Last command output (for explain-last) |
 | `last_command.txt` | Text | Last command |
@@ -280,7 +244,6 @@ OpsTerm **has no daemon or background process**. All state is stored in files:
 ```
 Config is read every time a command runs → no in-memory caching
 History is written after command finishes → append-only
-Vault is unlocked with password → stored in memory UNTIL opsterm vault lock
 Last output is written by the zsh plugin → read by opsterm last/explain-last
 ```
 
@@ -292,13 +255,6 @@ Last output is written by the zsh plugin → read by opsterm last/explain-last
 - Can be set via **env var** (`OPSTERM_API_KEY`) — recommended
 - Or stored in **config.yaml** — but be careful if shared
 - Gitignored (`config.yaml` is in `.gitignore`)
-
-### Vault
-- **AES-128-CBC** via `cryptography.fernet.Fernet`
-- **PBKDF2** with 600,000 iterations SHA-256 for key derivation
-- Master password is **never stored** — only in memory during session
-- Can be unlocked via env var `OPSTERM_VAULT_PASSWORD`
-- Fallback encryption (HMAC + XOR) if cryptography is not installed
 
 ### SSH
 - Uses **SSH key** from local filesystem (not password)
@@ -323,7 +279,7 @@ if result.returncode != 0:
 ### Fallback strategy:
 - **AI call fails** → print error message, don't crash
 - **Config file corrupted** → return empty dict, don't crash
-- **Wrong vault password** → retry, don't crash
+
 - **SSH server unreachable** → SSH itself handles the error
 
 ---
@@ -336,7 +292,7 @@ if result.returncode != 0:
 | SSH Connect | < 1 sec | Direct execvp, no overhead |
 | SCP Transfer | Varies | Depends on file size & bandwidth |
 | Workflow (3 steps) | 5-15 sec | Depends on step complexity |
-| Vault encrypt | < 100ms | PBKDF2 600k iterations ~50ms |
+
 | Config load | < 10ms | Minimal YAML parsing |
 | History write | < 5ms | SQLite append |
 

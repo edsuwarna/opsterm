@@ -1,59 +1,140 @@
-# 🚀 Usage Guide
+# 📖 Usage Guide
 
-How to use OpsTerm day-to-day, from basic AI queries to advanced workflows.
+## AI Assistant
 
-## AI Chat
-
-The core feature — ask questions, get answers in your terminal:
+Ask anything:
 
 ```bash
-# Simple question
-opsterm "how to find large files"
-
-# With context from pipe
-docker logs my-app | opsterm "what do these errors mean?"
-
-# System info query
-opsterm "check disk space on this machine"
+opsterm "How to check disk space"
+opsterm "explain this: docker ps | grep exited"
 ```
 
-## SSH Mode
-
-Connect to servers without losing AI access:
+Pipe mode — pipe command output to AI:
 
 ```bash
-# Direct SSH
+docker logs -n50 | opsterm "any errors?"
+df -h | opsterm "is disk usage okay?"
+```
+
+
+
+Launch a browser-based UI to manage everything:
+
+```bash
+# Start dashboard on default port (8765)
+opsterm web
+
+# Custom port
+opsterm web --port 8080
+
+# Open browser automatically
+opsterm web --open
+```
+
+The dashboard provides 4 tabs:
+- **🖥️ Servers** — Add, edit, delete, ping servers
+- **⚡ Workflows** — Add, edit, run, delete workflows
+- **🤖 Providers** — Add, edit, test, delete AI providers
+- **⚙️ Config** — View all configuration (read-only)
+
+## Config Management
+
+```bash
+# View all config
+opsterm config list
+
+# Get a specific key
+opsterm config get ai
+
+# Set a value
+opsterm config set ai.temperature 0.3
+
+# Validate config files
+opsterm config validate
+```
+
+## Export/Import Config
+
+Backup or transfer your configuration (API keys are masked in export):
+
+```bash
+# Export to default file
+opsterm export
+
+# Export to specific path
+opsterm export ~/backups/opsterm-config.tar.gz
+
+# Import from file
+opsterm import ~/backups/opsterm-config.tar.gz
+
+# Reset config to defaults
+opsterm reset
+```
+
+> **Note:** Exported API keys are masked. Update them after import with `opsterm provider add <name> --api-key '...'`
+
+## Workflows
+
+Run predefined automation:
+
+```bash
+# List workflows
+opsterm workflows list
+
+# Run a workflow
+opsterm run health-check
+
+# Init sample workflows
+opsterm workflows init
+```
+
+## Servers
+
+```bash
+# List servers
+opsterm servers list
+
+# Add a server (interactive)
+opsterm servers add
+
+# Add via flags
+opsterm servers add my-server --host 1.2.3.4 --user root
+
+# Edit a server
+opsterm servers edit my-server
+
+# Ping a server
+opsterm servers ping my-server
+
+# Show details
+opsterm servers show my-server
+
+# Rename
+opsterm servers rename my-server my-vps
+
+# Delete
+opsterm servers rm my-server
+
+# Import from SSH config
+opsterm servers import-ssh-config
+```
+
+> All `list` commands support `--json` for scripting.
+
+## SSH
+
+```bash
+# SSH with fuzzy name matching
 opsterm ssh my-server
 
-# With proxy/bastion host
-opsterm ssh internal-server --via bastion
+# Multi-hop via proxy
+opsterm ssh internal --via bastion
 
-# Multi-hop
-opsterm ssh app-3 --via bastion --via jump-box
+# Run command on all servers
+opsterm ssh --all uptime
 ```
 
-Once connected, you can still use `opsterm "query"` — the AI runs on your local machine, not the server.
-
-## Pipe Mode
-
-Explain command output or ask questions about it:
-
-> 🗜️ **RTK AI** — output auto-compressed 60-95% before sending to AI. Saves tokens, faster responses.
-
-```bash
-# Analyze logs
-journalctl -u nginx | opsterm "find error patterns"
-
-# Check configs
-cat /etc/nginx/nginx.conf | opsterm "any security issues?"
-
-# Debug builds
-make 2>&1 | opsterm "what went wrong?"
-```
-
-## SCP File Transfer
-
-Transfer files between servers:
+## SCP
 
 ```bash
 # Upload
@@ -64,75 +145,67 @@ opsterm scp my-server:/var/log/app.log ./logs/
 
 # Between servers
 opsterm scp server-a:/data/dump.sql server-b:/backup/
+
+# Through proxy
+opsterm scp ./file.txt internal-server:/tmp/ --via bastion
 ```
 
-## Vault (Credential Management)
-
-Store and retrieve secrets:
+## Provider Management
 
 ```bash
-# Add a credential
-opsterm vault add db-pass mysecret123
+# Add a provider (interactive — pick type, enter key, choose model)
+opsterm provider add
 
-# List entries
-opsterm vault list
+# One-liner
+opsterm provider add openai --api-key sk-... --model gpt-4o
 
-# Get a credential
-opsterm vault get db-pass
+# List providers
+opsterm provider list
 
-# Remove
-opsterm vault remove db-pass
+# Test a provider
+opsterm provider test openai
+
+# Set default
+opsterm provider default openai
+
+# See supported provider types
+opsterm provider supported
+
+# Delete
+opsterm provider rm openai
 ```
 
-## Workflows
-
-Run predefined automation:
+## Tab Completion
 
 ```bash
-# List workflows
-opsterm workflows
+# Bash
+source <(opsterm completion bash)
 
-# Run a workflow
-opsterm run health-check
-
-# Run with params
-opsterm run deploy --env staging
+# Zsh
+source <(opsterm completion zsh)
 ```
 
-Workflows are defined in `~/.ai-workflows/workflows.yaml`.
-
-## Server Manager
-
-Manage SSH connections:
+## Maintenance
 
 ```bash
-# List servers
-opsterm servers
+# Check for updates
+opsterm update
 
-# Add a server
-opsterm servers add prod-1 --host 192.168.1.10 --user root
+# Diagnose installation
+opsterm doctor
 
-# Remove
-opsterm servers remove prod-1
+# View history
+opsterm history
+
+# Search history
+opsterm search "docker"
+
+# Resume last chat session
+opsterm chat --continue
+
+# View last command output
+opsterm last
+
+# Explain last command output
+opsterm explain-last
 ```
-
-## Shell Integration
-
-If you've enabled the Zsh plugin:
-
-```bash
-# Explain last command output (auto-compressed with RTK if available)
-opsterm-explain-last
-
-# Re-run last command with AI enhancement
-opsterm-last
-
-# Tab completion for servers
-opsterm ssh [TAB]
-```
-
-## Tips & Tricks
-
-- **Combine with `watch`:** `watch -n 5 "opsterm 'check load'"` for monitoring
-- **Alias frequently used queries:** `alias health='opsterm "run health check"'`
-- **Batch queries:** `cat servers.txt | while read srv; do opsterm ssh $srv "check disk"; done`

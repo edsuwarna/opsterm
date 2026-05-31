@@ -3,7 +3,7 @@
 OpsTerm — AI Terminal Assistant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Zero-dependency CLI tool: custom AI provider + saved servers, workflows,
-multi-hop SSH, SCP, vault, and shell integration.
+multi-hop SSH, SCP, and shell integration.
 
 Usage:
   opsterm <prompt>                 Ask AI anything (default mode)
@@ -20,7 +20,6 @@ Management Commands:
   workflows <action> [<name>]      Manage workflow list — list, add, edit, rm, init
   provider <action> [<name>]       Manage AI providers — list, add, rm, default, test, models, supported
   config <action> [<key>]          Manage config — list, get, set, validate
-  vault <action> [<args>]          Encrypted credential store — init, set, get, list, rm, lock
 
 Utility Commands:
   history [<limit>]                Show past queries (default: 20)
@@ -38,7 +37,7 @@ Utility Commands:
   completion install               Auto-detect shell, install permanently
 """
 
-VERSION = "v0.6.0"
+VERSION = "v0.7.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
@@ -62,14 +61,10 @@ import urllib.error
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# ── Optional cryptography for vault ────────────────────────
-try:
-    from cryptography.fernet import Fernet
-    from cryptography.hazmat.primitives import hashes as crypt_hashes
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    HAS_CRYPTOGRAPHY = True
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
+def _parse_ver(v):
+    """Parse version string like 'v0.7.0' → tuple (0, 7, 0)."""
+    parts = v.lstrip("vV").split(".")
+    return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
 
 # ── Paths ──────────────────────────────────────────────────
 HOME = Path.home()
@@ -78,7 +73,7 @@ CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".opsterm"))
 LEGACY_DIR = HOME / ".ai-workflows"
 if "OPSTERM_DIR" not in os.environ and LEGACY_DIR.exists() and not CONFIG_DIR.exists():
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    for f in ["config.yaml", "servers.yaml", "workflows.yaml", "history.db", "vault.json", "last_output.txt", "last_command.txt"]:
+    for f in ["config.yaml", "servers.yaml", "workflows.yaml", "history.db", "last_output.txt", "last_command.txt"]:
         src = LEGACY_DIR / f
         if src.exists():
             src.rename(CONFIG_DIR / f)
@@ -92,7 +87,9 @@ CONFIG_FILE = CONFIG_DIR / "config.yaml"
 SERVERS_FILE = CONFIG_DIR / "servers.yaml"
 WORKFLOWS_FILE = CONFIG_DIR / "workflows.yaml"
 HISTORY_DB = CONFIG_DIR / "history.db"
-VAULT_FILE = CONFIG_DIR / "vault.json"
+
+WEB_DIR = CONFIG_DIR / "web"
+WEB_INDEX = WEB_DIR / "index.html"
 LAST_OUTPUT_FILE = CONFIG_DIR / "last_output.txt"
 LAST_CMD_FILE = CONFIG_DIR / "last_command.txt"
 
@@ -484,7 +481,7 @@ def _set_secure_permissions(path: Path):
 
 def _set_secure_permissions_on_all():
     """Apply secure permissions to all opsterm config files."""
-    for f in [CONFIG_FILE, SERVERS_FILE, WORKFLOWS_FILE, VAULT_FILE,
+    for f in [CONFIG_FILE, SERVERS_FILE, WORKFLOWS_FILE,
               HISTORY_DB, LAST_OUTPUT_FILE, LAST_CMD_FILE]:
         if f.exists():
             _set_secure_permissions(f)
@@ -777,6 +774,9 @@ def do_provider(raw_args, use_json=False):
     # ── add ──
     if action == "add":
         name = raw_args[2] if len(raw_args) > 2 else ""
+        # Skip if name looks like a flag (--xxx)
+        if name.startswith("--"):
+            name = ""
         if not name:
             try:
                 name = input("Provider name (e.g. openai, deepseek): ").strip()
@@ -1043,6 +1043,7 @@ def do_provider(raw_args, use_json=False):
         print("  opsterm provider rm <name>                    Remove a provider")
         print("  opsterm provider default <name>               Set default provider")
 
+
 def _fuzzy_match(name: str, items: dict) -> Optional[str]:
     """Find item by exact name or fuzzy match."""
     if name in items:
@@ -1105,7 +1106,7 @@ def show_history(limit: int = 20, use_json: bool = False):
         return
     for rid, ts, mode, inp in reversed(rows):
         icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
-                "pipe": "🔗", "scp": "📁", "vault": "🔐"}.get(mode, "❓")
+                "pipe": "🔗", "scp": "📁"}.get(mode, "❓")
         inp_short = inp[:60] + "..." if len(inp) > 60 else inp
         print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
 
@@ -1131,7 +1132,7 @@ def cmd_search(query: str, limit: int = 20, use_json: bool = False):
         return
     for rid, ts, mode, inp, _ in rows:
         icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
-                "pipe": "🔗", "scp": "📁", "vault": "🔐", "chat": "💬"}.get(mode, "❓")
+                "pipe": "🔗", "scp": "📁", "chat": "💬"}.get(mode, "❓")
         inp_short = inp[:80] + "..." if len(inp) > 80 else inp
         print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
 
@@ -1328,222 +1329,6 @@ def scp_transfer(source: str, dest: str, servers: dict, proxy_name: str = ""):
         print(f"❌ Transfer failed (exit code {result.returncode})")
 
 # ═══════════════════════════════════════════════════════════
-# VAULT — Encrypted Credentials
-# ═══════════════════════════════════════════════════════════
-
-class Vault:
-    """Encrypted credential store using Fernet (AES-128-CBC) + PBKDF2."""
-
-    def __init__(self):
-        self._fernet = None
-        self._unlocked = False
-
-    def _load_data(self) -> dict:
-        if VAULT_FILE.exists():
-            try:
-                return json.loads(VAULT_FILE.read_text())
-            except (json.JSONDecodeError, ValueError):
-                return {}
-        return {}
-
-    def _save_data(self, data: dict):
-        VAULT_FILE.write_text(json.dumps(data, indent=2))
-        _set_secure_permissions(VAULT_FILE)
-
-    def _derive_key(self, password: str, salt: bytes) -> bytes:
-        """Derive a Fernet-compatible key using PBKDF2."""
-        if HAS_CRYPTOGRAPHY:
-            kdf = PBKDF2HMAC(
-                algorithm=crypt_hashes.SHA256(),
-                length=32,
-                salt=salt,
-                iterations=600_000,
-            )
-            return base64.urlsafe_b64encode(kdf.derive(password.encode()))
-        return base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
-            "sha256", password.encode(), salt, 600_000
-        )[:32])
-
-    def _make_verifier(self, password: str, salt: bytes) -> bytes:
-        """Create a verification HMAC to validate password on unlock."""
-        key = self._derive_key(password, salt)
-        return hmac.new(key, b"opsterm_vault_verify", "sha256").digest()
-
-    def _get_password(self, confirm: bool = False) -> Optional[str]:
-        """Read master password from env or prompt."""
-        env_pw = os.environ.get("OPSTERM_VAULT_PASSWORD", "")
-        if env_pw:
-            return env_pw
-        import getpass
-        try:
-            pw = getpass.getpass("🔐 Master password: ")
-            if confirm:
-                pw2 = getpass.getpass("🔐 Konfirmasi: ")
-                if pw != pw2:
-                    print("❌ Password mismatch!")
-                    return None
-        except (EOFError, getpass.GetPassWarning):
-            # Non-interactive: fallback ke env var prompt
-            print("❌ Non-interactive terminal detected.")
-            print("   Set OPSTERM_VAULT_PASSWORD env var, or use:")
-            print("   export OPSTERM_VAULT_PASSWORD='your-password'")
-            return None
-        return pw
-
-    def init(self):
-        """Initialize vault with a master password."""
-        if VAULT_FILE.exists() and VAULT_FILE.stat().st_size > 10:
-            resp = input("⚠️ Vault already exists. Reset? [y/N] ").strip().lower()
-            if resp not in ("y", "yes"):
-                return
-        pw = self._get_password(confirm=True)
-        if not pw:
-            return
-        salt = os.urandom(16)
-        verifier = base64.b64encode(self._make_verifier(pw, salt)).decode()
-        data = {
-            "salt": base64.b64encode(salt).decode(),
-            "verifier": verifier,
-            "keys": {},
-        }
-        self._save_data(data)
-        # Verify by deriving key
-        key = self._derive_key(pw, salt)
-        print(f"✅ Vault initialized di {VAULT_FILE}")
-        print("   Usage: opsterm vault set <key>")
-        if not HAS_CRYPTOGRAPHY:
-            print("   ⚠️  cryptography not installed — using fallback encryption")
-            print("      Install: pip install cryptography")
-
-    def _unlock(self) -> bool:
-        """Unlock vault: derive key from password, return True on success."""
-        if self._unlocked:
-            return True
-        pw = self._get_password()
-        if not pw:
-            return False
-        data = self._load_data()
-        if not data or "salt" not in data:
-            print("❌ Vault not initialized. Run: opsterm vault init")
-            return False
-        salt = base64.b64decode(data["salt"])
-        key = self._derive_key(pw, salt)
-        # Test key by trying to decrypt something or verify verifier
-        if HAS_CRYPTOGRAPHY:
-            try:
-                self._fernet = Fernet(key)
-                # Verify by decrypting any existing value
-                stored_verifier = data.get("verifier", "")
-                if stored_verifier:
-                    expected = base64.b64decode(stored_verifier)
-                    computed = self._make_verifier(pw, salt)
-                    if not hmac.compare_digest(computed, expected):
-                        print("❌ Wrong password!")
-                        return False
-                elif data.get("keys"):
-                    sample = next(iter(data["keys"].values()))
-                    self._fernet.decrypt(sample["data"].encode())
-                self._unlocked = True
-                return True
-            except Exception:
-                print("❌ Wrong password!")
-                return False
-        else:
-            # Fallback: verify password using stored verifier
-            stored_verifier_b64 = data.get("verifier", "")
-            if not stored_verifier_b64:
-                print("❌ Vault corrupted (no verifier found). Re-init with: opsterm vault init")
-                return False
-            stored_verifier = base64.b64decode(stored_verifier_b64)
-            computed_verifier = self._make_verifier(pw, salt)
-            if not hmac.compare_digest(computed_verifier, stored_verifier):
-                print("❌ Wrong password!")
-                return False
-            self._fernet = key  # Store key bytes for later use
-            self._unlocked = True
-            return True
-
-    def _encrypt(self, value: str) -> str:
-        if HAS_CRYPTOGRAPHY and self._fernet:
-            return self._fernet.encrypt(value.encode()).decode()
-        # Fallback: XOR with HMAC integrity
-        key = self._fernet
-        iv = os.urandom(16)
-        encrypted = iv + bytes([b ^ key[i % len(key)] for i, b in enumerate(value.encode())])
-        mac = hmac.new(key, encrypted, "sha256").digest()
-        return base64.b64encode(mac + encrypted).decode()
-
-    def _decrypt(self, token: str) -> str:
-        if HAS_CRYPTOGRAPHY and self._fernet:
-            return self._fernet.decrypt(token.encode()).decode()
-        key = self._fernet
-        raw = base64.b64decode(token)
-        mac, encrypted = raw[:32], raw[32:]
-        expected_mac = hmac.new(key, encrypted, "sha256").digest()
-        if not hmac.compare_digest(mac, expected_mac):
-            raise ValueError("Data integrity check failed!")
-        iv = encrypted[:16]
-        return bytes([b ^ key[i % len(key)] for i, b in enumerate(encrypted[16:])]).decode()
-
-    def set(self, key: str, value: str = ""):
-        if not self._unlock():
-            return
-        if not value:
-            import getpass
-            try:
-                value = getpass.getpass(f"🔑 Nilai untuk '{key}': ")
-            except (EOFError, getpass.GetPassWarning):
-                # Non-interactive: baca dari stdin
-                value = sys.stdin.readline().strip()
-        data = self._load_data()
-        encrypted = self._encrypt(value)
-        if "keys" not in data:
-            data["keys"] = {}
-        data["keys"][key] = {"data": encrypted}
-        self._save_data(data)
-        print(f"✅ Vault: '{key}' saved!")
-
-    def get(self, key: str) -> Optional[str]:
-        if not self._unlock():
-            return None
-        data = self._load_data()
-        entry = data.get("keys", {}).get(key)
-        if not entry:
-            print(f"❌ Key '{key}' not found in vault.")
-            return None
-        try:
-            return self._decrypt(entry["data"])
-        except Exception as e:
-            print(f"❌ Decrypt failed: {e}")
-            return None
-
-    def list_keys(self):
-        data = self._load_data()
-        keys = list(data.get("keys", {}).keys())
-        if not keys:
-            print("🔐 Vault kosong.")
-            return
-        print("🔐 Vault keys:")
-        for k in sorted(keys):
-            print(f"  • {k}")
-
-    def rm(self, key: str):
-        if not self._unlock():
-            return
-        data = self._load_data()
-        if key in data.get("keys", {}):
-            del data["keys"][key]
-            self._save_data(data)
-            print(f"✅ Key '{key}' removed from vault.")
-        else:
-            print(f"❌ Key '{key}' not found.")
-
-    def lock(self):
-        self._fernet = None
-        self._unlocked = False
-        print("🔒 Vault locked.")
-
-# ═══════════════════════════════════════════════════════════
 # WORKFLOW EXECUTOR
 # ═══════════════════════════════════════════════════════════
 
@@ -1726,7 +1511,7 @@ COMPLETION_BASH = """# OpsTerm Bash Completion
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor search export import reset"
+    local cmds="ssh run servers workflows config provider history init scp last explain-last completion doctor search export import reset"
     cur="${words[cword]}"
     prev="${words[cword-1]}"
     case "${prev}" in
@@ -1741,7 +1526,7 @@ _opsterm_completions() {
         workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm init" -- "${cur}"); return 0 ;;
         config) mapfile -t COMPREPLY < <(compgen -W "list get set validate" -- "${cur}"); return 0 ;;
         provider) mapfile -t COMPREPLY < <(compgen -W "list add rm default test models supported" -- "${cur}"); return 0 ;;
-        vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${cur}"); return 0 ;;
+
         scp)
             local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}"); return 0 ;;
@@ -1770,10 +1555,11 @@ _opsterm() {
         'history:Riwayat command'
         'init:Setup konfigurasi awal'
         'scp:Upload/download file'
-        'vault:Encrypted credentials'
+
         'last:Last command output'
         'explain-last:Explain last output with AI'
         'doctor:Diagnose installation and configuration'
+        'web:Buka web dashboard'
         'search:Search chat history'
         'export:Export config to tar.gz'
         'import:Import config from tar.gz'
@@ -1795,7 +1581,7 @@ _opsterm() {
                 workflows) _values 'action' list add edit rm init ;;
                 config) _values 'action' list get set validate ;;
                 provider) _values 'action' list add rm default test models supported ;;
-                vault) _values 'action' init set get list rm lock ;;
+
                 scp)
                     local servers; servers=(${(f)"$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')"})
                     _describe 'server' servers ;;
@@ -2054,7 +1840,7 @@ def do_init():
 📁 Config dir: {CONFIG_DIR}
 🔑 Set API key:  opsterm provider add default --api-key 'sk-...'
    Or:           export OPSTERM_API_KEY='sk-...'
-🔐 Vault:         opsterm vault init
+
 📁 SCP:           opsterm scp vps-utama:file.txt .
 ⚡ Coba:          opsterm ssh vps-utama
                   opsterm run cek-server
@@ -2130,11 +1916,14 @@ def _check_version_startup():
         return  # silent fail — don't bother user if offline
 
     if latest and latest != VERSION:
-        print(f"")
-        print(f"╭─ ⚡ OpsTerm Update —" + "─" * 35)
-        print(f"│  Version {VERSION} → {latest} available!")
-        print(f"│  Run: opsterm update")
-        print(f"╰" + "─" * 50)
+        latest_ver = _parse_ver(latest)
+        current_ver = _parse_ver(VERSION)
+        if latest_ver > current_ver:
+            print(f"")
+            print(f"╭─ ⚡ OpsTerm Update —" + "─" * 35)
+            print(f"│  Version {VERSION} → {latest} available!")
+            print(f"│  Run: opsterm update")
+            print(f"╰" + "─" * 50)
 
 
 # ── update ─────────────────────────────────────────────────
@@ -2152,7 +1941,13 @@ def cmd_update():
         print(f"✅ OpsTerm {VERSION} — already up to date!")
         return
 
-    print(f"⚡ Update available: v{VERSION} → v{latest}")
+    latest_ver = _parse_ver(latest)
+    current_ver = _parse_ver(VERSION)
+    if latest_ver <= current_ver:
+        print(f"✅ OpsTerm {VERSION} — already up to date!")
+        return
+
+    print(f"⚡ Update available: {VERSION} → {latest}")
     try:
         resp = input("  Install update? [Y/n] ").strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -2284,11 +2079,18 @@ def cmd_doctor():
         req = urllib.request.Request(VERSION_CHECK_URL)
         with urllib.request.urlopen(req, timeout=5) as resp:
             latest = resp.read().decode().strip()
-        if latest and latest != VERSION:
-            print(f"     ⚠️  Update available: {latest}")
-            print(f"     Run: opsterm update")
+        if latest:
+            current_ver = _parse_ver(VERSION)
+            latest_ver = _parse_ver(latest)
+            if latest_ver > current_ver:
+                print(f"     ⚠️  Update available: {latest}")
+                print(f"     Run: opsterm update")
+            elif latest_ver < current_ver:
+                print(f"     ✅ Ahead of latest release ({latest})")
+            else:
+                print(f"     ✅ Latest")
         else:
-            print(f"     ✅ Latest")
+            print(f"     ⚠️  Could not check latest version")
     except Exception:
         print(f"     ⚠️  Could not check latest version")
 
@@ -2756,6 +2558,404 @@ VERSION_CHECK_INTERVAL = 86400  # 24 jam
 # SUBCOMMAND HELP
 # ═══════════════════════════════════════════════════════════
 
+
+# ═══════════════════════════════════════════════════════════
+# WEB DASHBOARD
+# ═══════════════════════════════════════════════════════════
+
+WEB_DASHBOARD_HTML = """<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>OpsTerm Dashboard</title>\n<style>\n  :root {\n    --bg: #0d1117; --card: #161b22; --border: #30363d;\n    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;\n    --green: #3fb950; --red: #f85149; --yellow: #d29922;\n    --radius: 8px; --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', monospace;\n  }\n  * { box-sizing: border-box; margin: 0; padding: 0; }\n  body {\n    background: var(--bg); color: var(--text);\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n    line-height: 1.5; padding: 20px; min-height: 100vh;\n  }\n  .header {\n    display: flex; align-items: center; justify-content: space-between;\n    max-width: 960px; margin: 0 auto 24px; flex-wrap: wrap; gap: 12px;\n  }\n  .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 8px; }\n  .header h1 span { color: var(--muted); font-size: 0.85rem; font-weight: 400; }\n  .badge {\n    font-size: 0.75rem; padding: 2px 10px; border-radius: 12px;\n    background: var(--card); border: 1px solid var(--border);\n  }\n  .tabs {\n    display: flex; gap: 4px; max-width: 960px; margin: 0 auto 20px;\n    background: var(--card); border-radius: var(--radius); padding: 4px;\n    border: 1px solid var(--border); overflow-x: auto;\n  }\n  .tab {\n    padding: 8px 20px; border: none; background: transparent; color: var(--muted);\n    cursor: pointer; border-radius: 6px; font-size: 0.875rem; font-weight: 500;\n    transition: all .15s; white-space: nowrap;\n  }\n  .tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }\n  .tab.active { background: var(--accent); color: #fff; }\n  .content { max-width: 960px; margin: 0 auto; }\n  .panel { display: none; }\n  .panel.active { display: block; }\n  .card {\n    background: var(--card); border: 1px solid var(--border);\n    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;\n  }\n  .card h2 { font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }\n  .card-header {\n    display: flex; justify-content: space-between; align-items: center;\n    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;\n  }\n  .card-header h2 { margin-bottom: 0; }\n  table {\n    width: 100%; border-collapse: collapse; font-size: 0.85rem;\n  }\n  th {\n    text-align: left; padding: 8px 12px; color: var(--muted);\n    font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;\n  }\n  td {\n    padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle;\n  }\n  tr:last-child td { border-bottom: none; }\n  tr:hover td { background: rgba(255,255,255,0.02); }\n  .mono { font-family: var(--mono); font-size: 0.8rem; }\n  .empty { color: var(--muted); text-align: center; padding: 40px 0; }\n  .empty p { margin-bottom: 8px; }\n  .btn {\n    display: inline-flex; align-items: center; gap: 4px;\n    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);\n    background: transparent; color: var(--text); cursor: pointer;\n    font-size: 0.8rem; transition: all .15s; text-decoration: none;\n  }\n  .btn:hover { background: rgba(255,255,255,0.06); }\n  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }\n  .btn-primary:hover { opacity: 0.9; }\n  .btn-danger { color: var(--red); border-color: var(--red); }\n  .btn-danger:hover { background: var(--red); color: #fff; }\n  .btn-success { color: var(--green); border-color: var(--green); }\n  .btn-success:hover { background: var(--green); color: #fff; }\n  .btn-sm { padding: 3px 10px; font-size: 0.75rem; }\n  .actions { display: flex; gap: 4; }\n  .modal-overlay {\n    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);\n    z-index: 100; align-items: center; justify-content: center;\n  }\n  .modal-overlay.show { display: flex; }\n  .modal {\n    background: var(--card); border: 1px solid var(--border);\n    border-radius: var(--radius); padding: 24px; width: 90%; max-width: 560px;\n    max-height: 80vh; overflow-y: auto;\n  }\n  .modal h3 { margin-bottom: 16px; }\n  .form-group { margin-bottom: 12px; }\n  .form-group label { display: block; color: var(--muted); font-size: 0.8rem; margin-bottom: 4px; }\n  .form-group input, .form-group textarea {\n    width: 100%; padding: 8px 12px; background: var(--bg);\n    border: 1px solid var(--border); border-radius: 6px; color: var(--text);\n    font-size: 0.85rem; font-family: var(--mono);\n  }\n  .form-group textarea { min-height: 80px; resize: vertical; font-size: 0.8rem; }\n  .form-group input:focus, .form-group textarea:focus {\n    outline: none; border-color: var(--accent);\n  }\n  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }\n  .toast {\n    position: fixed; bottom: 20px; right: 20px; z-index: 200;\n    padding: 12px 20px; border-radius: var(--radius); font-size: 0.85rem;\n    background: var(--card); border: 1px solid var(--border);\n    box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;\n    max-width: 400px; word-break: break-word;\n  }\n  .toast.show { display: block; }\n  .toast.success { border-color: var(--green); }\n  .toast.error { border-color: var(--red); }\n  .config-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 0.85rem; }\n  .config-grid .key { color: var(--muted); font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; }\n  .config-grid .val { font-family: var(--mono); font-size: 0.8rem; word-break: break-all; }\n  .count-badge {\n    display: inline-flex; align-items: center; justify-content: center;\n    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;\n    font-size: 0.7rem; font-weight: 600; background: rgba(88,166,255,0.15);\n    color: var(--accent);\n  }\n  .default-badge {\n    display: inline-block; padding: 1px 8px; border-radius: 8px;\n    font-size: 0.65rem; font-weight: 600; background: rgba(63,185,80,0.15);\n    color: var(--green); margin-left: 4px;\n  }\n  .wf-steps { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }\n  .wf-steps code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; }\n  .output-box {\n    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;\n    padding: 12px; font-family: var(--mono); font-size: 0.78rem; white-space: pre-wrap;\n    max-height: 300px; overflow-y: auto; margin-top: 8px; display: none;\n  }\n  .output-box.show { display: block; }\n  .spinner {\n    display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border);\n    border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite;\n    vertical-align: middle;\n  }\n  @keyframes spin { to { transform: rotate(360deg); } }\n  .hint { color: var(--muted); font-size: 0.75rem; margin-top: 4px; }\n  @media (max-width: 640px) {\n    body { padding: 12px; }\n    .header h1 { font-size: 1.2rem; }\n    .tabs { overflow-x: auto; }\n    table { font-size: 0.78rem; }\n    td, th { padding: 6px 8px; }\n    .config-grid { grid-template-columns: 1fr; gap: 2px 0; }\n  }\n</style>\n</head>\n<body>\n<div class=\"header\">\n  <h1>🚀 OpsTerm <span id=\"version\"></span></h1>\n  <div><span class=\"badge\" id=\"status-badge\">⏳ loading...</span></div>\n</div>\n\n<div class=\"tabs\" role=\"tablist\">\n  <button class=\"tab active\" data-tab=\"servers\">🖥️ Servers <span class=\"count-badge\" id=\"server-count\">0</span></button>\n  <button class=\"tab\" data-tab=\"workflows\">⚡ Workflows <span class=\"count-badge\" id=\"wf-count\">0</span></button>\n  <button class=\"tab\" data-tab=\"providers\">🤖 Providers <span class=\"count-badge\" id=\"prov-count\">0</span></button>\n  <button class=\"tab\" data-tab=\"config\">⚙️ Config</button>\n</div>\n\n<div class=\"content\">\n  <!-- Servers Panel -->\n  <div class=\"panel active\" id=\"panel-servers\">\n    <div class=\"card-header\">\n      <h2>🖥️ Servers</h2>\n      <button class=\"btn btn-primary btn-sm\" onclick=\"showAddServer()\">+ Add Server</button>\n    </div>\n    <div class=\"card\" id=\"server-list\"></div>\n  </div>\n\n  <!-- Workflows Panel -->\n  <div class=\"panel\" id=\"panel-workflows\">\n    <div class=\"card-header\">\n      <h2>⚡ Workflows</h2>\n      <button class=\"btn btn-primary btn-sm\" onclick=\"showAddWorkflow()\">+ Add Workflow</button>\n    </div>\n    <div class=\"card\" id=\"workflow-list\"></div>\n  </div>\n\n  <!-- Providers Panel -->\n  <div class=\"panel\" id=\"panel-providers\">\n    <div class=\"card-header\">\n      <h2>🤖 AI Providers</h2>\n      <button class=\"btn btn-primary btn-sm\" onclick=\"showAddProvider()\">+ Add Provider</button>\n    </div>\n    <div class=\"card\" id=\"provider-list\"></div>\n  </div>\n\n  <!-- Config Panel -->\n  <div class=\"panel\" id=\"panel-config\">\n    <div class=\"card-header\">\n      <h2>⚙️ Configuration</h2>\n    </div>\n    <div class=\"card\" id=\"config-display\"></div>\n  </div>\n</div>\n\n<!-- Modal -->\n<div class=\"modal-overlay\" id=\"modal-overlay\">\n  <div class=\"modal\">\n    <h3 id=\"modal-title\"></h3>\n    <div id=\"modal-body\"></div>\n    <div class=\"modal-actions\">\n      <button class=\"btn\" onclick=\"closeModal()\">Cancel</button>\n      <button class=\"btn btn-primary\" id=\"modal-confirm\">Save</button>\n    </div>\n  </div>\n</div>\n\n<!-- Toast -->\n<div class=\"toast\" id=\"toast\"></div>\n\n<script>\nconst API = '/api';\n\n// ── Tab switching ──\ndocument.querySelectorAll('.tab').forEach(tab => {\n  tab.addEventListener('click', () => {\n    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));\n    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));\n    tab.classList.add('active');\n    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');\n  });\n});\n\n// ── Toast ──\nlet toastTimer;\nfunction showToast(msg, type = '') {\n  const t = document.getElementById('toast');\n  t.textContent = msg; t.className = 'toast show ' + type;\n  clearTimeout(toastTimer);\n  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);\n}\n\n// ── Modal ──\nlet modalCallback = null;\nfunction showModal(title, bodyHtml, onConfirm) {\n  document.getElementById('modal-title').textContent = title;\n  document.getElementById('modal-body').innerHTML = bodyHtml;\n  document.getElementById('modal-overlay').classList.add('show');\n  modalCallback = onConfirm;\n}\nfunction closeModal() {\n  document.getElementById('modal-overlay').classList.remove('show');\n  modalCallback = null;\n}\ndocument.getElementById('modal-confirm').addEventListener('click', () => {\n  if (modalCallback) modalCallback();\n  closeModal();\n});\ndocument.getElementById('modal-overlay').addEventListener('click', (e) => {\n  if (e.target === e.currentTarget) closeModal();\n});\n\n// ── API helpers ──\nasync function api(method, path, body) {\n  const opts = { method, headers: {} };\n  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }\n  const r = await fetch(API + path, opts);\n  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }\n  return r.json();\n}\n\n// ── Load Data ──\nasync function loadAll() {\n  try {\n    const [status, servers, workflows, providers, config] = await Promise.all([\n      api('GET', '/status'), api('GET', '/servers'),\n      api('GET', '/workflows'), api('GET', '/providers'), api('GET', '/config')\n    ]);\n    document.getElementById('version').textContent = status.version || '';\n    document.getElementById('status-badge').textContent =\n      `🟢 ${status.servers_count || 0} servers · ${status.workflows_count || 0} workflows · ${status.providers_count || 0} providers`;\n    renderServers(servers.servers || {});\n    renderWorkflows(workflows.workflows || {});\n    renderProviders(providers.providers || {}, providers.default_provider || '');\n    renderConfig(config.config || {});\n  } catch(e) {\n    document.getElementById('status-badge').textContent = '🔴 connection error';\n    showToast('Failed to connect: ' + e.message, 'error');\n  }\n}\n\n// ═════════════════════════════════════════════════\n// SERVERS\n// ═════════════════════════════════════════════════\nfunction renderServers(servers) {\n  const names = Object.keys(servers);\n  document.getElementById('server-count').textContent = names.length;\n  const el = document.getElementById('server-list');\n  if (!names.length) {\n    el.innerHTML = '<div class=\"empty\"><p>No servers configured</p><button class=\"btn btn-primary\" onclick=\"showAddServer()\">+ Add Server</button></div>';\n    return;\n  }\n  el.innerHTML = `<table>\n    <thead><tr><th>Name</th><th>Host</th><th>User</th><th>Port</th><th>Proxy</th><th></th></tr></thead>\n    <tbody>${names.map(n => {\n      const s = servers[n] || {};\n      return `<tr>\n        <td><strong>${esc(n)}</strong>${s.desc ? '<br><span class=\"hint\">'+esc(s.desc)+'</span>' : ''}</td>\n        <td class=\"mono\">${esc(s.host||'-')}</td>\n        <td>${esc(s.user||'root')}</td>\n        <td>${s.port||22}</td>\n        <td>${s.proxy ? esc(s.proxy) : '<span style=\"color:var(--muted)\">—</span>'}</td>\n        <td><div class=\"actions\">\n          <button class=\"btn btn-sm\" onclick=\"editServer('${escAttr(n)}')\">Edit</button>\n          <button class=\"btn btn-sm btn-danger\" onclick=\"deleteServer('${escAttr(n)}')\">Del</button>\n        </div></td>\n      </tr>`;\n    }).join('')}</tbody>\n  </table>`;\n}\n\nfunction showAddServer() { showServerForm('Add Server', {}); }\nfunction editServer(name) {\n  api('GET', '/servers').then(d => {\n    const s = (d.servers||{})[name];\n    if (s) showServerForm('Edit Server: ' + name, s, name);\n  });\n}\n\nfunction showServerForm(title, data, editName) {\n  showModal(title, `\n    <div class=\"form-group\"><label>Name</label><input id=\"f-name\" value=\"${esc(editName||'')}\" ${editName?'readonly style=\"opacity:0.6\"':''}></div>\n    <div class=\"form-group\"><label>Host</label><input id=\"f-host\" value=\"${esc(data.host||'')}\"></div>\n    <div class=\"form-group\"><label>User</label><input id=\"f-user\" value=\"${esc(data.user||'root')}\"></div>\n    <div class=\"form-group\"><label>Port</label><input id=\"f-port\" value=\"${data.port||22}\"></div>\n    <div class=\"form-group\"><label>SSH Key (optional)</label><input id=\"f-key\" value=\"${esc(data.key||'')}\" placeholder=\"~/.ssh/id_ed25519\"></div>\n    <div class=\"form-group\"><label>Proxy/Jump Host (optional)</label><input id=\"f-proxy\" value=\"${esc(data.proxy||'')}\"></div>\n    <div class=\"form-group\"><label>Description (optional)</label><input id=\"f-desc\" value=\"${esc(data.desc||'')}\"></div>\n  `, async () => {\n    const name = document.getElementById('f-name').value.trim();\n    const host = document.getElementById('f-host').value.trim();\n    if (!name || !host) { showToast('Name and host required', 'error'); return; }\n    const body = {\n      host, user: document.getElementById('f-user').value.trim() || 'root',\n      port: parseInt(document.getElementById('f-port').value) || 22,\n      key: document.getElementById('f-key').value.trim(),\n      proxy: document.getElementById('f-proxy').value.trim(),\n      desc: document.getElementById('f-desc').value.trim(),\n    };\n    if (editName) {\n      await api('PUT', '/servers/' + encodeURIComponent(editName), body);\n      showToast('✅ Server updated', 'success');\n    } else {\n      await api('POST', '/servers', { name, ...body });\n      showToast('✅ Server added', 'success');\n    }\n    loadAll();\n  });\n}\n\nasync function deleteServer(name) {\n  showModal('Delete Server', `<p>Delete server <strong>${esc(name)}</strong>? This cannot be undone.</p>`, async () => {\n    await api('DELETE', '/servers/' + encodeURIComponent(name));\n    showToast('🗑️ Server deleted', 'success');\n    loadAll();\n  });\n}\n\n// ═════════════════════════════════════════════════\n// WORKFLOWS\n// ═════════════════════════════════════════════════\nfunction renderWorkflows(workflows) {\n  const names = Object.keys(workflows);\n  document.getElementById('wf-count').textContent = names.length;\n  const el = document.getElementById('workflow-list');\n  if (!names.length) {\n    el.innerHTML = '<div class=\"empty\"><p>No workflows yet</p><button class=\"btn btn-primary\" onclick=\"showAddWorkflow()\">+ Add Workflow</button></div>';\n    return;\n  }\n  el.innerHTML = names.map(n => {\n    const w = workflows[n] || {};\n    const steps = w.steps || [];\n    const stepText = steps.map(s => {\n      if (s.command) return `<code>${esc(s.command)}</code>`;\n      if (s.ssh) return `<code>ssh ${esc(s.ssh)}: ${esc(s.command||'')}</code>`;\n      if (s.local) return `<code>local: ${esc(s.local)}</code>`;\n      return '';\n    }).join(' → ');\n    return `<div class=\"card\" style=\"margin-bottom:8px\">\n      <div style=\"display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px\">\n        <div>\n          <strong>${esc(n)}</strong>\n          <div class=\"wf-steps\">${stepText || '<span style=\"color:var(--muted)\">no steps</span>'}</div>\n        </div>\n        <div class=\"actions\" style=\"gap:4px\">\n          <button class=\"btn btn-sm\" onclick=\"editWorkflow('${escAttr(n)}')\">Edit</button>\n          <button class=\"btn btn-sm btn-success\" onclick=\"runWorkflow('${escAttr(n)}', this)\">▶ Run</button>\n          <button class=\"btn btn-sm btn-danger\" onclick=\"deleteWorkflow('${escAttr(n)}')\">Del</button>\n        </div>\n      </div>\n      <div class=\"output-box\" id=\"output-${escAttr(n)}\"></div>\n    </div>`;\n  }).join('');\n}\n\nasync function runWorkflow(name, btn) {\n  const outBox = document.getElementById('output-' + name);\n  outBox.classList.add('show');\n  outBox.textContent = '⏳ Running...';\n  btn.disabled = true;\n  btn.textContent = '⏳';\n  try {\n    const r = await api('POST', '/workflows/run/' + encodeURIComponent(name));\n    outBox.textContent = r.output || '✅ Done (no output)';\n    showToast('✅ Workflow complete', 'success');\n  } catch(e) {\n    outBox.textContent = '❌ Error: ' + e.message;\n    showToast('❌ Workflow failed', 'error');\n  }\n  btn.disabled = false;\n  btn.textContent = '▶ Run';\n}\n\nfunction showAddWorkflow() {\n  showModal('Add Workflow', `\n    <div class=\"form-group\"><label>Name</label><input id=\"wf-name\" placeholder=\"my-workflow\"></div>\n    <div class=\"form-group\"><label>Steps (YAML)</label>\n      <textarea id=\"wf-steps\" placeholder=\"steps:&#10;  - local: echo hello&#10;  - command: apt update&#10;  - ssh: myserver&#10;    command: docker ps\"></textarea>\n    </div>\n    <p class=\"hint\">Define steps as YAML. Each step: <code>command</code>, <code>local</code>, or <code>ssh: server → command</code></p>\n  `, async () => {\n    const name = document.getElementById('wf-name').value.trim();\n    if (!name) { showToast('Name required', 'error'); return; }\n    const stepsText = document.getElementById('wf-steps').value.trim();\n    let workflow = { steps: [] };\n    if (stepsText) {\n      try {\n        const parsed = parseYamlSteps(stepsText);\n        workflow = parsed;\n      } catch(e) {\n        showToast('Invalid YAML: ' + e.message, 'error');\n        return;\n      }\n    }\n    await api('POST', '/workflows', { name, workflow });\n    showToast('✅ Workflow added', 'success');\n    loadAll();\n  });\n}\n\nfunction editWorkflow(name) {\n  api('GET', '/workflows').then(d => {\n    const w = (d.workflows||{})[name];\n    if (!w) return;\n    const stepsYaml = (w.steps || []).map(s => {\n      if (s.command) return '  - command: ' + s.command;\n      if (s.local) return '  - local: ' + s.local;\n      if (s.ssh) return '  - ssh: ' + s.ssh + '\\n    command: ' + (s.command||'');\n      return '  - ' + JSON.stringify(s);\n    }).join('\\n');\n    showModal('Edit Workflow: ' + name, `\n      <div class=\"form-group\"><label>Steps (YAML)</label>\n        <textarea id=\"wf-steps\" style=\"min-height:120px\">steps:\\n${stepsYaml}</textarea>\n      </div>\n      <p class=\"hint\">Edit YAML steps. Remove all text for an empty workflow.</p>\n    `, async () => {\n      const stepsText = document.getElementById('wf-steps').value.trim();\n      let workflow = { steps: [] };\n      if (stepsText) {\n        try {\n          workflow = parseYamlSteps(stepsText);\n        } catch(e) {\n          showToast('Invalid YAML: ' + e.message, 'error');\n          return;\n        }\n      }\n      await api('PUT', '/workflows/' + encodeURIComponent(name), { workflow });\n      showToast('✅ Workflow updated', 'success');\n      loadAll();\n    });\n  });\n}\n\nasync function deleteWorkflow(name) {\n  showModal('Delete Workflow', `<p>Delete workflow <strong>${esc(name)}</strong>?</p>`, async () => {\n    await api('DELETE', '/workflows/' + encodeURIComponent(name));\n    showToast('🗑️ Workflow deleted', 'success');\n    loadAll();\n  });\n}\n\n// Simple YAML steps parser (handles our limited subset)\nfunction parseYamlSteps(text) {\n  const lines = text.split('\\n');\n  const steps = [];\n  let currentStep = null;\n  const stepStart = /^\\s*-\\s+(command|local|ssh):\\s*(.*)$/;\n  const cmdCont = /^\\s+command:\\s*(.*)$/;\n  for (const line of lines) {\n    const m1 = line.match(stepStart);\n    if (m1) {\n      if (currentStep) steps.push(currentStep);\n      currentStep = {};\n      if (m1[1] === 'ssh') {\n        currentStep.ssh = m1[2].trim();\n      } else {\n        currentStep[m1[1]] = m1[2].trim();\n      }\n    } else {\n      const m2 = line.match(cmdCont);\n      if (m2 && currentStep) {\n        currentStep.command = m2[1].trim();\n      }\n    }\n  }\n  if (currentStep) steps.push(currentStep);\n  if (!steps.length && text.trim()) {\n    throw new Error('Could not parse steps. Format: each line starting with - command:, - local:, or - ssh:');\n  }\n  return { steps };\n}\n\n// ═════════════════════════════════════════════════\n// PROVIDERS\n// ═════════════════════════════════════════════════\nfunction renderProviders(providers, defaultProv) {\n  const names = Object.keys(providers);\n  document.getElementById('prov-count').textContent = names.length;\n  const el = document.getElementById('provider-list');\n  if (!names.length) {\n    el.innerHTML = '<div class=\"empty\"><p>No AI providers configured</p><button class=\"btn btn-primary\" onclick=\"showAddProvider()\">+ Add Provider</button></div>';\n    return;\n  }\n  el.innerHTML = `<table>\n    <thead><tr><th>Name</th><th>API URL</th><th>Model</th><th>Key</th><th></th></tr></thead>\n    <tbody>${names.map(n => {\n      const p = providers[n] || {};\n      const isDefault = n === defaultProv;\n      return `<tr>\n        <td><strong>${esc(n)}</strong>${isDefault ? ' <span class=\"default-badge\">⭐ default</span>' : ''}</td>\n        <td class=\"mono\" style=\"max-width:280px;word-break:break-all\">${esc(p.api_url||'—')}</td>\n        <td class=\"mono\">${esc(p.model||'—')}</td>\n        <td class=\"mono\">${esc(p.api_key_masked||'—')}</td>\n        <td><div class=\"actions\" style=\"gap:2px\">\n          ${!isDefault ? `<button class=\"btn btn-sm btn-success\" onclick=\"setDefaultProvider('${escAttr(n)}')\">⭐</button>` : ''}\n          <button class=\"btn btn-sm\" onclick=\"testProvider('${escAttr(n)}')\">🧪 Test</button>\n          <button class=\"btn btn-sm\" onclick=\"editProvider('${escAttr(n)}')\">Edit</button>\n          <button class=\"btn btn-sm btn-danger\" onclick=\"deleteProvider('${escAttr(n)}')\">Del</button>\n        </div></td>\n      </tr>`;\n    }).join('')}</tbody>\n  </table>`;\n}\n\nfunction showAddProvider() { showProviderForm('Add Provider', {}); }\nfunction editProvider(name) {\n  api('GET', '/providers').then(d => {\n    const p = (d.providers||{})[name];\n    if (p) showProviderForm('Edit Provider: ' + name, p, name);\n  });\n}\n\nfunction showProviderForm(title, data, editName) {\n  showModal(title, `\n    <div class=\"form-group\"><label>Name</label><input id=\"p-name\" value=\"${esc(editName||'')}\" ${editName?'readonly style=\"opacity:0.6\"':''} placeholder=\"my-provider\"></div>\n    <div class=\"form-group\"><label>API URL</label><input id=\"p-url\" value=\"${esc(data.api_url||'')}\" placeholder=\"https://api.openai.com/v1\"></div>\n    <div class=\"form-group\"><label>Model</label><input id=\"p-model\" value=\"${esc(data.model||'')}\" placeholder=\"gpt-4o\"></div>\n    <div class=\"form-group\"><label>API Key</label><input id=\"p-key\" type=\"password\" value=\"${esc(editName ? data.api_key_masked||'' : '')}\" placeholder=\"${editName ? 'leave blank to keep current' : 'sk-...'}\"></div>\n    <p class=\"hint\">Test the provider after saving from the provider list.</p>\n  `, async () => {\n    const name = document.getElementById('p-name').value.trim();\n    const apiUrl = document.getElementById('p-url').value.trim();\n    if (!name || !apiUrl) { showToast('Name and API URL required', 'error'); return; }\n    const model = document.getElementById('p-model').value.trim();\n    const apiKey = document.getElementById('p-key').value.trim();\n    if (!editName && !apiKey) { showToast('API Key required for new provider', 'error'); return; }\n    const body = { api_url: apiUrl, model, api_key: apiKey };\n    if (editName) {\n      await api('PUT', '/providers/' + encodeURIComponent(editName), body);\n      showToast('✅ Provider updated', 'success');\n    } else {\n      await api('POST', '/providers', { name, ...body });\n      showToast('✅ Provider added', 'success');\n    }\n    loadAll();\n  });\n}\n\nasync function deleteProvider(name) {\n  showModal('Delete Provider', `<p>Delete provider <strong>${esc(name)}</strong>?</p>`, async () => {\n    await api('DELETE', '/providers/' + encodeURIComponent(name));\n    showToast('🗑️ Provider deleted', 'success');\n    loadAll();\n  });\n}\n\nasync function setDefaultProvider(name) {\n  try {\n    await api('PUT', '/providers/' + encodeURIComponent(name) + '/default');\n    showToast('⭐ Default provider set to ' + name, 'success');\n    loadAll();\n  } catch(e) {\n    showToast('❌ ' + e.message, 'error');\n  }\n}\n\nasync function testProvider(name) {\n  showToast('🧪 Testing ' + name + '...');\n  try {\n    const r = await api('POST', '/providers/test/' + encodeURIComponent(name));\n    if (r.ok) {\n      showToast('✅ ' + name + ' connected!', 'success');\n    } else {\n      showToast('❌ ' + name + ': ' + (r.error || 'failed'), 'error');\n    }\n  } catch(e) {\n    showToast('❌ ' + name + ': ' + e.message, 'error');\n  }\n}\n\n// ═════════════════════════════════════════════════\n// CONFIG\n// ═════════════════════════════════════════════════\nfunction renderConfig(config) {\n  if (!config || !Object.keys(config).length) {\n    document.getElementById('config-display').innerHTML = '<div class=\"empty\">No config</div>';\n    return;\n  }\n  const flat = flattenObj(config);\n  const entries = Object.entries(flat);\n  document.getElementById('config-display').innerHTML =\n    `<div class=\"config-grid\">${entries.map(([k,v]) =>\n      `<span class=\"key\">${esc(k)}</span><span class=\"val\">${esc(String(v))}</span>`\n    ).join('')}</div>`;\n}\n\nfunction flattenObj(obj, prefix = '') {\n  let result = {};\n  for (const [k, v] of Object.entries(obj)) {\n    const key = prefix ? prefix + '.' + k : k;\n    if (v && typeof v === 'object' && !Array.isArray(v)) {\n      Object.assign(result, flattenObj(v, key));\n    } else if (Array.isArray(v)) {\n      result[key] = v.map(x => typeof x === 'object' ? JSON.stringify(x) : String(x)).join(', ');\n    } else {\n      result[key] = v;\n    }\n  }\n  return result;\n}\n\nfunction esc(s) {\n  if (!s) return '';\n  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;');\n}\nfunction escAttr(s) { return esc(s).replace(/'/g,'&#39;'); }\n\n// ── Init ──\nloadAll();\n// Auto-refresh every 30s\nsetInterval(() => {\n  if (!document.getElementById('modal-overlay').classList.contains('show')) loadAll();\n}, 30000);\n</script>\n</body>\n</html>\n"""
+
+
+def cmd_web(port=8765, open_browser=False):
+    """Start the OpsTerm web dashboard server."""
+    import http.server
+    import json as _json
+    import urllib.parse
+    import webbrowser
+    import subprocess
+    import time
+    import copy
+
+    # Ensure dashboard HTML exists on disk
+    WEB_DIR.mkdir(parents=True, exist_ok=True)
+    if not WEB_INDEX.exists():
+        WEB_INDEX.write_text(WEB_DASHBOARD_HTML, encoding="utf-8")
+        os.chmod(str(WEB_INDEX), 0o644)
+
+    server_addr = ("127.0.0.1", port)
+
+    class DashboardHandler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass  # Suppress default logging
+
+        def _send_json(self, data, status=200):
+            body = _json.dumps(data).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _send_html(self, html, status=200):
+            body = html.encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _read_body(self):
+            length = int(self.headers.get("Content-Length", 0))
+            if length > 0:
+                return self.rfile.read(length).decode("utf-8")
+            return "{}"
+
+        def _parse_path(self):
+            parsed = urllib.parse.urlparse(self.path)
+            path = parsed.path.rstrip("/") or "/"
+            return path
+
+        def do_GET(self):
+            path = self._parse_path()
+            if path == "/api/status":
+                srv = get_servers()
+                wf = get_workflows()
+                cfg_st = load_yaml(CONFIG_FILE)
+                prov = cfg_st.get("providers", {})
+                self._send_json({
+                    "version": VERSION,
+                    "servers_count": len(srv),
+                    "workflows_count": len(wf),
+                    "providers_count": len(prov),
+                })
+            elif path == "/api/servers":
+                self._send_json({"servers": get_servers()})
+            elif path == "/api/workflows":
+                self._send_json({"workflows": get_workflows()})
+            elif path == "/api/config":
+                cfg = copy.deepcopy(load_config())
+                # Mask sensitive keys
+                def _mask_keys(d):
+                    if isinstance(d, dict):
+                        for k, v in d.items():
+                            if k == "api_key" and v and isinstance(v, str):
+                                d[k] = (v[:8] + "..." + v[-4:]) if len(v) > 14 else ("***" if v else "")
+                            else:
+                                _mask_keys(v)
+                    return d
+                _mask_keys(cfg)
+                self._send_json({"config": cfg})
+            elif path == "/api/providers":
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.get("providers", {})
+                default = cfg_p.get("default_provider", "")
+                masked = {}
+                for name, prov in provs.items():
+                    p = dict(prov)
+                    key = p.pop("api_key", "")
+                    p["api_key_masked"] = (key[:8] + "..." + key[-4:]) if len(key) > 14 else ("***" if key else "")
+                    masked[name] = p
+                self._send_json({"providers": masked, "default_provider": default})
+            elif path == "/" or path == "":
+                html_file = WEB_INDEX.read_text(encoding="utf-8") if WEB_INDEX.exists() else WEB_DASHBOARD_HTML
+                self._send_html(html_file)
+            elif path.startswith("/api/"):
+                self._send_json({"error": "Not found"}, 404)
+            else:
+                self._send_html(WEB_DASHBOARD_HTML)
+
+        def do_POST(self):
+            path = self._parse_path()
+            try:
+                body = _json.loads(self._read_body())
+            except _json.JSONDecodeError:
+                body = {}
+
+            if path == "/api/servers":
+                name = body.get("name", "").strip()
+                if not name:
+                    self._send_json({"error": "Name required"}, 400)
+                    return
+                servers = get_servers()
+                if name in servers:
+                    self._send_json({"error": "Server already exists"}, 409)
+                    return
+                servers[name] = {
+                    "host": body.get("host", ""),
+                    "user": body.get("user", "root"),
+                    "port": int(body.get("port", 22)),
+                    "key": body.get("key", ""),
+                    "desc": body.get("desc", ""),
+                }
+                if body.get("proxy"):
+                    servers[name]["proxy"] = body["proxy"]
+                save_servers(servers)
+                self._send_json({"ok": True, "name": name})
+
+            elif path.startswith("/api/workflows/run/"):
+                wf_name = urllib.parse.unquote(path.split("/api/workflows/run/")[1])
+                workflows = get_workflows()
+                if wf_name not in workflows:
+                    self._send_json({"error": f"Workflow '{wf_name}' not found"}, 404)
+                    return
+                # Run workflow and capture output
+                import io
+                old_stdout = sys.stdout
+                sys.stdout = captured = io.StringIO()
+                try:
+                    srv = get_servers()
+                    cfg = load_config()
+                    run_workflow(wf_name, workflows, srv, cfg)
+                except Exception as e:
+                    captured.write(f"\n❌ Error: {e}")
+                finally:
+                    sys.stdout = old_stdout
+                self._send_json({"output": captured.getvalue()})
+
+            elif path.startswith("/api/servers/") and path.endswith("/ping"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1].split("/ping")[0])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                srv = servers[name]
+                host = srv.get("host", "")
+                user = srv.get("user", "root")
+                port = srv.get("port", 22)
+                key = srv.get("key", "")
+                start = time.time()
+                cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes"]
+                if port != 22:
+                    cmd.extend(["-p", str(port)])
+                if key:
+                    cmd.extend(["-i", key])
+                cmd.append(f"{user}@{host}")
+                cmd.append("echo pong")
+                try:
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                    elapsed = time.time() - start
+                    if result.returncode == 0 and "pong" in result.stdout:
+                        self._send_json({"ok": True, "latency": f"{elapsed:.2f}s", "host": host})
+                    else:
+                        err = result.stderr.strip() or "No response"
+                        self._send_json({"ok": False, "error": err, "host": host})
+                except subprocess.TimeoutExpired:
+                    self._send_json({"ok": False, "error": "Timeout (10s)", "host": host})
+                except Exception as e:
+                    self._send_json({"ok": False, "error": str(e), "host": host})
+
+            elif path == "/api/providers":
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.setdefault("providers", {})
+                name = body.get("name", "").strip()
+                if not name:
+                    self._send_json({"error": "Name required"}, 400)
+                    return
+                if name in provs:
+                    self._send_json({"error": "Provider already exists"}, 409)
+                    return
+                provs[name] = {
+                    "api_url": body.get("api_url", ""),
+                    "model": body.get("model", ""),
+                    "api_key": body.get("api_key", ""),
+                }
+                save_yaml(CONFIG_FILE, cfg_p)
+                self._send_json({"ok": True, "name": name})
+
+            elif path == "/api/workflows":
+                wf_list = get_workflows()
+                wf_name = body.get("name", "").strip()
+                if not wf_name:
+                    self._send_json({"error": "Name required"}, 400)
+                    return
+                if wf_name in wf_list:
+                    self._send_json({"error": "Workflow already exists"}, 409)
+                    return
+                wf_list[wf_name] = body.get("workflow", {"steps": []})
+                save_workflows(wf_list)
+                self._send_json({"ok": True, "name": wf_name})
+
+            elif path.startswith("/api/providers/test/"):
+                prov_name = urllib.parse.unquote(path.split("/api/providers/test/")[1])
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.get("providers", {})
+                if prov_name not in provs:
+                    self._send_json({"error": "Provider not found"}, 404)
+                    return
+                prov = provs[prov_name]
+                url = prov.get("api_url", "").rstrip("/")
+                key = prov.get("api_key", "")
+                import urllib.request as _ur
+                test_prompt = '{"model":"' + prov.get("model", "gpt-3.5-turbo") + '","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
+                try:
+                    req = _ur.Request(url + "/chat/completions", data=test_prompt.encode(), headers={"Content-Type": "application/json"})
+                    if key:
+                        req.add_header("Authorization", f"Bearer {key}")
+                    resp = _ur.urlopen(req, timeout=10)
+                    result = json.loads(resp.read().decode())
+                    ok = "choices" in result or "error" not in result
+                    self._send_json({"ok": ok, "response": result if ok else str(result)})
+                except Exception as e:
+                    self._send_json({"ok": False, "error": str(e)})
+
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_PUT(self):
+            path = self._parse_path()
+            try:
+                body = _json.loads(self._read_body())
+            except _json.JSONDecodeError:
+                body = {}
+
+            if path == "/api/config":
+                updates = body.get("updates", {})
+                if not updates:
+                    self._send_json({"error": "No updates provided"}, 400)
+                    return
+                config = load_yaml(CONFIG_FILE)
+                for key_path, value in updates.items():
+                    parts = key_path.split(".")
+                    obj = config
+                    for part in parts[:-1]:
+                        if part not in obj or not isinstance(obj[part], dict):
+                            obj[part] = {}
+                        obj = obj[part]
+                    # Convert value type intelligently
+                    if isinstance(obj.get(parts[-1]), bool):
+                        if isinstance(value, str):
+                            value = value.lower() in ("true", "1", "yes")
+                    elif isinstance(obj.get(parts[-1]), (int, float)):
+                        try:
+                            value = type(obj.get(parts[-1]))(value)
+                        except (ValueError, TypeError):
+                            pass
+                    obj[parts[-1]] = value
+                save_yaml(CONFIG_FILE, config)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/servers/"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                servers[name] = {
+                    "host": body.get("host", servers[name].get("host", "")),
+                    "user": body.get("user", servers[name].get("user", "root")),
+                    "port": int(body.get("port", servers[name].get("port", 22))),
+                    "key": body.get("key", servers[name].get("key", "")),
+                    "desc": body.get("desc", servers[name].get("desc", "")),
+                }
+                if "proxy" in body and body["proxy"]:
+                    servers[name]["proxy"] = body["proxy"]
+                elif "proxy" in body:
+                    servers[name].pop("proxy", None)
+                save_servers(servers)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/providers/") and path.endswith("/default"):
+                prov_name = urllib.parse.unquote(path.split("/api/providers/")[1].split("/default")[0])
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.setdefault("providers", {})
+                if prov_name not in provs:
+                    self._send_json({"error": "Provider not found"}, 404)
+                    return
+                cfg_p["default_provider"] = prov_name
+                save_yaml(CONFIG_FILE, cfg_p)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/providers/"):
+                prov_name = urllib.parse.unquote(path.split("/api/providers/")[1])
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.setdefault("providers", {})
+                if prov_name not in provs:
+                    self._send_json({"error": "Provider not found"}, 404)
+                    return
+                provs[prov_name] = {
+                    "api_url": body.get("api_url", provs[prov_name].get("api_url", "")),
+                    "model": body.get("model", provs[prov_name].get("model", "")),
+                    "api_key": body.get("api_key", provs[prov_name].get("api_key", "")),
+                }
+                save_yaml(CONFIG_FILE, cfg_p)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/workflows/"):
+                wf_name = urllib.parse.unquote(path.split("/api/workflows/")[1])
+                wf_list = get_workflows()
+                if wf_name not in wf_list:
+                    self._send_json({"error": "Workflow not found"}, 404)
+                    return
+                wf_list[wf_name] = body.get("workflow", wf_list[wf_name])
+                save_workflows(wf_list)
+                self._send_json({"ok": True})
+
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_DELETE(self):
+            path = self._parse_path()
+            if path.startswith("/api/servers/"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                del servers[name]
+                save_servers(servers)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/providers/"):
+                name = urllib.parse.unquote(path.split("/api/providers/")[1])
+                cfg_p = load_yaml(CONFIG_FILE)
+                provs = cfg_p.setdefault("providers", {})
+                if name not in provs:
+                    self._send_json({"error": "Provider not found"}, 404)
+                    return
+                del provs[name]
+                if cfg_p.get("default_provider") == name:
+                    cfg_p.pop("default_provider", None)
+                save_yaml(CONFIG_FILE, cfg_p)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/workflows/"):
+                wf_name = urllib.parse.unquote(path.split("/api/workflows/")[1])
+                wf_list = get_workflows()
+                if wf_name not in wf_list:
+                    self._send_json({"error": "Workflow not found"}, 404)
+                    return
+                del wf_list[wf_name]
+                save_workflows(wf_list)
+                self._send_json({"ok": True})
+
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_OPTIONS(self):
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+
+    try:
+        server = http.server.HTTPServer(server_addr, DashboardHandler)
+        url = f"http://127.0.0.1:{port}"
+        print(f"🚀 OpsTerm Dashboard  {VERSION}")
+        print(f"   {url}")
+        print(f"   ^C to stop")
+        if open_browser:
+            webbrowser.open(url)
+        server.serve_forever()
+    except OSError as e:
+        print(f"❌ Failed to start server: {e}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n   👋 Dashboard stopped.")
+        server.server_close()
+
+
 SUBCOMMAND_HELP = {
     "servers": """Usage: opsterm servers <action> [<name>]
 
@@ -2829,21 +3029,6 @@ Examples:
   opsterm workflows add
   opsterm workflows init
   opsterm workflows edit deploy-app
-""",
-    "vault": """Usage: opsterm vault <action> [<args>]
-
-Actions:
-  init               Create a new vault
-  set <key> [val]    Store a credential (value optional, prompted if empty)
-  get <key>          Retrieve a credential
-  list               List all keys
-  rm <key>           Delete a credential
-  lock               Lock the vault
-
-Examples:
-  opsterm vault init
-  opsterm vault set db_password
-  opsterm vault get db_password
 """,
     "doctor": """Usage: opsterm doctor
 
@@ -3018,13 +3203,13 @@ def main():
     # Manual -h/--help intercept for subcommand support
     if ("-h" in sys.argv or "--help" in sys.argv) and any(a in sys.argv[1:] for a in (
         "ssh", "scp", "run", "servers", "workflows", "config", "provider",
-        "vault", "history", "chat", "last", "explain-last", "explain_last",
+        "history", "chat", "last", "explain-last", "explain_last",
         "init", "update", "completion", "doctor", "search", "export", "import", "reset",
     )):
         for arg in sys.argv[1:]:
             if arg in (
                 "ssh", "scp", "run", "servers", "workflows", "config", "provider",
-                "vault", "history", "chat", "last", "explain-last", "explain_last",
+                "history", "chat", "last", "explain-last", "explain_last",
                 "init", "update", "completion", "doctor", "search", "export", "import", "reset",
             ):
                 _show_help(arg)
@@ -3033,7 +3218,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="opsterm",
-        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP, vault.",
+        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
             Core Commands:
@@ -3047,7 +3232,6 @@ def main():
               workflows <action> [<name>]    Manage workflow list — list, add, edit, rm, init
               provider <action> [<name>]     Manage AI providers — list, add, rm, default, test, models, supported
               config <action> [<key>]        Manage config — list, get, set, validate
-              vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
             Utility Commands:
               history [<limit>]              Show past queries (default: 20)
@@ -3074,7 +3258,6 @@ def main():
               opsterm run deploy-app
               opsterm config set ai.response_style concise
               opsterm provider add openai --api-key sk-... --model gpt-4o
-              opsterm vault set db_password
               docker ps | opsterm "any errors?"
 
             Learn more: https://github.com/edsuwarna/opsterm
@@ -3420,53 +3603,6 @@ def main():
         add_history("scp", f"{source} → {dest}{via_str}")
         scp_transfer(source, dest, servers, proxy_name)
 
-    # ── vault ──
-    elif subcmd == "vault":
-        vault = Vault()
-        if len(raw_args) == 1:
-            print("🔐 OpsTerm Vault — Encrypted Credential Store")
-            print("  init   — Buat vault baru")
-            print("  set    — Simpan credential (opsterm vault set <key>)")
-            print("  get    — Ambil credential (opsterm vault get <key>)")
-            print("  list   — Lihat semua key")
-            print("  rm     — Remove key")
-            print("  lock   — Kunci vault")
-            print(f"\n  File: {VAULT_FILE}")
-            print("  Env:   OPSTERM_VAULT_PASSWORD")
-            return
-        action = raw_args[1]
-        if action == "init":
-            vault.init()
-        elif action == "set":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault set <key> [value]")
-                print("  (value optional, akan di-prompt jika kosong)")
-                return
-            value = " ".join(raw_args[3:]) if len(raw_args) > 3 else ""
-            vault.set(key, value)
-            add_history("vault", f"set {key}")
-        elif action == "get":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault get <key>")
-                return
-            value = vault.get(key)
-            if value:
-                print(value)
-        elif action == "list":
-            vault.list_keys()
-        elif action == "rm":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault rm <key>")
-                return
-            vault.rm(key)
-        elif action == "lock":
-            vault.lock()
-        else:
-            print(f"❌ Unknown vault action: {action}")
-
     # ── last ──
     elif subcmd == "last":
         out, cmd = get_last_output()
@@ -3540,6 +3676,24 @@ def main():
     # ── reset ──
     elif subcmd == "reset":
         cmd_reset()
+
+    # ── web dashboard ──
+    elif subcmd == "web":
+        port = 8765
+        open_browser = False
+        i = 1
+        while i < len(raw_args):
+            if raw_args[i] in ("--port", "-p") and i + 1 < len(raw_args):
+                try:
+                    port = int(raw_args[i + 1])
+                    i += 2
+                    continue
+                except ValueError:
+                    pass
+            elif raw_args[i] in ("--open", "-o"):
+                open_browser = True
+            i += 1
+        cmd_web(port=port, open_browser=open_browser)
 
     # ── AI mode (default) ──
     else:

@@ -14,7 +14,6 @@ _opsterm() {
         'history:Show command history'
         'init:Setup initial config'
         'scp:Upload/download files'
-        'vault:Encrypted credentials'
         'last:Last command output'
         'explain-last:Explain last output with AI'
         'doctor:Diagnose installation and configuration'
@@ -39,7 +38,7 @@ _opsterm() {
                 workflows) _values 'action' list add edit rm init ;;
                 config) _values 'action' list get set validate ;;
                 provider) _values 'action' list add rm default test models supported ;;
-                vault) _values 'action' init set get list rm lock ;;
+
                 scp)
                     local servers; servers=(${(f)"$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')"})
                     _describe 'server' servers ;;

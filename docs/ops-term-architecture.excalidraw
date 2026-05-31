@@ -316,14 +316,14 @@
       "type": "text",
       "id": "t-box-vault",
       "x": 1015, "y": 372, "width": 270, "height": 70,
-      "text": "Vault\nein AES-128 + PBKDF2\nein cryptography (optional)",
+      "text": "Config & History\n  ~/.opsterm/\n  YAML + SQLite",
       "fontSize": 16,
       "fontFamily": 1,
       "strokeColor": "#1e1e1e",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "box-vault",
-      "originalText": "Vault\nein AES-128 + PBKDF2\nein cryptography (optional)",
+      "originalText": "Config & History\n  ~/.opsterm/\n  YAML + SQLite",
       "autoResize": true
     },
 
@@ -466,14 +466,14 @@
       "type": "text",
       "id": "t-box-filesystem",
       "x": 925, "y": 752, "width": 340, "height": 55,
-      "text": "Local Filesystem\nein ~/.ai-workflows/ (config, vault, history)",
+      "text": "Local Filesystem\nein ~/.opsterm/ (config, history)",
       "fontSize": 16,
       "fontFamily": 1,
       "strokeColor": "#1e1e1e",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "box-filesystem",
-      "originalText": "Local Filesystem\nein ~/.ai-workflows/ (config, vault, history)",
+      "originalText": "Local Filesystem\nein ~/.opsterm/ (config, history)",
       "autoResize": true
     },
 

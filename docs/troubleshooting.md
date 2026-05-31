@@ -115,27 +115,6 @@ tail -100 /var/log/syslog | opsterm "find errors"
 dmesg | grep -i error | opsterm "analyze"
 ```
 
-## Vault Issues
-
-### "Vault not initialized"
-
-```bash
-opsterm vault init  # Set master password
-```
-
-### "Decryption failed"
-
-- Master password is wrong
-- Vault file is corrupted
-- Check: `ls -la ~/.ai-workflows/vault.json`
-
-Reset vault (⚠️ this deletes stored credentials):
-
-```bash
-rm ~/.ai-workflows/vault.json
-opsterm vault init
-```
-
 ## Debug Mode
 
 Enable verbose logging:

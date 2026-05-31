@@ -5,7 +5,7 @@
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor search export import reset"
+    local cmds="ssh run servers workflows config provider history init scp last explain-last completion doctor search export import reset"
     cur="${words[cword]}"
     prev="${words[cword-1]}"
     case "${prev}" in
@@ -20,7 +20,6 @@ _opsterm_completions() {
         workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm init" -- "${cur}"); return 0 ;;
         config) mapfile -t COMPREPLY < <(compgen -W "list get set validate" -- "${cur}"); return 0 ;;
         provider) mapfile -t COMPREPLY < <(compgen -W "list add rm default test models supported" -- "${cur}"); return 0 ;;
-        vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${cur}"); return 0 ;;
         scp)
             local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}"); return 0 ;;

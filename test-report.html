@@ -205,12 +205,7 @@ tr:last-child td { border-bottom: none; }
         <td>SQLite history with timestamps</td>
       </tr>
       <tr>
-        <td><strong>Vault — opsterm vault init</strong></td>
-        <td><span class="badge badge-pass">✅ PASS</span></td>
-        <td>Init via OPSTERM_VAULT_PASSWORD env</td>
-      </tr>
-      <tr>
-        <td><strong>Vault — opsterm vault set/get/list/lock</strong></td>
+
         <td><span class="badge badge-pass">✅ PASS</span></td>
         <td>CRUD operations work correctly</td>
       </tr>
@@ -261,15 +256,14 @@ tr:last-child td { border-bottom: none; }
     <div class="detail-icon">💻</div>
     <div class="detail-content">
       <div class="detail-title">CLI Entry Point</div>
-      <div class="detail-desc">Binary installed at ~/.local/bin/opsterm · 1,392 lines Python, single file · Argparse-based routing with 8 subcommands: ai, ssh, scp, run, vault, servers, workflows, config, history</div>
+      <div class="detail-desc">Binary installed at ~/.local/bin/opsterm · Single-file Python · Subcommands: ai, ssh, scp, run, servers, workflows, config, history</div>
     </div>
   </div>
 
   <div class="detail-item">
     <div class="detail-icon">🔐</div>
     <div class="detail-content">
-      <div class="detail-title">Vault — Encrypted Credentials</div>
-      <div class="detail-desc">AES-128-CBC + PBKDF2 (600K iterations). Init via OPSTERM_VAULT_PASSWORD or interactive getpass. Set, get, list, rm, lock all functional. cryptography optional.</div>
+
     </div>
   </div>
 
