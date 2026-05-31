@@ -95,8 +95,8 @@ KNOWN_PROVIDERS = {
     },
     "opencode-go": {
         "name": "OpenCode Go",
-        "url": "https://opencode.ai/zen/v1/chat/completions",
-        "models_url": "https://opencode.ai/zen/v1/models",
+        "url": "https://opencode.ai/zen/go/v1/chat/completions",
+        "models_url": "https://opencode.ai/zen/go/v1/models",
         "default_model": "deepseek-v4-flash",
     },
     "openai": {
