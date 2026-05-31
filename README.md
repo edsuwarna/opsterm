@@ -30,6 +30,9 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 📋 **History** | `opsterm history` | Command history |
 | 🔄 **Self-Update** | `opsterm update` | Check & install latest version |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
+| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
+| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
+| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
 
 > 💡 All list commands (`provider list`, `servers list`, `history`) support `--json` flag for scripting.
 
@@ -42,9 +45,20 @@ SSH into any server without losing AI access — because the AI runs on your **l
 **Linux/macOS** — single curl command, no repo needed:
 
 ```bash
+# Install latest (main branch)
 curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
+
+Or pin to a **specific release version** (recommended for stability):
+
+```bash
+# Install v0.4.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.4.0/bin/opsterm -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
+```
+
+Check the [Releases page](https://github.com/edsuwarna/opsterm/releases) for the latest version.
 
 Make sure `~/.local/bin` is in your `PATH`:
 
@@ -71,6 +85,23 @@ opsterm provider list
 ```bash
 opsterm --help
 ```
+
+### Updating
+
+OpsTerm has a built-in self-updater:
+
+```bash
+# Check for updates & install
+opsterm update
+```
+
+This will:
+1. Check the latest version from GitHub
+2. Download and compile-verify the new script
+3. Backup your current version as `opsterm.bak`
+4. Replace with the new version
+
+> 💡 OpsTerm also checks for updates automatically once per 24 hours on startup — you'll see a notification if a new version is available.
 
 ---
 
@@ -207,6 +238,23 @@ opsterm what about inodes?
 # → Understands you're still talking about disk commands
 ```
 
+### Custom System Prompt
+
+Set a custom system prompt to tailor the AI's behavior and personality:
+
+```bash
+# Be concise and technical
+opsterm config set ai.system_prompt "You are a senior DevOps engineer. Answer in short, actionable commands."
+
+# Speak in a specific language
+opsterm config set ai.system_prompt "Answer in Indonesian. Use casual friendly tone."
+
+# Be educational
+opsterm config set ai.system_prompt "Explain concepts like I'm a beginner. Include examples."
+```
+
+> 💡 The system prompt is prepended to every AI request. Use it to set context, tone, or expertise level.
+
 ---
 
 ## 💻 Usage
@@ -231,6 +279,7 @@ opsterm scp file.txt vps-utama:/home/ubuntu/
 opsterm scp vps-utama:/var/log/syslog .
 opsterm scp file.txt vps-utama:/tmp --via bastion
 opsterm servers ping vps-utama           # Check SSH connectivity
+opsterm servers show vps-utama           # Show server details
 ```
 
 ### Workflows
@@ -246,8 +295,26 @@ opsterm run deploy-app
 opsterm completion bash > ~/.opsterm/completion.sh
 source ~/.opsterm/completion.sh
 
-# Or add to your shell config:
-echo "source ~/.opsterm/completion.sh" >> ~/.bashrc
+```
+
+### Diagnostics
+
+Check your OpsTerm installation and configuration:
+
+```bash
+opsterm doctor
+```
+
+This checks:
+- ✅ Config file exists and is valid
+- ✅ API key is configured (with masked preview)
+- ✅ Provider URL is reachable
+- ✅ Version status (latest vs installed)
+- ✅ PATH includes `~/.local/bin`
+
+Use it when setting up OpsTerm for the first time or troubleshooting issues.
+
+Or add to your shell config:
 
 opsterm ssh [Tab]    # List server names
 opsterm run [Tab]    # List workflow names
@@ -256,6 +323,7 @@ opsterm run [Tab]    # List workflow names
 ### 🛠️ Server Management
 ```bash
 opsterm servers list           # List all servers (with PROXY column)
+opsterm servers show vps       # View server details
 opsterm servers add            # Add new server
 opsterm servers edit vps       # Edit server
 opsterm servers rm vps         # Remove server
