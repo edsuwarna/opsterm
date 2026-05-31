@@ -56,16 +56,19 @@ SSH into any server without losing AI access — because the AI runs on your **l
 **Linux/macOS** — single curl command, no repo needed:
 
 ```bash
-# Install latest (main branch)
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+# Install latest release
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
+OPSTERM_VER=$(cat /tmp/opsterm_latest)
+curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+rm -f /tmp/opsterm_latest
 ```
 
 Or pin to a **specific release version** (recommended for stability):
 
 ```bash
-# Install v0.6.0
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm
+# Install v0.7.0
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.7.0/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 ```
 

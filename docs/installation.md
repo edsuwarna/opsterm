@@ -14,8 +14,11 @@ No repo needed — download the single Python file and go:
 
 ```bash
 # 1. Download the script (single file, zero deps)
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm -o ~/.local/bin/opsterm
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
+OPSTERM_VER=$(cat /tmp/opsterm_latest)
+curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+rm -f /tmp/opsterm_latest
 
 # 2. Init config
 opsterm init
@@ -129,8 +132,11 @@ This adds:
 
 ```bash
 # Re-download the script
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm -o ~/.local/bin/opsterm
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
+OPSTERM_VER=$(cat /tmp/opsterm_latest)
+curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
+rm -f /tmp/opsterm_latest
 
 # Check for new features
 opsterm --help

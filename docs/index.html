@@ -152,7 +152,9 @@
     <div class="code-wrap">
       <div class="term-body">
         <code><span class="cm"># 1. Download (single file, zero deps)</span>
-<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm <span class="k">-o</span> ~/.local/bin/opsterm
+<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST <span class="k">-o</span> /tmp/opsterm_latest
+<span class="prompt-c">$</span> <span class="nb">export</span> <span class="nv">OPSTERM_VER</span><span class="o">=</span><span class="si">$(</span>cat /tmp/opsterm_latest<span class="si">)</span>
+<span class="prompt-c">$</span> <span class="k">curl -L</span> <span class="s2">"https://raw.githubusercontent.com/edsuwarna/opsterm/</span><span class="si">${</span><span class="nv">OPSTERM_VER</span><span class="si">}</span><span class="s2">/bin/opsterm"</span> <span class="k">-o</span> ~/.local/bin/opsterm
 <span class="prompt-c">$</span> chmod +x ~/.local/bin/opsterm
 <span class="prompt-c">$</span> <span class="k">opsterm provider add</span> default --api-key <span class="s">'sk-...'</span></span>
       </div>
@@ -295,7 +297,12 @@
 
 <script>
 function copyInstall(btn) {
-  const text = `curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.6.0/bin/opsterm -o ~/.local/bin/opsterm\nchmod +x ~/.local/bin/opsterm\nopsterm provider add default --api-key 'sk-...'`;
+  const text = `curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
+OPSTERM_VER=$(cat /tmp/opsterm_latest)
+curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
+chmod +x ~/.local/bin/opsterm
+rm -f /tmp/opsterm_latest
+opsterm provider add default --api-key 'sk-...'`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => copyDone(btn)).catch(() => fallbackCopy(text, btn));
   } else { fallbackCopy(text, btn); }

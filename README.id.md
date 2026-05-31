@@ -30,7 +30,8 @@ SSH ke server mana pun tanpa kehilangan akses AI — karena AI jalan di **termin
 | 📋 **History** | `opsterm history` | Riwayat semua command |
 | 🔄 **Self-Update** | `opsterm update` | Cek & install versi terbaru |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Bebas pilih provider AI |
-|| 🏥 **Diagnostics** | `opsterm doctor` | Cek konfigurasi & diagnosis masalah |
+| 🖥️ **Web Dashboard** | `opsterm web [--port <port>] [--open]` | UI browser buat manage servers/workflows/config |
+| 🏥 **Diagnostics** | `opsterm doctor` | Cek config & diagnose masalah |
 || 📋 **Detail Server** | `opsterm servers show <name>` | Lihat detail koneksi server |
 || 🔄 **Rename Server** | `opsterm servers rename <old> <new>` | Ganti nama server |
 || 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import server dari ~/.ssh/config |
@@ -421,6 +422,9 @@ workflows:
 - [x] Smart SSH (fuzzy name match, ProxyJump)
 - [x] SCP file transfer (local ↔ server ↔ server)
 - [x] Multi-step workflows (SSH/SCP/local)
+- [x] Web dashboard (lihat workflows dan servers di browser)
+- [x] Config export/import
+- [x] Config reset
 - [x] Encrypted vault (AES-128)
 - [x] Command history (SQLite)
 - [x] Pipe mode (kirim output command ke AI)

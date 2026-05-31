@@ -62,6 +62,11 @@ import urllib.error
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+def _parse_ver(v):
+    """Parse version string like 'v0.7.0' → tuple (0, 7, 0)."""
+    parts = v.lstrip("vV").split(".")
+    return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
+
 # ── Optional cryptography for vault ────────────────────────
 try:
     from cryptography.fernet import Fernet
@@ -780,6 +785,9 @@ def do_provider(raw_args, use_json=False):
     # ── add ──
     if action == "add":
         name = raw_args[2] if len(raw_args) > 2 else ""
+        # Skip if name looks like a flag (--xxx)
+        if name.startswith("--"):
+            name = ""
         if not name:
             try:
                 name = input("Provider name (e.g. openai, deepseek): ").strip()
@@ -2134,11 +2142,14 @@ def _check_version_startup():
         return  # silent fail — don't bother user if offline
 
     if latest and latest != VERSION:
-        print(f"")
-        print(f"╭─ ⚡ OpsTerm Update —" + "─" * 35)
-        print(f"│  Version {VERSION} → {latest} available!")
-        print(f"│  Run: opsterm update")
-        print(f"╰" + "─" * 50)
+        latest_ver = _parse_ver(latest)
+        current_ver = _parse_ver(VERSION)
+        if latest_ver > current_ver:
+            print(f"")
+            print(f"╭─ ⚡ OpsTerm Update —" + "─" * 35)
+            print(f"│  Version {VERSION} → {latest} available!")
+            print(f"│  Run: opsterm update")
+            print(f"╰" + "─" * 50)
 
 
 # ── update ─────────────────────────────────────────────────
@@ -2156,7 +2167,13 @@ def cmd_update():
         print(f"✅ OpsTerm {VERSION} — already up to date!")
         return
 
-    print(f"⚡ Update available: v{VERSION} → v{latest}")
+    latest_ver = _parse_ver(latest)
+    current_ver = _parse_ver(VERSION)
+    if latest_ver <= current_ver:
+        print(f"✅ OpsTerm {VERSION} — already up to date!")
+        return
+
+    print(f"⚡ Update available: {VERSION} → {latest}")
     try:
         resp = input("  Install update? [Y/n] ").strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -2288,11 +2305,18 @@ def cmd_doctor():
         req = urllib.request.Request(VERSION_CHECK_URL)
         with urllib.request.urlopen(req, timeout=5) as resp:
             latest = resp.read().decode().strip()
-        if latest and latest != VERSION:
-            print(f"     ⚠️  Update available: {latest}")
-            print(f"     Run: opsterm update")
+        if latest:
+            current_ver = _parse_ver(VERSION)
+            latest_ver = _parse_ver(latest)
+            if latest_ver > current_ver:
+                print(f"     ⚠️  Update available: {latest}")
+                print(f"     Run: opsterm update")
+            elif latest_ver < current_ver:
+                print(f"     ✅ Ahead of latest release ({latest})")
+            else:
+                print(f"     ✅ Latest")
         else:
-            print(f"     ✅ Latest")
+            print(f"     ⚠️  Could not check latest version")
     except Exception:
         print(f"     ⚠️  Could not check latest version")
 
