@@ -6,22 +6,29 @@ Zero-dependency CLI tool: custom AI provider + saved servers, workflows,
 multi-hop SSH, SCP, vault, and shell integration.
 
 Usage:
-  opsterm <prompt>              Ask AI anything (default mode)
-  opsterm ssh <server> [--via <proxy>]   SSH ke server (via jump host opsional)
-  opsterm scp <src> <dst>       Upload/download file via server
-  opsterm run <workflow>        Jalanin multi-step workflow
-  opsterm servers               Manage server list
-  opsterm workflows             Manage workflow list
-  opsterm config                Manage config
-  opsterm provider              Manage AI providers — smart add with auto-detect + model list
-  opsterm vault                 Encrypted credentials
-  opsterm last                  View last command output
-  opsterm explain-last          Explain last output with AI
-  opsterm history               Command history
-  opsterm init                  Initialize config
-  opsterm update                Check & install update
-  opsterm completion bash|zsh   Generate completion script
-  <cmd> | opsterm <prompt>      Pipe mode
+  opsterm <prompt>                 Ask AI anything (default mode)
+  opsterm <command> [<args>]       Run a command
+  <cmd> | opsterm [<prompt>]       Pipe mode — analyze command output with AI
+
+Core Commands:
+  ssh <server> [--via <proxy>]     SSH to server (fuzzy name match, ProxyJump)
+  scp <src> <dst>                  Transfer files (local:path, server:path, --via proxy)
+  run <workflow>                   Execute a multi-step YAML workflow
+
+Management Commands:
+  servers <action> [<name>]        Manage server list — list, add, edit <name>, rm <name>
+  workflows <action> [<name>]      Manage workflow list — list, add, edit <name>, rm <name>
+  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>
+  config <action> [<key>]          Manage config — list, get <key>, set <key> <val>
+  vault <action> [<args>]          Encrypted credential store — init, set <key>, get <key>, list, rm <key>, lock
+
+Utility Commands:
+  history [<limit>]                Show past queries (default: 20)
+  last                             View the last shell command's output
+  explain-last                     Explain last command output with AI
+  init                             Initialize config directory (~/.opsterm)
+  update                           Check and install latest version
+  completion <shell>               Generate tab completion (bash|zsh)
 """
 
 VERSION = "v0.2.0"
@@ -1942,24 +1949,29 @@ def main():
         description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP, vault.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
-            Available Commands:
-              <prompt>                   Ask AI — get command suggestions, explain output, any question
-              ssh <server>               SSH to server (fuzzy name match, ProxyJump via --via)
-              scp <src> <dst>            Transfer files to/from servers (local:, server:path, --via)
-              run <workflow>             Execute a multi-step YAML workflow
-              vault <action> [args]      Encrypted credential store — init, set, get, list, rm, lock
-              config <action> [key]      Manage config — list, get <key>, set <key> <val>. e.g. ai.response_style (concise|detailed)
-              provider <action> [name]   Manage AI providers — list, add [name], rm <name>, default <name>
-              servers <action> [name]    Manage servers — list, add, edit <name>, rm <name>
-              workflows <action> [name]  Manage workflows — list, add, edit <name>, rm <name>
-              history [limit]            Show past queries — default 20, e.g. history 5
-              last                       View the last shell command's output
-              explain-last               Explain the last command's output with AI
-              init                       Initialize config directory
-              completion <shell>         Generate tab completion (bash|zsh)
+            Core Commands:
+              <prompt>                     Ask AI — get command suggestions, explain output
+              ssh <server> [--via <proxy>] SSH to server (fuzzy name match, ProxyJump)
+              scp <src> <dst>              Transfer files (local:path, server:path, --via)
+              run <workflow>               Execute a multi-step YAML workflow
 
-            Pipe mode:
-              cmd | opsterm [prompt]     Pipe command output to AI for analysis
+            Management Commands:
+              servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>
+              workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
+              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>
+              config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
+              vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
+
+            Utility Commands:
+              history [<limit>]              Show past queries (default: 20)
+              last                           View the last shell command's output
+              explain-last                   Explain last command output with AI
+              init                           Initialize config directory (~/.opsterm)
+              update                         Check and install latest version
+              completion <shell>             Generate tab completion (bash|zsh)
+
+            Pipe Mode:
+              cmd | opsterm [<prompt>]       Pipe command output to AI for analysis
 
             Examples:
               opsterm how to find large files
@@ -1967,9 +1979,12 @@ def main():
               opsterm ssh internal --via bastion
               opsterm scp file.txt vps-utama:/home/ubuntu/
               opsterm run deploy-app
-              opsterm vault set db_password
+              opsterm config set ai.response_style concise
               opsterm provider add openai --api-key sk-... --model gpt-4o
+              opsterm vault set db_password
               docker ps | opsterm "any errors?"
+
+            Learn more: https://github.com/edsuwarna/opsterm
         """),
     )
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}")
