@@ -35,7 +35,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 
 ```bash
 # 1. Install (single file, zero deps)
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 
 # 2. Init config

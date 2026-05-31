@@ -5,7 +5,7 @@ Get OpsTerm running in less than 2 minutes.
 ## 1. Install
 
 ```bash
-curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/bin/opsterm -o ~/.local/bin/opsterm
+curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm -o ~/.local/bin/opsterm
 chmod +x ~/.local/bin/opsterm
 opsterm init
 ```
