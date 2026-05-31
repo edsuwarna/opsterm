@@ -914,10 +914,9 @@ def do_provider(raw_args):
         print("  Supported providers — add one with `opsterm provider add`:\n")
         for key, dname in known:
             pinfo = KNOWN_PROVIDERS[key]
-            model = pinfo.get("default_model", "—")
             needs_key = not pinfo.get("no_key", False)
             no_key_tag = "  (no key needed)" if not needs_key else ""
-            print(f"    {key:<{max_key}}   {dname:<{max_name}}   {model}{no_key_tag}")
+            print(f"    {key:<{max_key}}   {dname:<{max_name}}{no_key_tag}")
         print(f"\n  Use `opsterm provider add` to configure one.")
 
     else:
