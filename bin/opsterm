@@ -18,12 +18,13 @@ Core Commands:
 Management Commands:
   servers <action> [<name>]        Manage server list — list, add, edit <name>, rm <name>
   workflows <action> [<name>]      Manage workflow list — list, add, edit <name>, rm <name>
-  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>
+  provider <action> [<name>]       Manage AI providers — list, add [name], rm <name>, default <name>, supported
   config <action> [<key>]          Manage config — list, get <key>, set <key> <val>
   vault <action> [<args>]          Encrypted credential store — init, set <key>, get <key>, list, rm <key>, lock
 
 Utility Commands:
   history [<limit>]                Show past queries (default: 20)
+  chat                             Interactive chat REPL with history
   last                             View the last shell command's output
   explain-last                     Explain last command output with AI
   init                             Initialize config directory (~/.opsterm)
@@ -722,7 +723,7 @@ def get_workflows() -> dict:
 def save_workflows(workflows: dict):
     save_yaml(WORKFLOWS_FILE, {"workflows": workflows})
 
-def do_provider(raw_args):
+def do_provider(raw_args, use_json=False):
     """Manage AI providers — add, list, rm, set-default."""
     cfg = load_yaml(CONFIG_FILE)
     providers = cfg.setdefault("providers", {})
@@ -730,11 +731,27 @@ def do_provider(raw_args):
     if len(raw_args) == 1 or (len(raw_args) > 1 and raw_args[1] == "list"):
         # ── list ──
         if not providers:
-            print("📭 No providers configured.")
-            print("   Use: opsterm provider add [name]")
-            print(f"  {_rtk_status_icon()}")
+            if use_json:
+                print('{"providers": {}, "default": ""}')
+            else:
+                print("📭 No providers configured.")
+                print("   Use: opsterm provider add [name]")
+                print("   See: opsterm provider supported   (list available provider types)")
+                print(f"  {_rtk_status_icon()}")
             return
         default = cfg.get("default_provider", "")
+        if use_json:
+            import json as _json
+            out = {"default_provider": default, "providers": {}}
+            for name, prov in providers.items():
+                p = dict(prov)
+                key = p.get("api_key", "")
+                p["api_key_masked"] = (key[:8] + "..." + key[-4:]) if len(key) > 14 else ""
+                if "api_key" in p:
+                    del p["api_key"]
+                out["providers"][name] = p
+            print(_json.dumps(out, indent=2))
+            return
         for name, prov in providers.items():
             marker = "⭐" if name == default else "  "
             print(f"  {marker} {name}")
@@ -902,13 +919,121 @@ def do_provider(raw_args):
         save_yaml(CONFIG_FILE, cfg)
         print(f"⭐ Default provider set to '{name}'.")
 
+    # ── supported ──
+    elif action == "supported":
+        known = _list_known_providers()
+        if not known:
+            print("❌ No known providers defined.")
+            return
+        max_key = max(len(k) for k, _ in known)
+        max_name = max(len(n) for _, n in known)
+        print("  Supported providers — add one with `opsterm provider add`:\n")
+        for key, dname in known:
+            pinfo = KNOWN_PROVIDERS[key]
+            needs_key = not pinfo.get("no_key", False)
+            no_key_tag = "  (no key needed)" if not needs_key else ""
+            print(f"    {key:<{max_key}}   {dname:<{max_name}}{no_key_tag}")
+        print(f"\n  Use `opsterm provider add` to configure one.")
+
+    # ── test ──
+    elif action == "test" and len(raw_args) > 2:
+        name = raw_args[2]
+        if name not in providers:
+            # Check known provider type
+            if name in KNOWN_PROVIDERS:
+                print(f"  📡 Provider type '{name}' is known but not configured.")
+                print(f"     Configure it first: opsterm provider add {name}")
+            else:
+                print(f"❌ Provider '{name}' not found.")
+            return
+        prov = providers[name]
+        print(f"  🔌 Testing provider '{name}'...")
+        print(f"     URL:   {prov.get('api_url', '?')}")
+        print(f"     Model: {prov.get('model', '?')}")
+        key = prov.get("api_key", "")
+        masked = (key[:8] + "..." + key[-4:]) if len(key) > 14 else "(no key)"
+        print(f"     Key:   {masked}")
+        test_cfg = load_config()
+        test_cfg["ai"]["api_key"] = prov.get("api_key", test_cfg["ai"].get("api_key", ""))
+        test_cfg["ai"]["api_url"] = prov.get("api_url", test_cfg["ai"].get("api_url", ""))
+        test_cfg["ai"]["model"] = prov.get("model", test_cfg["ai"].get("model", ""))
+        if not test_cfg["ai"]["api_key"]:
+            print("  ❌ No API key set for this provider.")
+            return
+        start = time.time()
+        result = ai_chat("Reply with 'pong' and nothing else.", "You are a test harness. Be concise.", test_cfg)
+        elapsed = time.time() - start
+        if result.startswith("❌"):
+            print(f"  ❌ Failed ({elapsed:.1f}s)")
+            print(f"     {result}")
+        else:
+            print(f"  ✅ Connection OK ({elapsed:.1f}s)")
+            print(f"     Response: {result[:200]}")
+
+    # ── models ──
+    elif action == "models":
+        name = raw_args[2] if len(raw_args) > 2 else ""
+        models_url = ""
+        needs_key = True
+        api_key = ""
+
+        if not name:
+            print("❌ Usage: opsterm provider models <name>")
+            return
+
+        # Check configured providers first
+        if name in providers:
+            prov = providers[name]
+            api_key = prov.get("api_key", "")
+            raw_url = prov.get("api_url", "")
+            # Derive models URL from api_url
+            for k, v in KNOWN_PROVIDERS.items():
+                if v.get("url") == raw_url:
+                    models_url = v.get("models_url", "")
+                    needs_key = not v.get("no_key", False)
+                    break
+            if not models_url:
+                base = raw_url.replace("/chat/completions", "").rstrip("/")
+                models_url = base + "/models"
+
+        # Check known provider types
+        elif name in KNOWN_PROVIDERS:
+            pinfo = KNOWN_PROVIDERS[name]
+            models_url = pinfo.get("models_url", "")
+            needs_key = not pinfo.get("no_key", False)
+            api_key = ""
+        else:
+            print(f"❌ Provider '{name}' not found.")
+            print("   Configured providers and known types are available.")
+            return
+
+        if not models_url:
+            print(f"❌ No models endpoint known for '{name}'.")
+            return
+
+        print(f"  📡 Fetching models from {models_url}...")
+        fetch_key = api_key if needs_key else ""
+        models = _fetch_models(models_url, fetch_key)
+        if not models:
+            print("  ❌ No models found or request failed.")
+            return
+        # Display as a nice list
+        models.sort()
+        print(f"  ✅ {len(models)} models available:\n")
+        for m in models:
+            print(f"     • {m}")
+        print(f"\n  Set model with: opsterm provider add {name} --model <model>")
+
     else:
         print("Usage:")
         print("  opsterm provider [list]                       List configured providers")
+        print("  opsterm provider supported                    List supported provider types")
         print("  opsterm provider add [name]                   Add/edit interactively")
         print("  opsterm provider add <name> --api-key KEY     Add with flags")
         print("                          --api-url URL")
         print("                          --model MODEL")
+        print("  opsterm provider test <name>                  Test provider connection")
+        print("  opsterm provider models <name>                List available models")
         print("  opsterm provider rm <name>                    Remove a provider")
         print("  opsterm provider default <name>               Set default provider")
 
@@ -952,7 +1077,7 @@ def add_history(mode: str, inp: str, out: str = ""):
     except Exception:
         pass
 
-def show_history(limit: int = 20):
+def show_history(limit: int = 20, use_json: bool = False):
     conn = init_db()
     rows = conn.execute(
         "SELECT id, timestamp, mode, input FROM history ORDER BY id DESC LIMIT ?",
@@ -960,7 +1085,17 @@ def show_history(limit: int = 20):
     ).fetchall()
     conn.close()
     if not rows:
-        print("📭 Belum ada riwayat.")
+        if use_json:
+            print('{"history": []}')
+        else:
+            print("📭 Belum ada riwayat.")
+        return
+    if use_json:
+        import json as _json
+        items = []
+        for rid, ts, mode, inp in reversed(rows):
+            items.append({"id": rid, "timestamp": ts, "mode": mode, "input": inp})
+        print(_json.dumps({"history": items}, indent=2))
         return
     for rid, ts, mode, inp in reversed(rows):
         icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
@@ -1938,6 +2073,94 @@ def cmd_update():
     print(f"♻️  Restart OpsTerm to use the new version.")
 
 
+def cmd_chat(raw_args):
+    """Interactive chat REPL — type messages, get AI responses, /exit to quit."""
+    config = load_config()
+    ai_cfg = config["ai"]
+    api_key = ai_cfg.get("api_key", "")
+    if not api_key:
+        print("❌ No API key configured. Add a provider first: opsterm provider add")
+        return
+
+    messages = [
+        {"role": "system", "content": "You are OpsTerm, an AI terminal assistant. Help the user with commands, technical questions, explanations, and system administration. Be concise and practical."}
+    ]
+
+    provider_name = config.get("default_provider", "default")
+    print(f"💬 Opsterm Chat — /exit to quit, /clear to reset")
+    print(f"   {provider_name} · {ai_cfg.get('model', '?')}")
+    print()
+
+    while True:
+        try:
+            prompt = input("  You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not prompt:
+            continue
+        if prompt.lower() in ("/exit", "/quit", "/q"):
+            break
+        if prompt.lower() == "/clear":
+            messages = [messages[0]]
+            print("  🧹 Conversation reset.")
+            continue
+        if prompt.startswith("/"):
+            print(f"  ❌ Unknown command: {prompt}")
+            continue
+
+        messages.append({"role": "user", "content": prompt})
+        payload = {
+            "model": ai_cfg.get("model", "deepseek-chat"),
+            "messages": messages,
+            "temperature": ai_cfg.get("temperature", 0.3),
+            "max_tokens": ai_cfg.get("max_tokens", 2048),
+            "stream": False,
+        }
+        stop_spinner = threading.Event()
+        spinner_started = False
+        spinner_thread = threading.Thread(
+            target=_loading_spinner, args=(stop_spinner, "AI"), daemon=True
+        )
+        if sys.stdout.isatty():
+            spinner_thread.start()
+            spinner_started = True
+        try:
+            req = urllib.request.Request(
+                ai_cfg["api_url"],
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                    "User-Agent": "Mozilla/5.0",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+            if spinner_started:
+                stop_spinner.set()
+                spinner_thread.join(timeout=1)
+            reply = result["choices"][0]["message"]["content"].strip()
+            messages.append({"role": "assistant", "content": reply})
+            print(f"\n  🤖 {reply}\n")
+            add_history("chat", prompt, reply)
+        except urllib.error.HTTPError as e:
+            if spinner_started:
+                stop_spinner.set()
+                spinner_thread.join(timeout=1)
+            body = e.read().decode("utf-8", errors="replace")
+            print(f"\n  ❌ HTTP {e.code}: {body[:300]}\n")
+        except Exception as e:
+            if spinner_started:
+                stop_spinner.set()
+                spinner_thread.join(timeout=1)
+            print(f"\n  ❌ Error: {e}\n")
+
+
+# ── version check ──────────────────────────────────────────
+VERSION_CHECK_INTERVAL = 86400  # 24 jam
+
 # ═══════════════════════════════════════════════════════════
 # MAIN CLI
 # ═══════════════════════════════════════════════════════════
@@ -1958,12 +2181,13 @@ def main():
             Management Commands:
               servers <action> [<name>]      Manage server list — list, add, edit <name>, rm <name>
               workflows <action> [<name>]    Manage workflow list — list, add, edit <name>, rm <name>
-              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>
+              provider <action> [<name>]     Manage AI providers — list, add [name], rm <name>, default <name>, supported
               config <action> [<key>]        Manage config — list, get <key>, set <key> <val>
               vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
             Utility Commands:
               history [<limit>]              Show past queries (default: 20)
+              chat                           Interactive chat REPL with history
               last                           View the last shell command's output
               explain-last                   Explain last command output with AI
               init                           Initialize config directory (~/.opsterm)
@@ -1990,9 +2214,17 @@ def main():
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {VERSION}")
     parser.add_argument("--verbose", "-V", action="store_true", help="Detailed AI response (verbose mode)")
     parser.add_argument("--concise", "-C", action="store_true", help="Concise AI response (override config)")
+    parser.add_argument("--json", action="store_true", help="Output in JSON format (for list commands)")
     parser.add_argument("args", nargs="*", help="Command or prompt")
     known_args, extra = parser.parse_known_args()
     raw_args = known_args.args + extra  # keep --flags for provider subcommand
+    # Read stdin data for pipe mode
+    stdin_data = ""
+    if not sys.stdin.isatty():
+        try:
+            stdin_data = sys.stdin.read()
+        except Exception:
+            pass
     if not raw_args and not stdin_data:
         parser.print_help()
         return
@@ -2041,16 +2273,30 @@ def main():
         elif raw_args[1] == "set" and len(raw_args) > 3:
             key = raw_args[2]
             val = raw_args[3]
-            # Validate ai.response_style values
-            if key == "ai.response_style" and val not in ("concise", "detailed"):
-                print(f"❌ Invalid value '{val}' for ai.response_style. Use: concise or detailed")
-                return
             current = load_yaml(CONFIG_FILE)
             parts = key.split(".")
             d = current
             for p in parts[:-1]:
                 d = d.setdefault(p, {})
-            d[parts[-1]] = _parse_scalar(val)
+            # Validate common keys
+            parsed = _parse_scalar(val)
+            if key == "ai.response_style":
+                if val not in ("concise", "detailed"):
+                    print(f"❌ Invalid value '{val}' for ai.response_style. Use: concise or detailed")
+                    return
+            elif key == "ai.temperature":
+                if not isinstance(parsed, (int, float)) or parsed < 0 or parsed > 2:
+                    print(f"❌ temperature must be a number between 0 and 2.")
+                    return
+            elif key == "ai.max_tokens":
+                if not isinstance(parsed, (int, float)) or parsed < 1:
+                    print(f"❌ max_tokens must be a positive number.")
+                    return
+            elif key in ("shell.confirm_before_exec", "rtk.enabled", "rtk.auto_detect", "rtk.ultra_compact"):
+                if parsed not in (True, False):
+                    print(f"❌ '{key}' must be true or false.")
+                    return
+            d[parts[-1]] = parsed
             save_yaml(CONFIG_FILE, current)
             print(f"✅ {key} = {val}")
         else:
@@ -2058,7 +2304,7 @@ def main():
 
     # ── provider ──
     elif subcmd == "provider":
-        do_provider(raw_args)
+        do_provider(raw_args, use_json=known_args.json)
 
     # ── servers ──
     elif subcmd == "servers":
@@ -2066,9 +2312,47 @@ def main():
         if len(raw_args) == 1:
             print_server_table(servers)
             print(f"\n  Total: {len(servers)} server(s)")
-            print("  Usage: ai servers [list|add|edit|rm]")
+            print("  Usage: ai servers [list|add|edit <name>|rm <name>|ping <name>]")
         elif raw_args[1] == "list":
-            print_server_table(servers)
+            if hasattr(known_args, 'json') and known_args.json:
+                import json as _json
+                print(_json.dumps(servers, indent=2))
+            else:
+                print_server_table(servers)
+        elif raw_args[1] == "ping" and len(raw_args) > 2:
+            target = raw_args[2]
+            srv = servers.get(target)
+            if not srv:
+                exact = _fuzzy_match(target, servers)
+                if not exact:
+                    print(f"❌ Server '{target}' not found.")
+                    return
+                srv = servers[exact]
+            host = srv.get("host", "")
+            user = srv.get("user", "root")
+            port = srv.get("port", 22)
+            key = srv.get("key", "")
+            print(f"  🏓 Pinging '{target}' ({user}@{host}:{port})...")
+            start = time.time()
+            cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes"]
+            if port != 22:
+                cmd.extend(["-p", str(port)])
+            if key:
+                cmd.extend(["-i", key])
+            cmd.append(f"{user}@{host}")
+            cmd.append("echo pong")
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                elapsed = time.time() - start
+                if result.returncode == 0 and "pong" in result.stdout:
+                    print(f"  ✅ Connected! ({elapsed:.1f}s)")
+                else:
+                    err = result.stderr.strip()[:200]
+                    print(f"  ❌ Failed ({elapsed:.1f}s): {err}")
+            except subprocess.TimeoutExpired:
+                print(f"  ❌ Timeout (>10s)")
+            except Exception as e:
+                print(f"  ❌ Error: {e}")
         elif raw_args[1] == "add":
             interactive_add_server()
         elif raw_args[1] == "edit" and len(raw_args) > 2:
@@ -2279,21 +2563,17 @@ def main():
         add_history("workflow", f"run {wf_name}")
         run_workflow(wf_name, workflows, servers, config)
 
+    # ── chat ──
+    elif subcmd == "chat":
+        cmd_chat(raw_args)
+
     # ── history ──
     elif subcmd == "history":
         limit = int(raw_args[1]) if len(raw_args) > 1 and raw_args[1].isdigit() else 20
-        show_history(limit)
+        show_history(limit, use_json=known_args.json)
 
     # ── AI mode (default) ──
     else:
-        # Read stdin only when it's actually needed (pipe mode)
-        stdin_data = ""
-        if not sys.stdin.isatty():
-            try:
-                stdin_data = sys.stdin.read()
-            except Exception:
-                pass
-
         prompt = " ".join(raw_args) if raw_args else ""
         if not prompt and stdin_data:
             prompt = "Jelaskan output ini"
