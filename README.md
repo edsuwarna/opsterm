@@ -30,19 +30,20 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 📋 **History** | `opsterm history` | Command history |
 | 🔄 **Self-Update** | `opsterm update` | Check & install latest version |
 | 🛠️ **Custom Provider** | `opsterm provider add <name> --api-key KEY` | Choose any AI provider |
-|| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
-|| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
-|| 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Rename a server |
-|| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import servers from ~/.ssh/config |
-|| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
-|| ✅ **Config Validate** | `opsterm config validate` | Validate all YAML config files |
-|| 📚 **Search History** | `opsterm search <query>` | Search chat history by keyword |
-|| 🔄 **Chat Resume** | `opsterm chat --continue` | Resume last chat session |
-|| 📦 **Config Export** | `opsterm export [<file>]` | Export config to tar.gz (keys masked) |
-|| 📥 **Config Import** | `opsterm import <file>` | Import config from tar.gz |
-|| 🗑️ **Config Reset** | `opsterm reset` | Reset config to defaults |
-|| 📋 **Workflow Init** | `opsterm workflows init` | Create sample workflows |
-|| 🌐 **Batch SSH** | `opsterm ssh --all <command>` | Run command on all servers |
+| 🖥️ **Web Dashboard** | `opsterm web [--port <port>] [--open]` | Browser UI to manage servers/workflows/config |
+| 🏥 **Diagnostics** | `opsterm doctor` | Check config & diagnose issues |
+| 📋 **Server Details** | `opsterm servers show <name>` | View server connection details |
+| 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Rename a server |
+| 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Import servers from ~/.ssh/config |
+| ⚙️ **Custom System Prompt** | `opsterm config set ai.system_prompt <text>` | Customize AI personality |
+| ✅ **Config Validate** | `opsterm config validate` | Validate all YAML config files |
+| 📚 **Search History** | `opsterm search <query>` | Search chat history by keyword |
+| 🔄 **Chat Resume** | `opsterm chat --continue` | Resume last chat session |
+| 📦 **Config Export** | `opsterm export [<file>]` | Export config to tar.gz (keys masked) |
+| 📥 **Config Import** | `opsterm import <file>` | Import config from tar.gz |
+| 🗑️ **Config Reset** | `opsterm reset` | Reset config to defaults |
+| 📋 **Workflow Init** | `opsterm workflows init` | Create sample workflows |
+| 🌐 **Batch SSH** | `opsterm ssh --all <command>` | Run command on all servers |
 
 > 💡 All list commands (`provider list`, `servers list`, `history`) support `--json` flag for scripting.
 
@@ -442,8 +443,8 @@ workflows:
 - [x] Chat REPL (interactive mode)
 - [x] JSON output (`--json` flag)
 - [x] Config validation
-- [ ] Web dashboard (see workflows and servers in browser)
-- [ ] SSH config import (from `~/.ssh/config`)
+- [x] Import SSH config (~/.ssh/config)
+- [x] Web dashboard (browser UI for servers/workflows/config)
 - [ ] Multi-language AI responses
 - [ ] Plugin system
 

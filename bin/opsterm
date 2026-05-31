@@ -38,7 +38,7 @@ Utility Commands:
   completion install               Auto-detect shell, install permanently
 """
 
-VERSION = "v0.6.0"
+VERSION = "v0.7.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
@@ -92,6 +92,9 @@ CONFIG_FILE = CONFIG_DIR / "config.yaml"
 SERVERS_FILE = CONFIG_DIR / "servers.yaml"
 WORKFLOWS_FILE = CONFIG_DIR / "workflows.yaml"
 HISTORY_DB = CONFIG_DIR / "history.db"
+
+WEB_DIR = CONFIG_DIR / "web"
+WEB_INDEX = WEB_DIR / "index.html"
 VAULT_FILE = CONFIG_DIR / "vault.json"
 LAST_OUTPUT_FILE = CONFIG_DIR / "last_output.txt"
 LAST_CMD_FILE = CONFIG_DIR / "last_command.txt"
@@ -1774,6 +1777,7 @@ _opsterm() {
         'last:Last command output'
         'explain-last:Explain last output with AI'
         'doctor:Diagnose installation and configuration'
+        'web:Buka web dashboard'
         'search:Search chat history'
         'export:Export config to tar.gz'
         'import:Import config from tar.gz'
@@ -2756,6 +2760,275 @@ VERSION_CHECK_INTERVAL = 86400  # 24 jam
 # SUBCOMMAND HELP
 # ═══════════════════════════════════════════════════════════
 
+
+# ═══════════════════════════════════════════════════════════
+# WEB DASHBOARD
+# ═══════════════════════════════════════════════════════════
+
+WEB_DASHBOARD_HTML = """<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>OpsTerm Dashboard</title>\n<style>\n  :root {\n    --bg: #0d1117; --card: #161b22; --border: #30363d;\n    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;\n    --green: #3fb950; --red: #f85149; --yellow: #d29922;\n    --radius: 8px; --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', monospace;\n  }\n  * { box-sizing: border-box; margin: 0; padding: 0; }\n  body {\n    background: var(--bg); color: var(--text);\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n    line-height: 1.5; padding: 20px; min-height: 100vh;\n  }\n  .header {\n    display: flex; align-items: center; justify-content: space-between;\n    max-width: 960px; margin: 0 auto 24px; flex-wrap: wrap; gap: 12px;\n  }\n  .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 8px; }\n  .header h1 span { color: var(--muted); font-size: 0.85rem; font-weight: 400; }\n  .badge {\n    font-size: 0.75rem; padding: 2px 10px; border-radius: 12px;\n    background: var(--card); border: 1px solid var(--border);\n  }\n  .tabs {\n    display: flex; gap: 4px; max-width: 960px; margin: 0 auto 20px;\n    background: var(--card); border-radius: var(--radius); padding: 4px;\n    border: 1px solid var(--border); overflow-x: auto;\n  }\n  .tab {\n    padding: 8px 20px; border: none; background: transparent; color: var(--muted);\n    cursor: pointer; border-radius: 6px; font-size: 0.875rem; font-weight: 500;\n    transition: all .15s; white-space: nowrap;\n  }\n  .tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }\n  .tab.active { background: var(--accent); color: #fff; }\n  .content { max-width: 960px; margin: 0 auto; }\n  .panel { display: none; }\n  .panel.active { display: block; }\n  .card {\n    background: var(--card); border: 1px solid var(--border);\n    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;\n  }\n  .card h2 { font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }\n  .card-header {\n    display: flex; justify-content: space-between; align-items: center;\n    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;\n  }\n  .card-header h2 { margin-bottom: 0; }\n  table {\n    width: 100%; border-collapse: collapse; font-size: 0.85rem;\n  }\n  th {\n    text-align: left; padding: 8px 12px; color: var(--muted);\n    font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;\n  }\n  td {\n    padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle;\n  }\n  tr:last-child td { border-bottom: none; }\n  tr:hover td { background: rgba(255,255,255,0.02); }\n  .mono { font-family: var(--mono); font-size: 0.8rem; }\n  .empty { color: var(--muted); text-align: center; padding: 40px 0; }\n  .empty p { margin-bottom: 8px; }\n  .btn {\n    display: inline-flex; align-items: center; gap: 4px;\n    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);\n    background: transparent; color: var(--text); cursor: pointer;\n    font-size: 0.8rem; transition: all .15s; text-decoration: none;\n  }\n  .btn:hover { background: rgba(255,255,255,0.06); }\n  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }\n  .btn-primary:hover { opacity: 0.9; }\n  .btn-danger { color: var(--red); border-color: var(--red); }\n  .btn-danger:hover { background: var(--red); color: #fff; }\n  .btn-success { color: var(--green); border-color: var(--green); }\n  .btn-success:hover { background: var(--green); color: #fff; }\n  .btn-sm { padding: 3px 10px; font-size: 0.75rem; }\n  .actions { display: flex; gap: 4px; }\n  .modal-overlay {\n    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);\n    z-index: 100; align-items: center; justify-content: center;\n  }\n  .modal-overlay.show { display: flex; }\n  .modal {\n    background: var(--card); border: 1px solid var(--border);\n    border-radius: var(--radius); padding: 24px; width: 90%; max-width: 500px;\n    max-height: 80vh; overflow-y: auto;\n  }\n  .modal h3 { margin-bottom: 16px; }\n  .form-group { margin-bottom: 12px; }\n  .form-group label { display: block; color: var(--muted); font-size: 0.8rem; margin-bottom: 4px; }\n  .form-group input, .form-group textarea {\n    width: 100%; padding: 8px 12px; background: var(--bg);\n    border: 1px solid var(--border); border-radius: 6px; color: var(--text);\n    font-size: 0.85rem; font-family: var(--mono);\n  }\n  .form-group input:focus, .form-group textarea:focus {\n    outline: none; border-color: var(--accent);\n  }\n  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }\n  .toast {\n    position: fixed; bottom: 20px; right: 20px; z-index: 200;\n    padding: 12px 20px; border-radius: var(--radius); font-size: 0.85rem;\n    background: var(--card); border: 1px solid var(--border);\n    box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none;\n    max-width: 400px; word-break: break-word;\n  }\n  .toast.show { display: block; }\n  .toast.success { border-color: var(--green); }\n  .toast.error { border-color: var(--red); }\n  .config-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 0.85rem; }\n  .config-grid .key { color: var(--muted); font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; }\n  .config-grid .val { font-family: var(--mono); font-size: 0.8rem; word-break: break-all; }\n  .count-badge {\n    display: inline-flex; align-items: center; justify-content: center;\n    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;\n    font-size: 0.7rem; font-weight: 600; background: rgba(88,166,255,0.15);\n    color: var(--accent);\n  }\n  .wf-steps { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }\n  .wf-steps code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; }\n  .output-box {\n    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;\n    padding: 12px; font-family: var(--mono); font-size: 0.78rem; white-space: pre-wrap;\n    max-height: 300px; overflow-y: auto; margin-top: 8px; display: none;\n  }\n  .output-box.show { display: block; }\n  .loading { text-align: center; padding: 40px 0; color: var(--muted); }\n  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }\n  @keyframes spin { to { transform: rotate(360deg); } }\n  @media (max-width: 640px) {\n    body { padding: 12px; }\n    .header h1 { font-size: 1.2rem; }\n    .tabs { overflow-x: auto; }\n    table { font-size: 0.78rem; }\n    td, th { padding: 6px 8px; }\n    .config-grid { grid-template-columns: 1fr; gap: 2px 0; }\n  }\n</style>\n</head>\n<body>\n<div class=\"header\">\n  <h1>🚀 OpsTerm <span id=\"version\"></span></h1>\n  <div><span class=\"badge\" id=\"status-badge\">⏳ loading...</span></div>\n</div>\n\n<div class=\"tabs\" role=\"tablist\">\n  <button class=\"tab active\" data-tab=\"servers\">🖥️ Servers <span class=\"count-badge\" id=\"server-count\">0</span></button>\n  <button class=\"tab\" data-tab=\"workflows\">⚡ Workflows <span class=\"count-badge\" id=\"wf-count\">0</span></button>\n  <button class=\"tab\" data-tab=\"config\">⚙️ Config</button>\n</div>\n\n<div class=\"content\">\n  <div class=\"panel active\" id=\"panel-servers\">\n    <div class=\"card-header\">\n      <h2>🖥️ Servers</h2>\n      <button class=\"btn btn-primary btn-sm\" onclick=\"showAddServer()\">+ Add Server</button>\n    </div>\n    <div class=\"card\" id=\"server-list\"><div class=\"loading\"><span class=\"spinner\"></span>Loading servers...</div></div>\n  </div>\n  <div class=\"panel\" id=\"panel-workflows\">\n    <div class=\"card-header\">\n      <h2>⚡ Workflows</h2>\n    </div>\n    <div class=\"card\" id=\"workflow-list\"><div class=\"loading\"><span class=\"spinner\"></span>Loading workflows...</div></div>\n  </div>\n  <div class=\"panel\" id=\"panel-config\">\n    <h2>⚙️ Configuration</h2>\n    <div class=\"card\" id=\"config-display\"><div class=\"loading\"><span class=\"spinner\"></span>Loading config...</div></div>\n  </div>\n</div>\n\n<div class=\"modal-overlay\" id=\"modal\">\n  <div class=\"modal\">\n    <h3 id=\"modal-title\"></h3>\n    <div id=\"modal-body\"></div>\n    <div class=\"modal-actions\">\n      <button class=\"btn\" onclick=\"closeModal()\">Cancel</button>\n      <button class=\"btn btn-primary\" id=\"modal-confirm\">Save</button>\n    </div>\n  </div>\n</div>\n\n<div class=\"toast\" id=\"toast\"></div>\n\n<script>\nconst API = '/api';\ndocument.querySelectorAll('.tab').forEach(tab => {\n  tab.addEventListener('click', () => {\n    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));\n    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));\n    tab.classList.add('active');\n    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');\n  });\n});\nlet toastTimer;\nfunction showToast(msg, type = '') {\n  const t = document.getElementById('toast');\n  t.textContent = msg; t.className = 'toast show ' + type;\n  clearTimeout(toastTimer);\n  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);\n}\nlet modalCallback = null;\nfunction showModal(title, bodyHtml, onConfirm) {\n  document.getElementById('modal-title').textContent = title;\n  document.getElementById('modal-body').innerHTML = bodyHtml;\n  document.getElementById('modal-overlay').classList.add('show');\n  modalCallback = onConfirm;\n}\nfunction closeModal() {\n  document.getElementById('modal-overlay').classList.remove('show');\n  modalCallback = null;\n}\ndocument.getElementById('modal-confirm').addEventListener('click', () => {\n  if (modalCallback) modalCallback();\n  closeModal();\n});\ndocument.getElementById('modal-overlay').addEventListener('click', (e) => {\n  if (e.target === e.currentTarget) closeModal();\n});\nasync function api(method, path, body) {\n  const opts = { method, headers: {} };\n  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }\n  const r = await fetch(API + path, opts);\n  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }\n  return r.json();\n}\nasync function loadAll() {\n  try {\n    const [status, servers, workflows, config] = await Promise.all([\n      api('GET', '/status'), api('GET', '/servers'),\n      api('GET', '/workflows'), api('GET', '/config')\n    ]);\n    document.getElementById('version').textContent = status.version || '';\n    document.getElementById('status-badge').textContent =\n      '🟢 ' + (status.servers_count || 0) + ' servers  · ' + (status.workflows_count || 0) + ' workflows';\n    renderServers(servers.servers || {});\n    renderWorkflows(workflows.workflows || {});\n    renderConfig(config.config || {});\n  } catch(e) {\n    document.getElementById('status-badge').textContent = '🔴 connection error';\n    showToast('Failed to connect: ' + e.message, 'error');\n  }\n}\nfunction renderServers(servers) {\n  const names = Object.keys(servers);\n  document.getElementById('server-count').textContent = names.length;\n  const el = document.getElementById('server-list');\n  if (!names.length) {\n    el.innerHTML = '<div class=\"empty\"><p>No servers configured</p><button class=\"btn btn-primary\" onclick=\"showAddServer()\">+ Add Server</button></div>';\n    return;\n  }\n  el.innerHTML = '<table><thead><tr><th>Name</th><th>Host</th><th>User</th><th>Port</th><th>Proxy</th><th></th></tr></thead><tbody>' +\n    names.map(n => {\n      const s = servers[n] || {};\n      return '<tr><td><strong>' + esc(n) + '</strong></td><td class=\"mono\">' + esc(s.host||'-') + '</td><td>' + esc(s.user||'root') +\n        '</td><td>' + (s.port||22) + '</td><td>' + (s.proxy ? esc(s.proxy) : '<span style=\"color:var(--muted)\">—</span>') +\n        '</td><td><div class=\"actions\"><button class=\"btn btn-sm\" onclick=\"pingServer(' + \"'\" + escAttr(n) + \"'\" + ', this)\">🏓</button>' +\n        '<button class=\"btn btn-sm\" onclick=\"editServer(' + \"'\" + escAttr(n) + \"'\" + ')\">Edit</button>' +\n        '<button class=\"btn btn-sm btn-danger\" onclick=\"deleteServer(' + \"'\" + escAttr(n) + \"'\" + ')\">Del</button></div></td></tr>';\n    }).join('') + '</tbody></table>';\n}\nfunction showAddServer() { showServerForm('Add Server', {}); }\nfunction editServer(name) {\n  api('GET', '/servers').then(d => {\n    const s = (d.servers||{})[name];\n    if (s) showServerForm('Edit Server: ' + name, s, name);\n  });\n}\nfunction showServerForm(title, data, editName) {\n  const nameField = '<div class=\"form-group\"><label>Name</label><input id=\"f-name\" value=\"' + escAttr(editName||'') + '\"' +\n    (editName ? ' readonly style=\"opacity:0.6\"' : '') + '></div>';\n  showModal(title, nameField +\n    '<div class=\"form-group\"><label>Host</label><input id=\"f-host\" value=\"' + escAttr(data.host||'') + '\"></div>' +\n    '<div class=\"form-group\"><label>User</label><input id=\"f-user\" value=\"' + escAttr(data.user||'root') + '\"></div>' +\n    '<div class=\"form-group\"><label>Port</label><input id=\"f-port\" value=\"' + (data.port||22) + '\"></div>' +\n    '<div class=\"form-group\"><label>SSH Key</label><input id=\"f-key\" value=\"' + escAttr(data.key||'') + '\" placeholder=\"~/.ssh/id_ed25519\"></div>' +\n    '<div class=\"form-group\"><label>Proxy/Jump Host</label><input id=\"f-proxy\" value=\"' + escAttr(data.proxy||'') + '\"></div>' +\n    '<div class=\"form-group\"><label>Description</label><input id=\"f-desc\" value=\"' + escAttr(data.desc||'') + '\"></div>',\n  async () => {\n    const name = document.getElementById('f-name').value.trim();\n    const host = document.getElementById('f-host').value.trim();\n    if (!name || !host) { showToast('Name and host required', 'error'); return; }\n    const body = {\n      host, user: document.getElementById('f-user').value.trim() || 'root',\n      port: parseInt(document.getElementById('f-port').value) || 22,\n      key: document.getElementById('f-key').value.trim(),\n      proxy: document.getElementById('f-proxy').value.trim(),\n      desc: document.getElementById('f-desc').value.trim(),\n    };\n    if (editName) {\n      await api('PUT', '/servers/' + encodeURIComponent(editName), body);\n      showToast('✅ Server updated', 'success');\n    } else {\n      await api('POST', '/servers', { name: name, ...body });\n      showToast('✅ Server added', 'success');\n    }\n    loadAll();\n  });\n}\nasync function deleteServer(name) {\n  showModal('Delete Server', '<p>Delete server <strong>' + esc(name) + '</strong>? This cannot be undone.</p>', async () => {\n    await api('DELETE', '/servers/' + encodeURIComponent(name));\n    showToast('🗑️ Server deleted', 'success');\n    loadAll();\n  });\n}\nasync function pingServer(name, btn) {\n  btn.disabled = true; btn.textContent = '⏳';\n  try {\n    const r = await api('POST', '/servers/' + encodeURIComponent(name) + '/ping');\n    if (r.ok) showToast('🏓 ' + name + ': ' + r.latency + ' (' + r.host + ')', 'success');\n    else showToast('🏓 ' + name + ': ❌ ' + r.error, 'error');\n  } catch(e) {\n    showToast('🏓 ' + name + ': ❌ ' + e.message, 'error');\n  }\n  btn.disabled = false; btn.textContent = '🏓';\n}\nfunction renderWorkflows(workflows) {\n  const names = Object.keys(workflows);\n  document.getElementById('wf-count').textContent = names.length;\n  const el = document.getElementById('workflow-list');\n  if (!names.length) {\n    el.innerHTML = '<div class=\"empty\"><p>No workflows yet</p><p class=\"mono\" style=\"font-size:0.8rem\">opsterm workflows init</p></div>';\n    return;\n  }\n  el.innerHTML = names.map(n => {\n    const w = workflows[n] || {};\n    const steps = w.steps || [];\n    const stepText = steps.map(s => {\n      if (s.command) return '<code>' + esc(s.command) + '</code>';\n      if (s.ssh) return '<code>ssh ' + esc(s.ssh) + ': ' + esc(s.command||'') + '</code>';\n      if (s.local) return '<code>local: ' + esc(s.local) + '</code>';\n      return '';\n    }).join(' → ');\n    return '<div class=\"card\" style=\"margin-bottom:8px\"><div style=\"display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px\">' +\n      '<div><strong>' + esc(n) + '</strong><div class=\"wf-steps\">' + (stepText || '<span style=\"color:var(--muted)\">no steps</span>') + '</div></div>' +\n      '<button class=\"btn btn-success btn-sm\" onclick=\"runWorkflow(' + \"'\" + escAttr(n) + \"'\" + ', this)\">▶ Run</button></div>' +\n      '<div class=\"output-box\" id=\"output-' + escAttr(n) + '\"></div></div>';\n  }).join('');\n}\nasync function runWorkflow(name, btn) {\n  const outBox = document.getElementById('output-' + name);\n  outBox.classList.add('show');\n  outBox.textContent = '⏳ Running...';\n  btn.disabled = true; btn.textContent = '⏳';\n  try {\n    const r = await api('POST', '/workflows/run/' + encodeURIComponent(name));\n    outBox.textContent = r.output || '✅ Done (no output)';\n    showToast('✅ Workflow complete', 'success');\n  } catch(e) {\n    outBox.textContent = '❌ Error: ' + e.message;\n    showToast('❌ Workflow failed', 'error');\n  }\n  btn.disabled = false; btn.textContent = '▶ Run';\n}\nfunction renderConfig(config) {\n  if (!config || !Object.keys(config).length) {\n    document.getElementById('config-display').innerHTML = '<div class=\"empty\">No config</div>';\n    return;\n  }\n  const flat = flattenObj(config);\n  const entries = Object.entries(flat);\n  document.getElementById('config-display').innerHTML =\n    '<table><thead><tr><th>Key</th><th>Value</th><th></th></tr></thead><tbody>' + entries.map(([k,v]) =>\n      '<tr><td class=\"mono\" style=\"color:var(--muted)\">' + esc(k) + '</td><td class=\"mono\" style=\"word-break:break-all\">' +\n      esc(String(v)) + '</td><td><button class=\"btn btn-sm\" onclick=\"editConfigValue(' + \"'\" + escAttr(k) + \"'\" + ', ' + \"'\" + escAttr(String(v)) + \"'\" + ')\">✏️</button></td></tr>'\n    ).join('') + '</tbody></table>';\n}\nfunction editConfigValue(key, currentVal) {\n  showModal('Edit Config: ' + key,\n    '<div class=\"form-group\"><label>Value</label><input id=\"f-config-val\" value=\"' + escAttr(currentVal) + '\" style=\"font-family:var(--mono)\"></div>' +\n    '<p style=\"color:var(--muted);font-size:0.75rem\">Key: <code>' + esc(key) + '</code></p>',\n  async () => {\n    const val = document.getElementById('f-config-val').value;\n    await api('PUT', '/config', { updates: { [key]: val } });\n    showToast('✅ Config updated: ' + key, 'success');\n    loadAll();\n  });\n}\nfunction flattenObj(obj, prefix) {\n  if (!prefix) prefix = '';\n  let result = {};\n  for (const [k, v] of Object.entries(obj)) {\n    const key = prefix ? prefix + '.' + k : k;\n    if (v && typeof v === 'object' && !Array.isArray(v)) {\n      Object.assign(result, flattenObj(v, key));\n    } else if (Array.isArray(v)) {\n      result[key] = v.map(x => typeof x === 'object' ? JSON.stringify(x) : String(x)).join(', ');\n    } else {\n      result[key] = v;\n    }\n  }\n  return result;\n}\nfunction esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }\nfunction escAttr(s) { return esc(s).replace(/'/g,'&#39;'); }\nloadAll();\n// Auto-refresh every 30s (paused while modal is open)\nsetInterval(() => {\n  if (!document.getElementById('modal-overlay').classList.contains('show')) loadAll();\n}, 30000);\n</script>\n</body>\n</html>\n"""
+
+
+def cmd_web(port=8765, open_browser=False):
+    """Start the OpsTerm web dashboard server."""
+    import http.server
+    import json as _json
+    import urllib.parse
+    import webbrowser
+    import subprocess
+    import time
+    import copy
+
+    # Ensure dashboard HTML exists on disk
+    WEB_DIR.mkdir(parents=True, exist_ok=True)
+    if not WEB_INDEX.exists():
+        WEB_INDEX.write_text(WEB_DASHBOARD_HTML, encoding="utf-8")
+        os.chmod(str(WEB_INDEX), 0o644)
+
+    server_addr = ("127.0.0.1", port)
+
+    class DashboardHandler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass  # Suppress default logging
+
+        def _send_json(self, data, status=200):
+            body = _json.dumps(data).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _send_html(self, html, status=200):
+            body = html.encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _read_body(self):
+            length = int(self.headers.get("Content-Length", 0))
+            if length > 0:
+                return self.rfile.read(length).decode("utf-8")
+            return "{}"
+
+        def _parse_path(self):
+            parsed = urllib.parse.urlparse(self.path)
+            path = parsed.path.rstrip("/") or "/"
+            return path
+
+        def do_GET(self):
+            path = self._parse_path()
+            if path == "/api/status":
+                srv = get_servers()
+                wf = get_workflows()
+                self._send_json({
+                    "version": VERSION,
+                    "servers_count": len(srv),
+                    "workflows_count": len(wf),
+                })
+            elif path == "/api/servers":
+                self._send_json({"servers": get_servers()})
+            elif path == "/api/workflows":
+                self._send_json({"workflows": get_workflows()})
+            elif path == "/api/config":
+                cfg = copy.deepcopy(load_config())
+                # Mask sensitive keys
+                def _mask_keys(d):
+                    if isinstance(d, dict):
+                        for k, v in d.items():
+                            if k == "api_key" and v and isinstance(v, str):
+                                d[k] = (v[:8] + "..." + v[-4:]) if len(v) > 14 else ("***" if v else "")
+                            else:
+                                _mask_keys(v)
+                    return d
+                _mask_keys(cfg)
+                self._send_json({"config": cfg})
+            elif path == "/" or path == "":
+                html_file = WEB_INDEX.read_text(encoding="utf-8") if WEB_INDEX.exists() else WEB_DASHBOARD_HTML
+                self._send_html(html_file)
+            elif path.startswith("/api/"):
+                self._send_json({"error": "Not found"}, 404)
+            else:
+                self._send_html(WEB_DASHBOARD_HTML)
+
+        def do_POST(self):
+            path = self._parse_path()
+            try:
+                body = _json.loads(self._read_body())
+            except _json.JSONDecodeError:
+                body = {}
+
+            if path == "/api/servers":
+                name = body.get("name", "").strip()
+                if not name:
+                    self._send_json({"error": "Name required"}, 400)
+                    return
+                servers = get_servers()
+                if name in servers:
+                    self._send_json({"error": "Server already exists"}, 409)
+                    return
+                servers[name] = {
+                    "host": body.get("host", ""),
+                    "user": body.get("user", "root"),
+                    "port": int(body.get("port", 22)),
+                    "key": body.get("key", ""),
+                    "desc": body.get("desc", ""),
+                }
+                if body.get("proxy"):
+                    servers[name]["proxy"] = body["proxy"]
+                save_servers(servers)
+                self._send_json({"ok": True, "name": name})
+
+            elif path.startswith("/api/workflows/run/"):
+                wf_name = urllib.parse.unquote(path.split("/api/workflows/run/")[1])
+                workflows = get_workflows()
+                if wf_name not in workflows:
+                    self._send_json({"error": f"Workflow '{wf_name}' not found"}, 404)
+                    return
+                # Run workflow and capture output
+                import io
+                old_stdout = sys.stdout
+                sys.stdout = captured = io.StringIO()
+                try:
+                    srv = get_servers()
+                    cfg = load_config()
+                    run_workflow(wf_name, workflows, srv, cfg)
+                except Exception as e:
+                    captured.write(f"\n❌ Error: {e}")
+                finally:
+                    sys.stdout = old_stdout
+                self._send_json({"output": captured.getvalue()})
+
+            elif path.startswith("/api/servers/") and path.endswith("/ping"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1].split("/ping")[0])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                srv = servers[name]
+                host = srv.get("host", "")
+                user = srv.get("user", "root")
+                port = srv.get("port", 22)
+                key = srv.get("key", "")
+                start = time.time()
+                cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes"]
+                if port != 22:
+                    cmd.extend(["-p", str(port)])
+                if key:
+                    cmd.extend(["-i", key])
+                cmd.append(f"{user}@{host}")
+                cmd.append("echo pong")
+                try:
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                    elapsed = time.time() - start
+                    if result.returncode == 0 and "pong" in result.stdout:
+                        self._send_json({"ok": True, "latency": f"{elapsed:.2f}s", "host": host})
+                    else:
+                        err = result.stderr.strip() or "No response"
+                        self._send_json({"ok": False, "error": err, "host": host})
+                except subprocess.TimeoutExpired:
+                    self._send_json({"ok": False, "error": "Timeout (10s)", "host": host})
+                except Exception as e:
+                    self._send_json({"ok": False, "error": str(e), "host": host})
+
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_PUT(self):
+            path = self._parse_path()
+            try:
+                body = _json.loads(self._read_body())
+            except _json.JSONDecodeError:
+                body = {}
+
+            if path == "/api/config":
+                updates = body.get("updates", {})
+                if not updates:
+                    self._send_json({"error": "No updates provided"}, 400)
+                    return
+                config = load_yaml(CONFIG_FILE)
+                for key_path, value in updates.items():
+                    parts = key_path.split(".")
+                    obj = config
+                    for part in parts[:-1]:
+                        if part not in obj or not isinstance(obj[part], dict):
+                            obj[part] = {}
+                        obj = obj[part]
+                    # Convert value type intelligently
+                    if isinstance(obj.get(parts[-1]), bool):
+                        if isinstance(value, str):
+                            value = value.lower() in ("true", "1", "yes")
+                    elif isinstance(obj.get(parts[-1]), (int, float)):
+                        try:
+                            value = type(obj.get(parts[-1]))(value)
+                        except (ValueError, TypeError):
+                            pass
+                    obj[parts[-1]] = value
+                save_yaml(CONFIG_FILE, config)
+                self._send_json({"ok": True})
+
+            elif path.startswith("/api/servers/"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                servers[name] = {
+                    "host": body.get("host", servers[name].get("host", "")),
+                    "user": body.get("user", servers[name].get("user", "root")),
+                    "port": int(body.get("port", servers[name].get("port", 22))),
+                    "key": body.get("key", servers[name].get("key", "")),
+                    "desc": body.get("desc", servers[name].get("desc", "")),
+                }
+                if "proxy" in body and body["proxy"]:
+                    servers[name]["proxy"] = body["proxy"]
+                elif "proxy" in body:
+                    servers[name].pop("proxy", None)
+                save_servers(servers)
+                self._send_json({"ok": True})
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_DELETE(self):
+            path = self._parse_path()
+            if path.startswith("/api/servers/"):
+                name = urllib.parse.unquote(path.split("/api/servers/")[1])
+                servers = get_servers()
+                if name not in servers:
+                    self._send_json({"error": "Server not found"}, 404)
+                    return
+                del servers[name]
+                save_servers(servers)
+                self._send_json({"ok": True})
+            else:
+                self._send_json({"error": "Not found"}, 404)
+
+        def do_OPTIONS(self):
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+
+    try:
+        server = http.server.HTTPServer(server_addr, DashboardHandler)
+        url = f"http://127.0.0.1:{port}"
+        print(f"🚀 OpsTerm Dashboard  {VERSION}")
+        print(f"   {url}")
+        print(f"   ^C to stop")
+        if open_browser:
+            webbrowser.open(url)
+        server.serve_forever()
+    except OSError as e:
+        print(f"❌ Failed to start server: {e}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n   👋 Dashboard stopped.")
+        server.server_close()
+
+
 SUBCOMMAND_HELP = {
     "servers": """Usage: opsterm servers <action> [<name>]
 
@@ -3540,6 +3813,24 @@ def main():
     # ── reset ──
     elif subcmd == "reset":
         cmd_reset()
+
+    # ── web dashboard ──
+    elif subcmd == "web":
+        port = 8765
+        open_browser = False
+        i = 1
+        while i < len(raw_args):
+            if raw_args[i] in ("--port", "-p") and i + 1 < len(raw_args):
+                try:
+                    port = int(raw_args[i + 1])
+                    i += 2
+                    continue
+                except ValueError:
+                    pass
+            elif raw_args[i] in ("--open", "-o"):
+                open_browser = True
+            i += 1
+        cmd_web(port=port, open_browser=open_browser)
 
     # ── AI mode (default) ──
     else:
