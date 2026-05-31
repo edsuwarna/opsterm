@@ -109,7 +109,7 @@ opsterm --version
 
 > **Note:** To install a specific version, use a version tag in the download URL:
 > ```bash
-> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.0/bin/opsterm -o ~/.local/bin/opsterm
+> curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/v0.1.1/bin/opsterm -o ~/.local/bin/opsterm
 >```
 
 ---
