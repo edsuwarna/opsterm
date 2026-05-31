@@ -32,7 +32,7 @@ Utility Commands:
   completion <shell>               Generate tab completion (bash|zsh)
 """
 
-VERSION = "v0.4.0"
+VERSION = "v0.5.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
