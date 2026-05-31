@@ -13,7 +13,6 @@ All config files live in `~/.opsterm/`:
 ├── config.yaml       ← AI provider, model, settings
 ├── servers.yaml      ← SSH server definitions
 ├── workflows.yaml    ← Workflow definitions
-├── vault.json        ← Encrypted credentials (AES-128 + PBKDF2)
 ├── history.db        ← SQLite command history
 └── last_*.txt        ← Last command/output cache
 ```
@@ -145,37 +144,13 @@ workflows:
 | `scp` | `scp` (src), `to` (dst), `ssh` (server) | Transfer file to server |
 
 Optional: `confirm: true` (ask before running), `wait: N` (pause N seconds after)
-
-## Vault
-
-Encrypted credential store using AES-128 + PBKDF2:
-
-```bash
-# Init vault (set master password)
-opsterm vault init
-
-# Store credentials
-opsterm vault set db_password "supersecret"
-opsterm vault set gh_token "ghp_..."
-
-# Retrieve
-opsterm vault get db_password
-
-# List & manage
-opsterm vault list
-opsterm vault rm db_password
-opsterm vault lock
-```
-
-> 💡 Set `OPSTERM_VAULT_PASSWORD` env var to avoid re-entering password.
-
 ## Environment Variables
 
 | Variable | Overrides | Default |
 |----------|-----------|---------|
 | `OPSTERM_API_KEY` | `ai.api_key` | — |
 | `OPSTERM_DIR` | Config dir | `~/.opsterm/` |
-| `OPSTERM_VAULT_PASSWORD` | Vault master password | — |
+
 
 ```bash
 # Override config directory
@@ -184,6 +159,4 @@ export OPSTERM_DIR="/path/to/custom/config"
 # Set API key (prevents storing in plaintext config)
 export OPSTERM_API_KEY="sk-..."
 
-# Vault auto-unlock
-export OPSTERM_VAULT_PASSWORD="master-password"
 ```

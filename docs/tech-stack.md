@@ -18,7 +18,7 @@ This document explains the technology used in OpsTerm — from the programming l
 | **Shell** | Zsh plugin (zsh hooks) | Zsh only |
 
 > **Zero mandatory dependencies** — just Python 3 stdlib. Everything is built-in.
-> The only optional dependency: `pip install cryptography` (for vault).
+> No optional dependencies needed — all features work with Python 3 stdlib.
 
 ---
 
@@ -92,7 +92,7 @@ OpsTerm's YAML parser is **minimal — it only supports the YAML subset that Ops
 CREATE TABLE IF NOT EXISTS history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT DEFAULT (datetime('now','localtime')),
-    mode TEXT,        -- 'ai', 'ssh', 'workflow', 'pipe', 'shell', 'scp', 'vault'
+    mode TEXT,        -- 'ai', 'ssh', 'workflow', 'pipe', 'shell', 'scp'
     input TEXT,       -- command/question (max 500 chars)
     output TEXT       -- response (max 2000 chars)
 );
@@ -149,37 +149,6 @@ Content-Type: application/json
 | **Ollama** (local) | `http://localhost:11434/v1` | None |
 | **vLLM** (self-hosted) | `http://your-server:8000/v1` | Optional |
 | **Any OpenAI-compat** | Configurable | API Key / None |
-
----
-
-## 🔐 Vault Encryption
-
-### Primary (recommended): `cryptography.fernet.Fernet`
-
-```
-Master Password
-       │
-       ▼
-   PBKDF2 (SHA-256, 600k iterations, salt)
-       │
-       ▼
-   AES-128-CBC (Fernet)
-       │
-       ▼
-   Base64-encoded token
-       │
-       ▼
-   vault.json
-```
-
-### Fallback (no cryptography): HMAC + XOR
-
-If `cryptography` is not installed, OpsTerm uses a fallback encryption:
-1. **Key derivation**: PBKDF2 from `hashlib` (stdlib)
-2. **Encryption**: XOR cipher with random IV
-3. **Integrity**: HMAC-SHA256
-
-⚠️ This fallback is **less secure** than AES. Recommended: `pip install cryptography`
 
 ---
 
@@ -253,7 +222,7 @@ opsterm-ti() {
 | **Custom AI** | ✅ Any provider | ❌ Vendor lock | ✅ Many providers | ❌ Claude only |
 | **SSH Multi-hop** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
 | **Workflow** | ✅ Multi-step | ❌ No | ❌ No | ❌ No |
-| **Vault** | ✅ Encrypted | ❌ No | ❌ No | ❌ No |
+
 | **Tab Completion** | ✅ bash+zsh | ✅ built-in | ❌ No | ❌ No |
 | **Platform** | Linux + macOS | macOS only | Linux + macOS | Linux + macOS |
 | **Weight** | ~50KB (script) | ~200MB+ | ~10MB | ~500MB+ |

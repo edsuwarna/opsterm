@@ -172,7 +172,7 @@ opsterm provider list
 rm ~/.local/bin/opsterm
 rm -rf ~/opsterm
 
-# 2. Remove config (⚠️ deletes all servers, workflows, vault, history)
+# 2. Remove config (⚠️ deletes all servers, workflows, history)
 rm -rf ~/.opsterm
 
 # 3. Remove shell integration from ~/.bashrc or ~/.zshrc
@@ -183,4 +183,4 @@ rm -rf ~/.opsterm
 #    Then: source ~/.bashrc
 ```
 
-> 💡 Config is independent from the repo — removing `~/opsterm` won't delete your servers, workflows, or vault. You need to `rm -rf ~/.opsterm` separately to fully remove all data.
+> 💡 Config is independent from the repo — removing `~/opsterm` won't delete your servers or workflows. You need to `rm -rf ~/.opsterm` separately to fully remove all data.

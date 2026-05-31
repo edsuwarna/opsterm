@@ -55,7 +55,7 @@ opsterm "how to check memory"
 
 - Single-file architecture — all logic in `bin/opsterm`
 - Python stdlib only (zero external dependencies)
-- Functions grouped by feature (ssh, scp, ai, vault, etc.)
+- Functions grouped by feature (ssh, scp, ai, servers, workflows, etc.)
 - Error messages use emoji indicators for clarity
 
 ## Testing

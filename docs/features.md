@@ -13,7 +13,7 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 3 | 🔗 **Multi-hop SSH** | `opsterm ssh <srv> --via <proxy>` | Core |
 | 4 | 📁 **SCP File Transfer** | `opsterm scp <src> <dst>` | Core |
 | 5 | ⚡ **Workflow** | `opsterm run <name>` | Core |
-| 6 | 🔐 **Vault** | `opsterm vault` | Core |
+
 | 7 | 🔗 **Pipe Mode** | `cmd \| opsterm <prompt>` | Core |
 | 8 | 💻 **Shell Integration** | `opsterm explain-last` | Shell |
 | 9 | ⌨️ **Tab Completion** | `opsterm completion bash\|zsh` | Utility |
@@ -206,37 +206,6 @@ workflows:
 
 ---
 
-## 6️⃣ 🔐 Vault — Encrypted Credentials
-
-Store credentials (API keys, passwords, tokens) in encrypted form.
-
-```bash
-# Init vault (set master password)
-opsterm vault init
-
-# Store a credential
-opsterm vault set db_password "supersecret"
-opsterm vault set github_token "ghp_..."
-
-# Retrieve a credential
-opsterm vault get db_password    # Output: supersecret
-
-# List keys
-opsterm vault list
-
-# Delete a key
-opsterm vault rm db_password
-
-# Lock vault (clear password from memory)
-opsterm vault lock
-```
-
-**Technical details:**
-- **Encryption:** AES-128-CBC via `cryptography.fernet.Fernet`
-- **Key derivation:** PBKDF2-HMAC-SHA256, 600,000 iterations
-- **Master password:** from `OPSTERM_VAULT_PASSWORD` env or prompt
-- **Fallback:** if `cryptography` is not installed → HMAC + XOR (less secure)
-- **Storage:** encrypted JSON at `~/.ai-workflows/vault.json`
 
 ---
 
@@ -315,7 +284,7 @@ echo 'source <(opsterm completion zsh)' >> ~/.zshrc
 | `opsterm run [Tab]` | Workflow names |
 | `opsterm scp [Tab]` | `server:` prefix |
 | `opsterm servers [Tab]` | `add`, `edit`, `rm`, `list` |
-| `opsterm vault [Tab]` | `init`, `set`, `get`, `list`, `rm`, `lock` |
+
 | `opsterm --via [Tab]` | Proxy server names |
 
 ---
@@ -418,7 +387,7 @@ opsterm history 50
 | 🔗 | Pipe mode |
 | 💻 | Shell command |
 | 📁 | SCP transfer |
-| 🔐 | Vault |
+
 
 Data stored in SQLite: `~/.ai-workflows/history.db`.
 
@@ -644,8 +613,8 @@ opsterm history --json | jq '.history[:5]'
 | **Ask for a command** | `opsterm how to check disk` |
 | **Explain an error** | `docker logs -n50 \| opsterm "error?"` |
 | **Explain last command** | `opsterm explain-last` |
-| **Store a password** | `opsterm vault set db_pass` |
-| **Retrieve a password** | `opsterm vault get db_pass` |
+
+
 | **Test provider connection** | `opsterm provider test openai` |
 | **List provider models** | `opsterm provider models openai` |
 | **Chat interactively** | `opsterm chat` |
@@ -670,4 +639,4 @@ opsterm history --json | jq '.history[:5]'
 - [ ] **SSH config parser** — import from `~/.ssh/config`
 - [ ] **Fish shell support** — completion & plugin for Fish
 - [ ] **Multi-hop chain** — `opsterm ssh server --via jump1,jump2`
-- [ ] **Vault auto-unlock** — unlock vault using fingerprint/keychain
+

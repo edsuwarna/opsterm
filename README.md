@@ -19,7 +19,7 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH through jump host |
 | 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download via server |
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
-| 🔐 **Vault** | `opsterm vault set db_pass` | Encrypted credentials (AES-128) |
+
 | 🔗 **Pipe Mode** | `docker ps \| opsterm "any errors?"` | Explain command output with AI |
 | 🗜️ **RTK AI** | `auto` | Compress command output 60-95% before AI (saves tokens) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain previous command output |
@@ -184,26 +184,6 @@ workflows:
 opsterm run deploy-app
 opsterm run check-all
 ```
-
-### 🔐 Vault — encrypted credentials
-
-Store sensitive data (API keys, passwords) locally with AES-128:
-
-```bash
-opsterm vault init                          # Create vault (set master password)
-opsterm vault set db_password               # Store credential
-opsterm vault get db_password               # Retrieve (prompts for master password)
-opsterm vault list                          # List stored keys
-opsterm vault rm db_password                # Delete
-opsterm vault lock                          # Re-encrypt and clear from memory
-
-# Use vault values in config
-opsterm vault set openai_key
-opsterm config set ai.api_key vault://openai_key
-```
-
----
-
 ## 🧠 AI Features
 
 ### Custom AI Providers
@@ -370,7 +350,7 @@ Config is stored in `~/.opsterm/`:
 ├── config.yaml       # AI provider & shell settings
 ├── servers.yaml      # Server list (+ proxy jump)
 ├── workflows.yaml    # Workflow list (SSH/SCP/local)
-├── vault.json        # Encrypted credentials (AES-128)
+
 ├── history.db        # History (SQLite, auto)
 ├── last_output.txt   # Last command output
 └── last_command.txt  # Last command
@@ -382,7 +362,7 @@ Environment variables:
 ```bash
 export OPSTERM_DIR="/path/to/custom/config"   # Override config dir
 export OPSTERM_API_KEY="sk-..."                # AI API key
-export OPSTERM_VAULT_PASSWORD="..."            # Vault master password
+
 ```
 
 ---
@@ -432,12 +412,12 @@ workflows:
 - [x] Smart SSH (fuzzy name match, ProxyJump)
 - [x] SCP file transfer (local ↔ server ↔ server)
 - [x] Multi-step workflows (SSH/SCP/local)
-- [x] Encrypted vault (AES-128)
+
 - [x] Command history (SQLite)
 - [x] Pipe mode (send command output to AI)
 - [x] SSH via jump host (--via)
 - [x] Tab completion (bash/zsh)
-- [x] Vault integration with config
+
 - [x] Shell operators (`&&`, `|`, `>`) in local commands
 - [x] Multi-hop SCP (file transfer through bastion)
 - [x] RTK token compression

@@ -36,20 +36,6 @@ export OPSTERM_API_KEY=sk-xxx
 
 This is useful for CI/CD or shared environments.
 
-## Vault Encryption
-
-Credentials stored via `opsterm vault` are encrypted at rest:
-
-- **Algorithm:** AES-256-GCM
-- **Key derivation:** PBKDF2 with 100,000 iterations
-- **Storage:** `~/.ai-workflows/vault.json` (encrypted JSON)
-- **Master password:** Never stored, derived on each access
-
-```bash
-# Vault is locked when not in use
-opsterm vault get db-pass  # prompts for master password
-```
-
 ## SSH Security
 
 - OpsTerm uses your existing SSH keys and `~/.ssh/config`
@@ -70,12 +56,7 @@ opsterm vault get db-pass  # prompts for master password
    export OPSTERM_API_KEY=$CI_AI_KEY
    ```
 
-3. **Regular vault rotation:**
-   ```bash
-   opsterm vault rotate  # re-encrypt with new master password
-   ```
-
-4. **Audit server list:**
+3. **Audit server list:**
    ```bash
    opsterm servers  # review configured servers
    ```

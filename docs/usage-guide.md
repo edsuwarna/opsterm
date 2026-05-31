@@ -16,38 +16,7 @@ docker logs -n50 | opsterm "any errors?"
 df -h | opsterm "is disk usage okay?"
 ```
 
-## Vault (Credential Management)
 
-Store and retrieve secrets encrypted at rest (AES-128):
-
-```bash
-# Initialize vault (set master password)
-opsterm vault init
-
-# Store a credential
-opsterm vault set db_password
-opsterm vault set github_token ghp_...
-
-# Retrieve
-opsterm vault get db_password
-
-# List keys
-opsterm vault list
-
-# Delete
-opsterm vault rm db_password
-
-# Lock vault (clear password from memory)
-opsterm vault lock
-```
-
-Use vault values in config with `vault://` prefix:
-
-```bash
-opsterm config set ai.api_key vault://my_api_key
-```
-
-## Web Dashboard
 
 Launch a browser-based UI to manage everything:
 
@@ -102,7 +71,7 @@ opsterm import ~/backups/opsterm-config.tar.gz
 opsterm reset
 ```
 
-> **Note:** Exported API keys are masked. Re-add keys with `opsterm provider add <name> --api-key '...'`
+> **Note:** Exported API keys are masked. Update them after import with `opsterm provider add <name> --api-key '...'`
 
 ## Workflows
 

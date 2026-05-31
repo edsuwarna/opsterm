@@ -31,7 +31,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 │  ┌───────────────▼───────────────────────────────┐  │
 │  │           OpsTerm (bin/opsterm)                     │  │
 │  │  ┌─────────┐ ┌────────┐ ┌────────┐ ┌──────┐  │  │
-│  │  │ AI      │ │ SSH    │ │ SCP    │ │Vault │  │  │
+│  │  │ AI      │ │ SSH    │ │ SCP    │ │       │  │  │
 │  │  │ Client  │ │ Runner │ │ Transfer│ │      │  │  │
 │  │  └────┬────┘ └───┬────┘ └───┬────┘ └──┬───┘  │  │
 │  └───────┼──────────┼──────────┼─────────┼───────┘  │
@@ -88,7 +88,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 ├── config.yaml       ← AI provider settings
 ├── servers.yaml      ← Server list + proxy config
 ├── workflows.yaml    ← Workflow definitions
-├── vault.json        ← Encrypted credentials
+
 ├── history.db        ← SQLite history
 └── last_*.txt        ← Last command output
 ```
@@ -99,7 +99,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 
 ## 🧠 Design Philosophy
 
-1. **Zero dependencies** — just Python 3 stdlib, no `pip install` needed (except vault encryption)
+1. **Zero dependencies** — just Python 3 stdlib, no `pip install` needed
 2. **Single file** — `bin/opsterm` can be copied to any server and run immediately
 3. **Local-first** — AI runs on your local terminal, not on the server. SSH without losing AI access
 4. **Config as code** — server & workflow configs use YAML, version-control friendly

@@ -19,7 +19,7 @@ SSH ke server mana pun tanpa kehilangan akses AI — karena AI jalan di **termin
 | 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH lewat jump host |
 | 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download lewat server |
 | ⚡ **Workflow** | `opsterm run deploy-app` | Otomasi multi-step (SSH/SCP/local) |
-| 🔐 **Vault** | `opsterm vault set db_pass` | Kredensial terenkripsi (AES-128) |
+
 | 🔗 **Pipe Mode** | `docker ps \| opsterm "error?"` | Explain output command pake AI |
 | 🗜️ **RTK AI** | `auto` | Kompres output command 60-95% sebelum ke AI (irit token) |
 | 💻 **Shell Integration** | `opsterm explain-last` | Explain output command sebelumnya |
@@ -182,24 +182,7 @@ opsterm run deploy-app
 opsterm run check-all
 ```
 
-### 🔐 Vault — kredensial terenkripsi
 
-Simpen data sensitif (API key, password) lokal pake AES-128:
-
-```bash
-opsterm vault init                          # Buat vault (set master password)
-opsterm vault set db_password               # Simpen kredensial
-opsterm vault get db_password               # Ambil (minta master password)
-opsterm vault list                          # Lihat semua key
-opsterm vault rm db_password                # Hapus
-opsterm vault lock                          # Enkripsi ulang dan bersihin dari memori
-
-# Pake value vault di config
-opsterm vault set openai_key
-opsterm config set ai.api_key vault://openai_key
-```
-
----
 
 ## 🧠 Fitur AI
 
@@ -360,7 +343,7 @@ Config disimpan di `~/.opsterm/`:
 ├── config.yaml       # Pengaturan AI provider & shell
 ├── servers.yaml      # Daftar server (+ proxy jump)
 ├── workflows.yaml    # Daftar workflow (SSH/SCP/local)
-├── vault.json        # Kredensial terenkripsi (AES-128)
+
 ├── history.db        # Riwayat (SQLite, otomatis)
 ├── last_output.txt   # Output command terakhir
 └── last_command.txt  # Command terakhir
@@ -372,7 +355,7 @@ Environment variables:
 ```bash
 export OPSTERM_DIR="/path/to/custom/config"   # Override direktori config
 export OPSTERM_API_KEY="sk-..."                # AI API key
-export OPSTERM_VAULT_PASSWORD="..."            # Vault master password
+
 ```
 
 ---
@@ -425,12 +408,12 @@ workflows:
 - [x] Web dashboard (lihat workflows dan servers di browser)
 - [x] Config export/import
 - [x] Config reset
-- [x] Encrypted vault (AES-128)
+
 - [x] Command history (SQLite)
 - [x] Pipe mode (kirim output command ke AI)
 - [x] SSH via jump host (--via)
 - [x] Tab completion (bash/zsh)
-- [x] Vault integration dengan config
+
 - [x] Shell operators (`&&`, `|`, `>`) di local commands
 - [x] Multi-hop SCP (transfer file lewat bastion)
 - [x] RTK token compression

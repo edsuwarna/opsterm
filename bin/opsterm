@@ -3,7 +3,7 @@
 OpsTerm — AI Terminal Assistant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Zero-dependency CLI tool: custom AI provider + saved servers, workflows,
-multi-hop SSH, SCP, vault, and shell integration.
+multi-hop SSH, SCP, and shell integration.
 
 Usage:
   opsterm <prompt>                 Ask AI anything (default mode)
@@ -20,7 +20,6 @@ Management Commands:
   workflows <action> [<name>]      Manage workflow list — list, add, edit, rm, init
   provider <action> [<name>]       Manage AI providers — list, add, rm, default, test, models, supported
   config <action> [<key>]          Manage config — list, get, set, validate
-  vault <action> [<args>]          Encrypted credential store — init, set, get, list, rm, lock
 
 Utility Commands:
   history [<limit>]                Show past queries (default: 20)
@@ -67,15 +66,6 @@ def _parse_ver(v):
     parts = v.lstrip("vV").split(".")
     return tuple(int(p) if p.isdigit() else 0 for p in parts[:3])
 
-# ── Optional cryptography for vault ────────────────────────
-try:
-    from cryptography.fernet import Fernet
-    from cryptography.hazmat.primitives import hashes as crypt_hashes
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    HAS_CRYPTOGRAPHY = True
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
-
 # ── Paths ──────────────────────────────────────────────────
 HOME = Path.home()
 # Default config dir — migrate from legacy ~/.ai-workflows if needed
@@ -83,7 +73,7 @@ CONFIG_DIR = Path(os.environ.get("OPSTERM_DIR", HOME / ".opsterm"))
 LEGACY_DIR = HOME / ".ai-workflows"
 if "OPSTERM_DIR" not in os.environ and LEGACY_DIR.exists() and not CONFIG_DIR.exists():
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    for f in ["config.yaml", "servers.yaml", "workflows.yaml", "history.db", "vault.json", "last_output.txt", "last_command.txt"]:
+    for f in ["config.yaml", "servers.yaml", "workflows.yaml", "history.db", "last_output.txt", "last_command.txt"]:
         src = LEGACY_DIR / f
         if src.exists():
             src.rename(CONFIG_DIR / f)
@@ -100,7 +90,6 @@ HISTORY_DB = CONFIG_DIR / "history.db"
 
 WEB_DIR = CONFIG_DIR / "web"
 WEB_INDEX = WEB_DIR / "index.html"
-VAULT_FILE = CONFIG_DIR / "vault.json"
 LAST_OUTPUT_FILE = CONFIG_DIR / "last_output.txt"
 LAST_CMD_FILE = CONFIG_DIR / "last_command.txt"
 
@@ -492,7 +481,7 @@ def _set_secure_permissions(path: Path):
 
 def _set_secure_permissions_on_all():
     """Apply secure permissions to all opsterm config files."""
-    for f in [CONFIG_FILE, SERVERS_FILE, WORKFLOWS_FILE, VAULT_FILE,
+    for f in [CONFIG_FILE, SERVERS_FILE, WORKFLOWS_FILE,
               HISTORY_DB, LAST_OUTPUT_FILE, LAST_CMD_FILE]:
         if f.exists():
             _set_secure_permissions(f)
@@ -1054,6 +1043,7 @@ def do_provider(raw_args, use_json=False):
         print("  opsterm provider rm <name>                    Remove a provider")
         print("  opsterm provider default <name>               Set default provider")
 
+
 def _fuzzy_match(name: str, items: dict) -> Optional[str]:
     """Find item by exact name or fuzzy match."""
     if name in items:
@@ -1116,7 +1106,7 @@ def show_history(limit: int = 20, use_json: bool = False):
         return
     for rid, ts, mode, inp in reversed(rows):
         icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
-                "pipe": "🔗", "scp": "📁", "vault": "🔐"}.get(mode, "❓")
+                "pipe": "🔗", "scp": "📁"}.get(mode, "❓")
         inp_short = inp[:60] + "..." if len(inp) > 60 else inp
         print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
 
@@ -1142,7 +1132,7 @@ def cmd_search(query: str, limit: int = 20, use_json: bool = False):
         return
     for rid, ts, mode, inp, _ in rows:
         icon = {"ai": "🤖", "ssh": "🔑", "workflow": "⚡", "shell": "💻",
-                "pipe": "🔗", "scp": "📁", "vault": "🔐", "chat": "💬"}.get(mode, "❓")
+                "pipe": "🔗", "scp": "📁", "chat": "💬"}.get(mode, "❓")
         inp_short = inp[:80] + "..." if len(inp) > 80 else inp
         print(f"  [{rid}] {icon} {ts} [{mode}] {inp_short}")
 
@@ -1339,222 +1329,6 @@ def scp_transfer(source: str, dest: str, servers: dict, proxy_name: str = ""):
         print(f"❌ Transfer failed (exit code {result.returncode})")
 
 # ═══════════════════════════════════════════════════════════
-# VAULT — Encrypted Credentials
-# ═══════════════════════════════════════════════════════════
-
-class Vault:
-    """Encrypted credential store using Fernet (AES-128-CBC) + PBKDF2."""
-
-    def __init__(self):
-        self._fernet = None
-        self._unlocked = False
-
-    def _load_data(self) -> dict:
-        if VAULT_FILE.exists():
-            try:
-                return json.loads(VAULT_FILE.read_text())
-            except (json.JSONDecodeError, ValueError):
-                return {}
-        return {}
-
-    def _save_data(self, data: dict):
-        VAULT_FILE.write_text(json.dumps(data, indent=2))
-        _set_secure_permissions(VAULT_FILE)
-
-    def _derive_key(self, password: str, salt: bytes) -> bytes:
-        """Derive a Fernet-compatible key using PBKDF2."""
-        if HAS_CRYPTOGRAPHY:
-            kdf = PBKDF2HMAC(
-                algorithm=crypt_hashes.SHA256(),
-                length=32,
-                salt=salt,
-                iterations=600_000,
-            )
-            return base64.urlsafe_b64encode(kdf.derive(password.encode()))
-        return base64.urlsafe_b64encode(hashlib.pbkdf2_hmac(
-            "sha256", password.encode(), salt, 600_000
-        )[:32])
-
-    def _make_verifier(self, password: str, salt: bytes) -> bytes:
-        """Create a verification HMAC to validate password on unlock."""
-        key = self._derive_key(password, salt)
-        return hmac.new(key, b"opsterm_vault_verify", "sha256").digest()
-
-    def _get_password(self, confirm: bool = False) -> Optional[str]:
-        """Read master password from env or prompt."""
-        env_pw = os.environ.get("OPSTERM_VAULT_PASSWORD", "")
-        if env_pw:
-            return env_pw
-        import getpass
-        try:
-            pw = getpass.getpass("🔐 Master password: ")
-            if confirm:
-                pw2 = getpass.getpass("🔐 Konfirmasi: ")
-                if pw != pw2:
-                    print("❌ Password mismatch!")
-                    return None
-        except (EOFError, getpass.GetPassWarning):
-            # Non-interactive: fallback ke env var prompt
-            print("❌ Non-interactive terminal detected.")
-            print("   Set OPSTERM_VAULT_PASSWORD env var, or use:")
-            print("   export OPSTERM_VAULT_PASSWORD='your-password'")
-            return None
-        return pw
-
-    def init(self):
-        """Initialize vault with a master password."""
-        if VAULT_FILE.exists() and VAULT_FILE.stat().st_size > 10:
-            resp = input("⚠️ Vault already exists. Reset? [y/N] ").strip().lower()
-            if resp not in ("y", "yes"):
-                return
-        pw = self._get_password(confirm=True)
-        if not pw:
-            return
-        salt = os.urandom(16)
-        verifier = base64.b64encode(self._make_verifier(pw, salt)).decode()
-        data = {
-            "salt": base64.b64encode(salt).decode(),
-            "verifier": verifier,
-            "keys": {},
-        }
-        self._save_data(data)
-        # Verify by deriving key
-        key = self._derive_key(pw, salt)
-        print(f"✅ Vault initialized di {VAULT_FILE}")
-        print("   Usage: opsterm vault set <key>")
-        if not HAS_CRYPTOGRAPHY:
-            print("   ⚠️  cryptography not installed — using fallback encryption")
-            print("      Install: pip install cryptography")
-
-    def _unlock(self) -> bool:
-        """Unlock vault: derive key from password, return True on success."""
-        if self._unlocked:
-            return True
-        pw = self._get_password()
-        if not pw:
-            return False
-        data = self._load_data()
-        if not data or "salt" not in data:
-            print("❌ Vault not initialized. Run: opsterm vault init")
-            return False
-        salt = base64.b64decode(data["salt"])
-        key = self._derive_key(pw, salt)
-        # Test key by trying to decrypt something or verify verifier
-        if HAS_CRYPTOGRAPHY:
-            try:
-                self._fernet = Fernet(key)
-                # Verify by decrypting any existing value
-                stored_verifier = data.get("verifier", "")
-                if stored_verifier:
-                    expected = base64.b64decode(stored_verifier)
-                    computed = self._make_verifier(pw, salt)
-                    if not hmac.compare_digest(computed, expected):
-                        print("❌ Wrong password!")
-                        return False
-                elif data.get("keys"):
-                    sample = next(iter(data["keys"].values()))
-                    self._fernet.decrypt(sample["data"].encode())
-                self._unlocked = True
-                return True
-            except Exception:
-                print("❌ Wrong password!")
-                return False
-        else:
-            # Fallback: verify password using stored verifier
-            stored_verifier_b64 = data.get("verifier", "")
-            if not stored_verifier_b64:
-                print("❌ Vault corrupted (no verifier found). Re-init with: opsterm vault init")
-                return False
-            stored_verifier = base64.b64decode(stored_verifier_b64)
-            computed_verifier = self._make_verifier(pw, salt)
-            if not hmac.compare_digest(computed_verifier, stored_verifier):
-                print("❌ Wrong password!")
-                return False
-            self._fernet = key  # Store key bytes for later use
-            self._unlocked = True
-            return True
-
-    def _encrypt(self, value: str) -> str:
-        if HAS_CRYPTOGRAPHY and self._fernet:
-            return self._fernet.encrypt(value.encode()).decode()
-        # Fallback: XOR with HMAC integrity
-        key = self._fernet
-        iv = os.urandom(16)
-        encrypted = iv + bytes([b ^ key[i % len(key)] for i, b in enumerate(value.encode())])
-        mac = hmac.new(key, encrypted, "sha256").digest()
-        return base64.b64encode(mac + encrypted).decode()
-
-    def _decrypt(self, token: str) -> str:
-        if HAS_CRYPTOGRAPHY and self._fernet:
-            return self._fernet.decrypt(token.encode()).decode()
-        key = self._fernet
-        raw = base64.b64decode(token)
-        mac, encrypted = raw[:32], raw[32:]
-        expected_mac = hmac.new(key, encrypted, "sha256").digest()
-        if not hmac.compare_digest(mac, expected_mac):
-            raise ValueError("Data integrity check failed!")
-        iv = encrypted[:16]
-        return bytes([b ^ key[i % len(key)] for i, b in enumerate(encrypted[16:])]).decode()
-
-    def set(self, key: str, value: str = ""):
-        if not self._unlock():
-            return
-        if not value:
-            import getpass
-            try:
-                value = getpass.getpass(f"🔑 Nilai untuk '{key}': ")
-            except (EOFError, getpass.GetPassWarning):
-                # Non-interactive: baca dari stdin
-                value = sys.stdin.readline().strip()
-        data = self._load_data()
-        encrypted = self._encrypt(value)
-        if "keys" not in data:
-            data["keys"] = {}
-        data["keys"][key] = {"data": encrypted}
-        self._save_data(data)
-        print(f"✅ Vault: '{key}' saved!")
-
-    def get(self, key: str) -> Optional[str]:
-        if not self._unlock():
-            return None
-        data = self._load_data()
-        entry = data.get("keys", {}).get(key)
-        if not entry:
-            print(f"❌ Key '{key}' not found in vault.")
-            return None
-        try:
-            return self._decrypt(entry["data"])
-        except Exception as e:
-            print(f"❌ Decrypt failed: {e}")
-            return None
-
-    def list_keys(self):
-        data = self._load_data()
-        keys = list(data.get("keys", {}).keys())
-        if not keys:
-            print("🔐 Vault kosong.")
-            return
-        print("🔐 Vault keys:")
-        for k in sorted(keys):
-            print(f"  • {k}")
-
-    def rm(self, key: str):
-        if not self._unlock():
-            return
-        data = self._load_data()
-        if key in data.get("keys", {}):
-            del data["keys"][key]
-            self._save_data(data)
-            print(f"✅ Key '{key}' removed from vault.")
-        else:
-            print(f"❌ Key '{key}' not found.")
-
-    def lock(self):
-        self._fernet = None
-        self._unlocked = False
-        print("🔒 Vault locked.")
-
-# ═══════════════════════════════════════════════════════════
 # WORKFLOW EXECUTOR
 # ═══════════════════════════════════════════════════════════
 
@@ -1737,7 +1511,7 @@ COMPLETION_BASH = """# OpsTerm Bash Completion
 _opsterm_completions() {
     local cur prev words cword
     _init_completion || return
-    local cmds="ssh run servers workflows config provider history init scp vault last explain-last completion doctor search export import reset"
+    local cmds="ssh run servers workflows config provider history init scp last explain-last completion doctor search export import reset"
     cur="${words[cword]}"
     prev="${words[cword-1]}"
     case "${prev}" in
@@ -1752,7 +1526,7 @@ _opsterm_completions() {
         workflows) mapfile -t COMPREPLY < <(compgen -W "list add edit rm init" -- "${cur}"); return 0 ;;
         config) mapfile -t COMPREPLY < <(compgen -W "list get set validate" -- "${cur}"); return 0 ;;
         provider) mapfile -t COMPREPLY < <(compgen -W "list add rm default test models supported" -- "${cur}"); return 0 ;;
-        vault) mapfile -t COMPREPLY < <(compgen -W "init set get list rm lock" -- "${cur}"); return 0 ;;
+
         scp)
             local servers; servers=$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')
             mapfile -t COMPREPLY < <(compgen -W "${servers}" -- "${cur}"); return 0 ;;
@@ -1781,7 +1555,7 @@ _opsterm() {
         'history:Riwayat command'
         'init:Setup konfigurasi awal'
         'scp:Upload/download file'
-        'vault:Encrypted credentials'
+
         'last:Last command output'
         'explain-last:Explain last output with AI'
         'doctor:Diagnose installation and configuration'
@@ -1807,7 +1581,7 @@ _opsterm() {
                 workflows) _values 'action' list add edit rm init ;;
                 config) _values 'action' list get set validate ;;
                 provider) _values 'action' list add rm default test models supported ;;
-                vault) _values 'action' init set get list rm lock ;;
+
                 scp)
                     local servers; servers=(${(f)"$(opsterm servers list 2>/dev/null | awk 'NR>2 && !/^---/ && !/^Total:/ {print $1":"}')"})
                     _describe 'server' servers ;;
@@ -2066,7 +1840,7 @@ def do_init():
 📁 Config dir: {CONFIG_DIR}
 🔑 Set API key:  opsterm provider add default --api-key 'sk-...'
    Or:           export OPSTERM_API_KEY='sk-...'
-🔐 Vault:         opsterm vault init
+
 📁 SCP:           opsterm scp vps-utama:file.txt .
 ⚡ Coba:          opsterm ssh vps-utama
                   opsterm run cek-server
@@ -3256,21 +3030,6 @@ Examples:
   opsterm workflows init
   opsterm workflows edit deploy-app
 """,
-    "vault": """Usage: opsterm vault <action> [<args>]
-
-Actions:
-  init               Create a new vault
-  set <key> [val]    Store a credential (value optional, prompted if empty)
-  get <key>          Retrieve a credential
-  list               List all keys
-  rm <key>           Delete a credential
-  lock               Lock the vault
-
-Examples:
-  opsterm vault init
-  opsterm vault set db_password
-  opsterm vault get db_password
-""",
     "doctor": """Usage: opsterm doctor
 
 Diagnose OpsTerm installation and configuration.
@@ -3444,13 +3203,13 @@ def main():
     # Manual -h/--help intercept for subcommand support
     if ("-h" in sys.argv or "--help" in sys.argv) and any(a in sys.argv[1:] for a in (
         "ssh", "scp", "run", "servers", "workflows", "config", "provider",
-        "vault", "history", "chat", "last", "explain-last", "explain_last",
+        "history", "chat", "last", "explain-last", "explain_last",
         "init", "update", "completion", "doctor", "search", "export", "import", "reset",
     )):
         for arg in sys.argv[1:]:
             if arg in (
                 "ssh", "scp", "run", "servers", "workflows", "config", "provider",
-                "vault", "history", "chat", "last", "explain-last", "explain_last",
+                "history", "chat", "last", "explain-last", "explain_last",
                 "init", "update", "completion", "doctor", "search", "export", "import", "reset",
             ):
                 _show_help(arg)
@@ -3459,7 +3218,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="opsterm",
-        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP, vault.",
+        description="OpsTerm — AI Terminal Assistant. Custom AI provider + servers, workflows, multi-hop SCP.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
             Core Commands:
@@ -3473,7 +3232,6 @@ def main():
               workflows <action> [<name>]    Manage workflow list — list, add, edit, rm, init
               provider <action> [<name>]     Manage AI providers — list, add, rm, default, test, models, supported
               config <action> [<key>]        Manage config — list, get, set, validate
-              vault <action> [<args>]        Encrypted credential store — init, set, get, list, rm, lock
 
             Utility Commands:
               history [<limit>]              Show past queries (default: 20)
@@ -3500,7 +3258,6 @@ def main():
               opsterm run deploy-app
               opsterm config set ai.response_style concise
               opsterm provider add openai --api-key sk-... --model gpt-4o
-              opsterm vault set db_password
               docker ps | opsterm "any errors?"
 
             Learn more: https://github.com/edsuwarna/opsterm
@@ -3845,53 +3602,6 @@ def main():
         via_str = f" via {proxy_name}" if proxy_name else ""
         add_history("scp", f"{source} → {dest}{via_str}")
         scp_transfer(source, dest, servers, proxy_name)
-
-    # ── vault ──
-    elif subcmd == "vault":
-        vault = Vault()
-        if len(raw_args) == 1:
-            print("🔐 OpsTerm Vault — Encrypted Credential Store")
-            print("  init   — Buat vault baru")
-            print("  set    — Simpan credential (opsterm vault set <key>)")
-            print("  get    — Ambil credential (opsterm vault get <key>)")
-            print("  list   — Lihat semua key")
-            print("  rm     — Remove key")
-            print("  lock   — Kunci vault")
-            print(f"\n  File: {VAULT_FILE}")
-            print("  Env:   OPSTERM_VAULT_PASSWORD")
-            return
-        action = raw_args[1]
-        if action == "init":
-            vault.init()
-        elif action == "set":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault set <key> [value]")
-                print("  (value optional, akan di-prompt jika kosong)")
-                return
-            value = " ".join(raw_args[3:]) if len(raw_args) > 3 else ""
-            vault.set(key, value)
-            add_history("vault", f"set {key}")
-        elif action == "get":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault get <key>")
-                return
-            value = vault.get(key)
-            if value:
-                print(value)
-        elif action == "list":
-            vault.list_keys()
-        elif action == "rm":
-            key = raw_args[2] if len(raw_args) > 2 else ""
-            if not key:
-                print("Usage: opsterm vault rm <key>")
-                return
-            vault.rm(key)
-        elif action == "lock":
-            vault.lock()
-        else:
-            print(f"❌ Unknown vault action: {action}")
 
     # ── last ──
     elif subcmd == "last":

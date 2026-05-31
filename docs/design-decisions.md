@@ -15,7 +15,7 @@ This document explains **why** OpsTerm is designed the way it is — the reasoni
 | 5 | **AI Protocol** | OpenAI-compatible API | LangChain, custom gRPC |
 | 6 | **SSH Method** | Subprocess + system SSH | paramiko, asyncssh |
 | 7 | **State** | File-based (no daemon) | SQLite daemon, Redis |
-| 8 | **Vault** | Optional cryptography | Hardcoded key, no encryption |
+
 | 9 | **Completion** | Generated script | Manual completion |
 | 10 | **Shell Integration** | Separate Zsh plugin | Hook shell, LD_PRELOAD |
 | 11 | **RTK Integration** | Optional, auto-detect, graceful fallback | Always-on, hard dependency |
@@ -187,25 +187,6 @@ Some tools use a background daemon that stores state in memory.
 - No "real-time" notification capability.
 
 ---
-
-## 8️⃣ Why optional vault?
-
-### Context
-Vault requires `cryptography` which is not in stdlib.
-
-### Decision: ✅ Optional — `cryptography` recommended, fallback available
-
-**Reasons:**
-
-1. **Zero dep still applies** — OpsTerm's core features work without the vault.
-
-2. **Security remains a priority** — Vault uses AES via cryptography. Fallback uses XOR + HMAC when cryptography is unavailable.
-
-3. **Progressive enhancement** — Users can start without the vault and install cryptography later if needed.
-
-**Trade-offs:**
-- Two code paths to maintain (with and without `cryptography`).
-- Fallback encryption is weaker than AES.
 
 ---
 
