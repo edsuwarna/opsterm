@@ -3914,7 +3914,14 @@ def main():
             run_ssh(cmd, server_name, servers)
 
     # ── connect (AI REPL for manual SSH) ──
-    elif subcmd == "connect" and len(raw_args) > 1:
+    elif subcmd == "connect":
+        if len(raw_args) <= 1:
+            print("❌ Usage: opsterm connect <server>")
+            print("   Example: opsterm connect vps-utama\n")
+            servers = get_servers()
+            if servers:
+                print(f"   Available servers: {', '.join(sorted(servers.keys()))}")
+            return
         server_name = raw_args[1]
         servers = get_servers()
         add_history("connect", f"connect {server_name}")
