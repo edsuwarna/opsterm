@@ -134,6 +134,21 @@ opsterm ssh internal --via bastion
 opsterm ssh --all uptime
 ```
 
+## Connect — AI REPL for manual SSH
+
+Attach AI to a server you're already SSH'd into — works from a separate terminal or tmux pane.
+
+```bash
+opsterm connect my-server
+```
+
+Once connected, you get an interactive REPL:
+- **Natural language** → AI detects if a command is needed, runs it, explains
+- **`!<command>`** → Execute directly on the server (bypass AI)
+- **`exit` / `quit`** → Disconnect
+
+No OpsTerm installation needed on the remote server.
+
 ## SCP
 
 ```bash

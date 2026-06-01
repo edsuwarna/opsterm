@@ -142,7 +142,11 @@
 
       <span class="cm"># Explain any command output</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">docker ps | opsterm</span> "any errors?"<br>
-      <span class="out">✓ All 3 containers healthy. No errors found.</span>
+      <span class="out">✓ All 3 containers healthy. No errors found.</span><br><br>
+
+      <span class="cm"># Connect — AI REPL on any server</span><br>
+      <span class="prompt-c">$</span> <span class="cmd-c">opsterm connect</span> vps-utama<br>
+      <span class="out">🔮 Connected to vps-utama (root@203.0.113.10)<br>opsterm❯ ada berapa container?<br>  🔍 Running `docker ps -a`...<br>  ✅ Ada 5 container: 3 redis, 2 nginx<br>opsterm❯ exit<br>  👋 Disconnected.</span>
     </div>
   </div>
 
@@ -174,6 +178,11 @@
       <div class="icon">🔑</div>
       <h3>Smart SSH</h3>
       <p>SSH without IPs. Fuzzy matching, multi-hop via <code>--via</code>, YAML config.</p>
+    </div>
+    <div class="f-card">
+      <div class="icon">🔮</div>
+      <h3>SSH Connect</h3>
+      <p>AI REPL during SSH. Ask questions, run <code>!commands</code>, no install on server. Works with <code>opsterm connect</code> or <code>Ctrl+B</code> escape.</p>
     </div>
     <div class="f-card">
       <div class="icon">⚡</div>
