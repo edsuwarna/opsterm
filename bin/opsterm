@@ -12,6 +12,7 @@ Usage:
 
 Core Commands:
   ssh <server> [--via <proxy>]     SSH to server (fuzzy name match, ProxyJump)
+  connect <server>                 AI REPL for manual SSH / split-pane users
   scp <src> <dst>                  Transfer files (local:path, server:path, --via proxy)
   run <workflow>                   Execute a multi-step YAML workflow
 
@@ -37,7 +38,7 @@ Utility Commands:
   completion install               Auto-detect shell, install permanently
 """
 
-VERSION = "v0.7.0"
+VERSION = "v0.8.0"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST"
 OPSTERM_RAW_URL = "https://raw.githubusercontent.com/edsuwarna/opsterm/{version}/bin/opsterm"
 
@@ -1259,9 +1260,318 @@ def ssh_connect(server_name: str, servers: dict, proxy_name: str = "") -> Option
     cmd.append("-t")  # Force PTY
     return cmd
 
-def run_ssh(cmd: List[str]):
-    """Replace current process with SSH (interactive)."""
-    os.execvp("ssh", cmd)
+def _ssh_run_command(server_name: str, servers: dict, command: str) -> str:
+    """Run a shell command on a remote server via one-shot SSH. Returns output."""
+    s = _server_lookup(server_name, servers)
+    if not s:
+        return f"❌ Server '{server_name}' not found."
+    host = s.get("host", "")
+    user = s.get("user", "root")
+    port = s.get("port", 22)
+    key = s.get("key", "")
+    cmd = ["ssh", "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=no",
+           "-o", "BatchMode=yes"]
+    if key:
+        cmd.extend(["-i", os.path.expanduser(key)])
+    if port != 22:
+        cmd.extend(["-p", str(port)])
+    # Proxy jump
+    if s.get("proxy", ""):
+        ps = _server_lookup(s["proxy"], servers)
+        if ps:
+            p_user = ps.get("user", "root")
+            p_host = ps.get("host", "")
+            p_port = ps.get("port", 22)
+            proxy_str = f"{p_user}@{p_host}"
+            if p_port != 22:
+                proxy_str += f":{p_port}"
+            cmd.extend(["-J", proxy_str])
+    cmd.append(f"{user}@{host}")
+    cmd.append(command)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        out = result.stdout.strip()
+        if result.returncode != 0:
+            err = result.stderr.strip()[:500]
+            out = out or f"⚠️ Exit code {result.returncode}"
+            if err:
+                out += f"\nStderr: {err}"
+        return out or "(no output)"
+    except subprocess.TimeoutExpired:
+        return "⏰ Command timed out (30s)"
+    except Exception as e:
+        return f"❌ Error: {e}"
+
+
+def run_ssh(cmd: List[str], server_name: str = "", servers: Optional[dict] = None):
+    """Run SSH in a PTY with Ctrl+B escape to access AI assistant (Warp-like).
+
+    During the SSH session, press Ctrl+B to suspend the remote session and
+    drop into an OpsTerm prompt. You can:
+      - Ask AI questions (with automatic server command execution when needed)
+      - Type 'resume' to return to the SSH session
+      - Type '!' followed by a shell command to run it directly on the server
+      - Type 'exit' to terminate the session
+
+    The AI will automatically detect if your question needs data from the
+    remote server and will execute the relevant command before answering.
+    """
+    # Respect config flag — fall back to old behavior if disabled
+    try:
+        cfg = load_config()
+        if not cfg.get("ssh", {}).get("escape_key_enabled", True):
+            os.execvp("ssh", cmd)
+            return
+    except Exception:
+        pass
+
+    import pty
+    import tty
+    import termios
+    import select
+    import signal
+    import struct
+    import fcntl
+
+    stdin_fd = sys.stdin.fileno()
+    stdout_fd = sys.stdout.fileno()
+
+    try:
+        old_tty = termios.tcgetattr(stdin_fd)
+    except Exception:
+        old_tty = None
+
+    # ── Fork with PTY ──
+    pid, master_fd = pty.fork()
+
+    if pid == 0:  # Child — run SSH
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+        signal.signal(signal.SIGTSTP, signal.SIG_DFL)
+        signal.signal(signal.SIGTTIN, signal.SIG_IGN)
+        signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+        os.execvp("ssh", cmd)
+        sys.exit(1)
+
+    # ── Parent: PTY controller ──
+    def _cleanup():
+        try:
+            termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_tty)
+        except Exception:
+            pass
+        try:
+            os.close(master_fd)
+        except Exception:
+            pass
+
+    try:
+        tty.setraw(stdin_fd)
+
+        # Forward terminal resize
+        def _sigwinch(signum, frame):
+            try:
+                buf = fcntl.ioctl(stdin_fd, termios.TIOCGWINSZ, b'\x00' * 8)
+                rows, cols = struct.unpack('HH', buf[:4])
+                fcntl.ioctl(master_fd, termios.TIOCSWINSZ,
+                           struct.pack('HHHH', rows, cols, 0, 0))
+                os.kill(pid, signal.SIGWINCH)
+            except (OSError, ProcessLookupError):
+                pass
+
+        signal.signal(signal.SIGWINCH, _sigwinch)
+        _sigwinch(None, None)
+
+        esc_byte = b'\x02'  # Ctrl+B
+
+        while True:
+            rlist, _, _ = select.select([stdin_fd, master_fd], [], [])
+
+            for fd in rlist:
+                if fd == stdin_fd:
+                    data = os.read(stdin_fd, 1024)
+                    if not data:
+                        break
+
+                    if esc_byte in data:
+                        idx = data.index(esc_byte)
+                        if idx > 0:
+                            os.write(master_fd, data[:idx])
+                        after = data[idx + 1:]
+
+                        # Suspend SSH
+                        os.kill(pid, signal.SIGSTOP)
+
+                        if old_tty is not None:
+                            try:
+                                termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_tty)
+                            except Exception:
+                                pass
+
+                        # ── Escape mode UI ──
+                        sys.stdout.write("\r\n")
+                        sys.stdout.write("╔══════════════════════════════════════════╗\r\n")
+                        sys.stdout.write("║  🔮 OpsTerm — AI Escape Mode           ║\r\n")
+                        sys.stdout.write("║  tanya apa aja, !cmd buat execute,     ║\r\n")
+                        sys.stdout.write("║  resume/exit buat lanjut/selesai       ║\r\n")
+                        sys.stdout.write("╚══════════════════════════════════════════╝\r\n")
+                        sys.stdout.flush()
+
+                        while True:
+                            try:
+                                line = input("opsterm❯ ").strip()
+                            except (EOFError, KeyboardInterrupt):
+                                line = "resume"
+
+                            if line.lower() in ("resume", ""):
+                                break
+                            elif line.lower() in ("exit", "quit"):
+                                sys.stdout.write("⏏️  Keluar dari sesi SSH.\r\n")
+                                sys.stdout.flush()
+                                pid = -1
+                                return
+                            elif line.startswith("!"):
+                                # Direct server command
+                                raw_cmd = line[1:].strip()
+                                if raw_cmd and server_name and servers:
+                                    out = _ssh_run_command(server_name, servers, raw_cmd)
+                                    for p in out.split("\n"):
+                                        sys.stdout.write(f"  {p}\r\n")
+                                else:
+                                    sys.stdout.write("  ❌ Server info not available.\r\n")
+                                sys.stdout.write("\r\n")
+                                sys.stdout.flush()
+                            else:
+                                # AI chat — with automatic server awareness
+                                resp = ai_chat(
+                                    f"User is currently SSH'd into server '{server_name}'. "
+                                    f"Their question: '{line}'\n\n"
+                                    f"If you need to run a shell command on the server "
+                                    f"to answer this, respond starting with 'CMD: ' followed "
+                                    f"by the exact command. Otherwise answer directly."
+                                )
+                                if resp.startswith("CMD:") and server_name and servers:
+                                    cmd_to_run = resp[4:].strip()
+                                    out = _ssh_run_command(server_name, servers, cmd_to_run)
+                                    resp = ai_chat(
+                                        f"Server '{server_name}' command was: {cmd_to_run}\n"
+                                        f"Output:\n{out}\n\n"
+                                        f"Original question: {line}\n\n"
+                                        f"Answer based on that output."
+                                    )
+                                for p in resp.split("\n"):
+                                    sys.stdout.write(f"  {p}\r\n")
+                                sys.stdout.write("\r\n")
+                                sys.stdout.flush()
+
+                        # Resume SSH
+                        if pid > 0:
+                            sys.stdout.write("\r\n🔑 Resuming SSH session...\r\n")
+                            sys.stdout.flush()
+                            tty.setraw(stdin_fd)
+                            if after:
+                                os.write(master_fd, after)
+                            os.kill(pid, signal.SIGCONT)
+                    else:
+                        os.write(master_fd, data)
+
+                elif fd == master_fd:
+                    try:
+                        chunk = os.read(master_fd, 65536)
+                    except OSError:
+                        chunk = b''
+                    if not chunk:
+                        break
+                    os.write(stdout_fd, chunk)
+
+    except (KeyboardInterrupt, EOFError):
+        if pid > 0:
+            os.kill(pid, signal.SIGKILL)
+    finally:
+        _cleanup()
+
+    # Reap child
+    if pid > 0:
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass
+
+
+def cmd_connect(server_name: str, servers: dict):
+    """Connect to a server via AI REPL — for manual SSH / split-pane users.
+
+    Opens an opsterm❯ prompt where you can ask AI questions (with automatic
+    server command execution when needed) or run !<cmd> directly on the server.
+    Exit to return to the regular shell.
+    """
+    s = _server_lookup(server_name, servers)
+    if not s:
+        return
+
+    host = s.get("host", "")
+    user = s.get("user", "root")
+
+    # ── Banner ──
+    user_host = f"{user}@{host}"
+    sys.stdout.write("\n")
+    sys.stdout.write("╔══════════════════════════════════════════╗\n")
+    sys.stdout.write(f"║  🔮 OpsTerm — Connect: {server_name:<16}║\n")
+    sys.stdout.write(f"║  {user_host:<38}║\n")
+    sys.stdout.write("║  Tanya apa aja jawab pake AI           ║\n")
+    sys.stdout.write("║  !<cmd> buat execute langsung           ║\n")
+    sys.stdout.write("║  exit / quit buat selesai               ║\n")
+    sys.stdout.write("╚══════════════════════════════════════════╝\n")
+    sys.stdout.write("\n")
+    sys.stdout.flush()
+
+    while True:
+        try:
+            line = input("opsterm❯ ").strip()
+        except (EOFError, KeyboardInterrupt):
+            sys.stdout.write("\n")
+            break
+
+        if line.lower() in ("exit", "quit", ""):
+            break
+        elif line.startswith("!"):
+            raw_cmd = line[1:].strip()
+            if raw_cmd:
+                out = _ssh_run_command(server_name, servers, raw_cmd)
+                for p in out.split("\n"):
+                    sys.stdout.write(f"  {p}\n")
+            else:
+                sys.stdout.write("  Usage: !<command>\n")
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+        else:
+            # AI chat — auto-detect if server command needed
+            context = (
+                f"User is connected to server '{server_name}' "
+                f"({user}@{host}) via the OpsTerm connect REPL. "
+                f"They want to know about this server.\n\n"
+                f"Their question: '{line}'\n\n"
+                f"If you need to run a shell command on the server "
+                f"to answer this, respond starting with 'CMD: ' followed "
+                f"by the exact command. Otherwise answer directly."
+            )
+            resp = ai_chat(context)
+            if resp.startswith("CMD:") and server_name and servers:
+                cmd_to_run = resp[4:].strip()
+                if cmd_to_run:
+                    out = _ssh_run_command(server_name, servers, cmd_to_run)
+                    resp = ai_chat(
+                        f"Server '{server_name}' command was: {cmd_to_run}\n"
+                        f"Output:\n{out}\n\n"
+                        f"Original question: {line}\n\n"
+                        f"Answer based on that output."
+                    )
+            for p in resp.split("\n"):
+                sys.stdout.write(f"  {p}\n")
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
+    print(f"👋 Disconnected from {server_name}.")
+
 
 # ═══════════════════════════════════════════════════════════
 # SCP FILE TRANSFER
@@ -3180,6 +3490,21 @@ Examples:
   opsterm completion zsh
   opsterm completion install
 """,
+    "connect": """Usage: opsterm connect <server>
+
+Connect to a saved server via AI REPL — for manual SSH users.
+
+Opens an interactive opsterm❯ prompt where you can:
+  - Ask AI questions about the server (auto-executes CMD when needed)
+  - Type !<command> to run commands directly on the server
+  - Type exit/quit to disconnect
+
+Great for split-pane workflows: SSH in one pane, opsterm connect in another.
+
+Examples:
+  opsterm connect vps-utama
+  opsterm connect peladen-central
+""",
 }
 
 
@@ -3205,10 +3530,11 @@ def main():
         "ssh", "scp", "run", "servers", "workflows", "config", "provider",
         "history", "chat", "last", "explain-last", "explain_last",
         "init", "update", "completion", "doctor", "search", "export", "import", "reset",
+        "connect",
     )):
         for arg in sys.argv[1:]:
             if arg in (
-                "ssh", "scp", "run", "servers", "workflows", "config", "provider",
+                "ssh", "scp", "run", "connect", "servers", "workflows", "config", "provider",
                 "history", "chat", "last", "explain-last", "explain_last",
                 "init", "update", "completion", "doctor", "search", "export", "import", "reset",
             ):
@@ -3225,6 +3551,7 @@ def main():
               <prompt>                     Ask AI — get command suggestions, explain output
               ssh <server> [--via <proxy>] SSH to server (fuzzy name match, ProxyJump)
               scp <src> <dst>              Transfer files (local:path, server:path, --via)
+              connect <server>             AI REPL for manual SSH / split-pane users
               run <workflow>               Execute a multi-step YAML workflow
 
             Management Commands:
@@ -3254,6 +3581,7 @@ def main():
               opsterm how to find large files
               opsterm ssh vps-utama
               opsterm ssh internal --via bastion
+              opsterm connect vps-utama
               opsterm scp file.txt vps-utama:/home/ubuntu/
               opsterm run deploy-app
               opsterm config set ai.response_style concise
@@ -3583,7 +3911,21 @@ def main():
             via_str = f" via {proxy_name}" if proxy_name else ""
             add_history("ssh", f"ssh {server_name}{via_str}")
             print(f"🔑 Connecting to {server_name}{via_str}...")
-            run_ssh(cmd)
+            run_ssh(cmd, server_name, servers)
+
+    # ── connect (AI REPL for manual SSH) ──
+    elif subcmd == "connect":
+        if len(raw_args) <= 1:
+            print("❌ Usage: opsterm connect <server>")
+            print("   Example: opsterm connect vps-utama\n")
+            servers = get_servers()
+            if servers:
+                print(f"   Available servers: {', '.join(sorted(servers.keys()))}")
+            return
+        server_name = raw_args[1]
+        servers = get_servers()
+        add_history("connect", f"connect {server_name}")
+        cmd_connect(server_name, servers)
 
     # ── scp ──
     elif subcmd == "scp" and len(raw_args) >= 3:

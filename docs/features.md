@@ -38,7 +38,8 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 28 | 📋 **Workflow Init** | `opsterm workflows init` | Setup |
 | 29 | 📋 **Server Details** | `opsterm servers show <name>` | Management |
 | 30 | 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Management |
-| 31 | 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Setup |
+|| 31 | 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Setup |
+|| 32 | 🔗 **Connect** | `opsterm connect <server>` | Core |
 
 ---
 
@@ -477,7 +478,60 @@ opsterm chat
 
 ---
 
-## 1️⃣7️⃣ 🏓 Server Ping
+## 1️⃣7️⃣ 🔗 Connect — AI REPL for manual SSH
+
+Interactive AI-powered REPL that connects to a server via SSH, letting you ask AI questions and run commands — **no need to install OpsTerm on the remote server.**
+
+```bash
+opsterm connect vps-utama
+```
+
+**Use case:** Already SSH'd manually (or in a tmux pane)? Open another terminal and attach AI to that server.
+
+```
+# Terminal 1 — manual SSH
+ssh user@vps-utama
+
+# Terminal 2 (or tmux pane) — attach AI
+opsterm connect vps-utama
+
+╔══════════════════════════════════════════╗
+║  🔮 OpsTerm — Connect: vps-utama       ║
+║  root@203.0.113.10                      ║
+║  Tanya apa aja jawab pake AI           ║
+║  !<cmd> buat execute langsung           ║
+║  exit / quit buat selesai               ║
+╚══════════════════════════════════════════╝
+
+opsterm❯ ada berapa container running?
+  🔍 Running `docker ps -a` via second SSH...
+  ✅ Ada 5 container: 3 redis, 2 nginx
+opsterm❯ !df -h
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/vda1        20G   12G    8G  60% /
+opsterm❯ exit
+  👋 Disconnected from vps-utama.
+```
+
+**REPL commands:**
+
+| Input | Behavior |
+|-------|----------|
+| Natural language (e.g. `cek disk usage`) | AI detects if a command is needed, runs it, explains output |
+| `!<command>` (e.g. `!uptime`) | Runs the command directly on the server (bypasses AI) |
+| `exit` / `quit` | Disconnect and exit |
+
+**How it works:**
+- Opens an SSH connection to the server (from your local machine)
+- AI analyzes your question, decides whether to run a command
+- If a command is needed → it's executed via SSH, output goes to AI → explanation
+- Direct commands (`!cmd`) execute immediately, no AI processing
+
+**No installation required on the remote server** — the SSH connection is managed from your local machine.
+
+---
+
+## 1️⃣8️⃣ 🏓 Server Ping
 
 Check SSH connectivity and latency to configured servers.
 
@@ -495,7 +549,7 @@ opsterm servers ping all
 
 ---
 
-## 1️⃣8️⃣ 🔌 Provider Test
+## 1️⃣9️⃣ 🔌 Provider Test
 
 Test AI provider connectivity by sending a simple ping request.
 
@@ -516,7 +570,7 @@ opsterm provider test deepseek
 
 ---
 
-## 1️⃣9️⃣ 📡 Provider Models
+## 2️⃣0️⃣ 📡 Provider Models
 
 List available models for a configured provider.
 
@@ -583,7 +637,7 @@ opsterm reset
 
 ---
 
-## 2️⃣0️⃣ 🎯 JSON Output
+## 2️⃣4️⃣ 🎯 JSON Output
 
 All list commands support `--json` flag for structured output — perfect for scripting with `jq`.
 
@@ -605,6 +659,7 @@ opsterm history --json | jq '.history[:5]'
 | What You Want To Do | Command |
 |---------------------|---------|
 | **SSH into a server** | `opsterm ssh vps-main` |
+| **SSH + AI REPL** | `opsterm connect vps-utama` |
 | **SSH through a bastion** | `opsterm ssh internal --via bastion` |
 | **Upload a file** | `opsterm scp file.txt server:/path/` |
 | **Download a file** | `opsterm scp server:log.txt .` |

@@ -16,6 +16,8 @@ SSH into any server without losing AI access — because the AI runs on your **l
 | 🤖 **AI Chat** | `opsterm how to check disk` | Ask AI anything |
 | 💬 **Chat REPL** | `opsterm chat` | Interactive chat mode with history |
 | 🔑 **Smart SSH** | `opsterm ssh vps-utama` | SSH without remembering IPs |
+| 🔮 **SSH Escape** | Press `Ctrl+B` during SSH | Ask AI & run server commands without dropping the session |
+| 🔗 **Connect** | `opsterm connect vps-utama` | AI REPL for manual SSH / split-pane users |
 | 🔗 **Multi-hop SSH** | `opsterm ssh internal --via bastion` | SSH through jump host |
 | 📁 **SCP File Transfer** | `opsterm scp file.txt server:/path` | Upload/download via server |
 | ⚡ **Workflow** | `opsterm run deploy-app` | Multi-step automation (SSH/SCP/local) |
@@ -157,6 +159,81 @@ opsterm ssh internal --via bastion # Via proxy/jump host
 opsterm scp file.txt server:/path  # File transfer
 opsterm servers ping vps-utama    # Check connectivity
 ```
+
+### 🔮 SSH Escape — AI & commands during SSH
+
+Warp-like SSH experience: press `Ctrl+B` during an active SSH session to access OpsTerm's AI assistant **without disconnecting**.
+
+```
+# SSH into a server
+opsterm ssh vps-utama
+
+# (inside SSH session) Press Ctrl+B → drops to OpsTerm prompt:
+
+╔══════════════════════════════════════════╗
+║  🔮 OpsTerm — AI Escape Mode           ║
+║  tanya apa aja, !cmd buat execute,     ║
+║  resume/exit buat lanjut/selesai       ║
+╚══════════════════════════════════════════╝
+
+opsterm❯ ada berapa container running?
+  🔍 Detecting command... running `docker ps -a`
+  ✅ Ada 5 container: 3 redis, 2 nginx
+opsterm❯ !df -h
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/vda1        20G   12G    8G  60% /
+opsterm❯ resume
+  🔑 Resuming SSH session...
+
+# → back to interactive SSH
+```
+
+**Commands in escape mode:**
+
+| Input | Behavior |
+|-------|----------|
+| `ada berapa container?` | AI detects if a shell command is needed, runs it, explains the output |
+| `!df -h` | Runs the command directly on the server (bypasses AI) |
+| `resume` | Return to the SSH session |
+| `exit` | Terminate the SSH session |
+
+No installation required on the remote server — the second SSH connection (for command execution) is opened from your local machine.
+
+**Disable escape mode** (falls back to regular `execvp` SSH):
+```bash
+opsterm config set ssh.escape_key_enabled false
+```
+
+### 🔗 Connect — AI REPL for manual SSH users
+
+Already SSH'd into a server the old-fashioned way? Open another terminal (or tmux pane) and use `opsterm connect` to attach AI to that server.
+
+```
+# Terminal 1 — manual SSH
+ssh user@vps-utama
+
+# Terminal 2 (or tmux pane) — attach AI
+opsterm connect vps-utama
+
+╔══════════════════════════════════════════╗
+║  🔮 OpsTerm — Connect: vps-utama       ║
+║  root@203.0.113.10                      ║
+║  Tanya apa aja jawab pake AI           ║
+║  !<cmd> buat execute langsung           ║
+║  exit / quit buat selesai               ║
+╚══════════════════════════════════════════╝
+
+opsterm❯ ada berapa container running?
+  🔍 Running `docker ps -a` via second SSH...
+  ✅ Ada 5 container: 3 redis, 2 nginx
+opsterm❯ !df -h
+  Filesystem      Size  Used Avail Use% Mounted on
+  /dev/vda1        20G   12G    8G  60% /
+opsterm❯ exit
+  👋 Disconnected from vps-utama.
+```
+
+Same AI smarts as the SSH escape mode — no installation needed on the remote server.
 
 ### ⚡ Workflows — automate multi-step tasks
 
