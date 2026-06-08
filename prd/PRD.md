@@ -542,8 +542,8 @@ opsterm how to check which ports are listening
 | Branch | Status | Description |
 |--------|--------|-------------|
 | `main` | ✅ Stable (v0.8.0) | Production-ready |
-| `feat/ssh-escape-ai` | 🔄 Ready to merge | Connect feature (AI REPL) |
-| `feat/versioning` | 🔄 In progress | Code refactor (3784→2323 lines), proper self-update, docs restructure |
+| `feat/ssh-escape-ai` | ✅ Merged into v0.8.0 | Connect feature (AI REPL) — branch retained locally |
+| `feat/versioning` | ❌ Deleted | Code refactor & self-update — superseded by other approaches |
 
 ---
 
