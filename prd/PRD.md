@@ -1,13 +1,13 @@
 # OpsTerm — Product Requirements Document
 
-> **Versi:** 1.0
+> **Version:** 1.0
 > **Status:** Final Draft
-> **Tanggal:** Juni 2026
-> **Penulis:** Endang Suwarna
+> **Date:** June 2026
+> **Author:** Endang Suwarna
 
 ---
 
-## Daftar Isi
+## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
 2. [Product Overview](#2-product-overview)
@@ -27,16 +27,16 @@
 
 ## 1. Executive Summary
 
-OpsTerm adalah **AI Terminal Assistant** berbasis CLI yang memungkinkan developer dan sysadmin berinteraksi dengan AI langsung dari terminal — tanpa perlu install apa-apa selain satu file Python.
+OpsTerm is an **AI Terminal Assistant** CLI tool that lets developers and sysadmins interact with AI directly from their terminal — no installation required beyond a single Python file.
 
-**Value proposition inti:**
-- **Zero dependency** — cukup Python 3 stdlib, satu file `opsterm`, langsung jalan
-- **Any AI provider** — bebas pilih provider AI (DeepSeek, OpenAI, Ollama, OpenRouter, dll)
-- **SSH-first** — semua fitur SSH built-in, termasuk multi-hop ProxyJump, SCP, dan SSH Escape
+**Core value proposition:**
+- **Zero dependency** — pure Python 3 stdlib, one `opsterm` file, runs immediately
+- **Any AI provider** — free to choose AI providers (DeepSeek, OpenAI, Ollama, OpenRouter, etc.)
+- **SSH-first** — all SSH features built-in, including multi-hop ProxyJump, SCP, and SSH Escape
 - **Workflow automation** — multi-step automation (SSH/SCP/local) via YAML
-- **Ringan** — ~50KB file, no node_modules, no pip install, no binary 200MB+
+- **Lightweight** — ~50KB file, no node_modules, no pip install, no 200MB+ binaries
 
-**Tahap saat ini:** v0.8.0 — fitur core sudah matang (AI Chat, Smart SSH, SCP, Workflow, Web Dashboard, Connect, SSH Escape). Beberapa fitur advanced masih di branch terpisah.
+**Current stage:** v0.8.0 — core features are mature (AI Chat, Smart SSH, SCP, Workflow, Web Dashboard, Connect, SSH Escape). Some advanced features remain in separate branches.
 
 ---
 
@@ -44,19 +44,19 @@ OpsTerm adalah **AI Terminal Assistant** berbasis CLI yang memungkinkan develope
 
 ### 2.1 Product Vision
 
-> "Terminal AI assistant yang bekerja di mana pun — server mana pun, provider AI mana pun — tanpa instalasi rumit."
+> "A terminal AI assistant that works anywhere — any server, any AI provider — with zero complex setup."
 
 ### 2.2 Positioning
 
-OpsTerm adalah **alternatif open-source, provider-agnostic dari Warp.dev** untuk Linux — dengan tambahan SSH automation & workflow yang tidak dimiliki kompetitor.
+OpsTerm is a **free, open-source, provider-agnostic alternative to Warp.dev** for Linux — with additional SSH automation and workflow capabilities that competitors lack.
 
 ### 2.3 Core Philosophy
 
-1. **Local-first** — AI berjalan di terminal lokal, bukan di remote server
-2. **Zero friction** — download satu file, langsung jalan. No `pip install`, no `npm i`
-3. **Provider freedom** — tidak lock-in ke satu vendor AI
-4. **SSH native** — bukan afterthought, SSH adalah first-class citizen
-5. **Transparent** — kode bisa dibaca langsung, zero hidden dependencies
+1. **Local-first** — AI runs on your local terminal, not on remote servers
+2. **Zero friction** — download one file, run it. No `pip install`, no `npm i`
+3. **Provider freedom** — no lock-in to a single AI vendor
+4. **SSH native** — not an afterthought, SSH is a first-class citizen
+5. **Transparent** — all code is readable, zero hidden dependencies
 
 ---
 
@@ -64,61 +64,61 @@ OpsTerm adalah **alternatif open-source, provider-agnostic dari Warp.dev** untuk
 
 ### Persona 1: DevOps / Sysadmin (Primary)
 
-| Atribut | Deskripsi |
-|---------|-----------|
-| **Pekerjaan** | DevOps Engineer, System Administrator, SRE |
+| Attribute | Description |
+|-----------|-------------|
+| **Role** | DevOps Engineer, System Administrator, SRE |
 | **Tools** | Terminal, SSH, Docker, Kubernetes, Ansible |
-| **Pain points** | Hapal IP server, bolak-balik SSH ke banyak server, error troubleshooting |
-| **Kebutuhan** | Cepat execute command di banyak server, bantu debug error, workflow automation |
-| **Daya tarik OpsTerm** | Smart SSH, Multi-hop, Workflow automation, AI-assisted troubleshooting |
+| **Pain points** | Memorizing server IPs, SSH-ing into many servers, troubleshooting errors |
+| **Needs** | Quick command execution across servers, error debugging assistance, workflow automation |
+| **OpsTerm appeal** | Smart SSH, Multi-hop, Workflow automation, AI-assisted troubleshooting |
 
 ### Persona 2: Full-stack Developer (Secondary)
 
-| Atribut | Deskripsi |
-|---------|-----------|
-| **Pekerjaan** | Software Engineer, Full-stack Developer |
+| Attribute | Description |
+|-----------|-------------|
+| **Role** | Software Engineer, Full-stack Developer |
 | **Tools** | Terminal, Git, Docker, VS Code |
-| **Pain points** | Males hapal command linux, butuh bantuan cepat tanpa buka browser |
-| **Kebutuhan** | AI chat di terminal, bantu generate command, explain error |
-| **Daya tarik OpsTerm** | AI Chat, Pipe Mode, Explain-last, zero setup |
+| **Pain points** | Forgets Linux commands, needs quick help without switching to browser |
+| **Needs** | AI chat in terminal, command generation, error explanation |
+| **OpsTerm appeal** | AI Chat, Pipe Mode, Explain-last, zero setup |
 
 ### Persona 3: Homelab / Self-hoster (Tertiary)
 
-| Atribut | Deskripsi |
-|---------|-----------|
-| **Pekerjaan** | Hobbyist, Self-hoster, Tech enthusiast |
-| **Tools** | Terminal, Docker, Proxmox, VPS murah |
-| **Pain points** | Banyak server kecil-kecil, perlu tool sederhana tanpa overhead |
-| **Kebutuhan** | Manage banyak server tanpa jadi berat, workflow deployment simpel |
-| **Daya tarik OpsTerm** | Ringan (~50KB), zero dependency, workflow automation, SCP |
+| Attribute | Description |
+|-----------|-------------|
+| **Role** | Hobbyist, Self-hoster, Tech enthusiast |
+| **Tools** | Terminal, Docker, Proxmox, budget VPS |
+| **Pain points** | Many small servers, needs simple tools without overhead |
+| **Needs** | Manage multiple servers without bloat, simple deployment workflows |
+| **OpsTerm appeal** | Lightweight (~50KB), zero dependency, workflow automation, SCP |
 
 ---
 
 ## 4. Problem Statement
 
-### 4.1 Masalah Utama
+### 4.1 Core Problems
 
-| # | Problem | Dampak | Solusi OpsTerm |
-|---|---------|--------|----------------|
-| 1 | Developer harus switch context ke browser untuk tanya AI | Produktivitas turun, konteks hilang | AI langsung di terminal |
-| 2 | SSH ke banyak server = hapal IP & config masing-masing | Mental load tinggi, human error | Smart SSH (fuzzy match, YAML config) |
-| 3 | Server internal cuma bisa lewat jump host | SSH command jadi panjang & ribet | Multi-hop SSH built-in (`--via`) |
-| 4 | Troubleshooting error perlu copy-paste manual ke ChatGPT | Lambat, ga praktis | Pipe mode + explain-last + RTK |
-| 5 | Vendor lock-in AI provider | Ga bisa ganti provider tanpa ganti tool | Provider-agnostic (OpenAI-compatible) |
-| 6 | Tool AI terminal berat & dependency banyak | Ribet setup, ga cocok buat server minimal | Zero dependency, satu file 50KB |
-| 7 | Automation task berulang (deploy, health check) manual | Repetitif, rawan lupa langkah | Workflow automation via YAML |
+| # | Problem | Impact | OpsTerm Solution |
+|---|---------|--------|------------------|
+| 1 | Developers must switch context to browser to ask AI | Lost productivity, broken flow | AI directly in terminal |
+| 2 | SSH to many servers = memorizing IPs and configs | High mental load, human error | Smart SSH (fuzzy match, YAML config) |
+| 3 | Internal servers only accessible through jump hosts | SSH commands become long and complex | Built-in multi-hop SSH (`--via`) |
+| 4 | Troubleshooting requires manual copy-paste to ChatGPT | Slow, impractical | Pipe mode + explain-last + RTK |
+| 5 | AI provider vendor lock-in | Can't switch without changing tools | Provider-agnostic (OpenAI-compatible) |
+| 6 | AI terminal tools are heavy with many dependencies | Complex setup, unsuitable for minimal servers | Zero dependency, single 50KB file |
+| 7 | Repetitive automation tasks (deploy, health check) done manually | Repetitive, error-prone | Workflow automation via YAML |
 
 ### 4.2 Use Case Matrix
 
-| Skenario | Tool Sebelumnya | Dengan OpsTerm |
-|-----------|----------------|----------------|
-| Cari command linux | Buka browser → Google → Stack Overflow | `opsterm how to check disk usage` |
-| SSH ke server | `ssh ubuntu@203.0.113.10 -i key.pem` | `opsterm ssh vps-utama` |
-| SSH lewat bastion | `ssh -J user@bastion user@internal` | `opsterm ssh internal --via bastion` |
-| Upload file ke server | `scp file user@203.0.113.10:/path/` | `opsterm scp file.txt vps-utama:/path/` |
-| Diagnosa error dari log | Copy log → buka ChatGPT → paste → tunggu | `docker logs -n50 \| opsterm "any errors?"` |
-| Deploy app multi-step | Buka tmux → SSH → git pull → docker compose | `opsterm run deploy-app` |
-| Cek kesehatan semua server | SSH satu-satu ke setiap server | `opsterm run health-check` |
+| Scenario | Before | With OpsTerm |
+|----------|--------|--------------|
+| Find a Linux command | Open browser → Google → Stack Overflow | `opsterm how to check disk usage` |
+| SSH into a server | `ssh ubuntu@203.0.113.10 -i key.pem` | `opsterm ssh vps-utama` |
+| SSH through bastion | `ssh -J user@bastion user@internal` | `opsterm ssh internal --via bastion` |
+| Upload file to server | `scp file user@203.0.113.10:/path/` | `opsterm scp file.txt vps-utama:/path/` |
+| Diagnose errors from logs | Copy log → open ChatGPT → paste → wait | `docker logs -n50 \| opsterm "any errors?"` |
+| Deploy app with multiple steps | Open tmux → SSH → git pull → docker compose | `opsterm run deploy-app` |
+| Check health of all servers | SSH one-by-one to each server | `opsterm run health-check` |
 
 ---
 
@@ -126,11 +126,11 @@ OpsTerm adalah **alternatif open-source, provider-agnostic dari Warp.dev** untuk
 
 ### 5.1 Feature Taxonomy
 
-Fitur dikelompokkan dalam 5 kategori:
+Features are grouped into 5 categories:
 
 ```
-CORE        — AI + SSH + SCP + Workflow (wajib ada)
-SHELL       — Integrasi dengan shell (Zsh plugin, explain-last)
+CORE        — AI + SSH + SCP + Workflow (must-have)
+SHELL       — Shell integration (Zsh plugin, explain-last)
 MANAGEMENT  — CRUD servers, workflows, config, history
 UTILITY     — Dashboard, completion, export/import, diagnostics
 SETUP       — Init, provider config, import SSH config
@@ -140,8 +140,8 @@ SETUP       — Init, provider config, import SSH config
 
 #### 5.2.1 Core Features
 
-| Fitur | Command | Prioritas | Status |
-|-------|---------|-----------|--------|
+| Feature | Command | Priority | Status |
+|---------|---------|----------|--------|
 | AI Chat | `opsterm <prompt>` | P0 | ✅ Live |
 | Chat REPL | `opsterm chat` | P0 | ✅ Live |
 | Smart SSH | `opsterm ssh <server>` | P0 | ✅ Live |
@@ -158,8 +158,8 @@ SETUP       — Init, provider config, import SSH config
 
 #### 5.2.2 Management Features
 
-| Fitur | Command | Prioritas | Status |
-|-------|---------|-----------|--------|
+| Feature | Command | Priority | Status |
+|---------|---------|----------|--------|
 | Server Manager (CRUD) | `opsterm servers add/edit/rm/list` | P0 | ✅ Live |
 | Server Ping | `opsterm servers ping <name>` | P1 | ✅ Live |
 | Server Show | `opsterm servers show <name>` | P1 | ✅ Live |
@@ -177,8 +177,8 @@ SETUP       — Init, provider config, import SSH config
 
 #### 5.2.3 Utility & Setup
 
-| Fitur | Command | Prioritas | Status |
-|-------|---------|-----------|--------|
+| Feature | Command | Priority | Status |
+|---------|---------|----------|--------|
 | Web Dashboard | `opsterm web [--port] [--open]` | P1 | ✅ Live |
 | Tab Completion (bash/zsh) | `opsterm completion bash\|zsh` | P1 | ✅ Live |
 | JSON Output | `--json` flag on list commands | P2 | ✅ Live |
@@ -190,14 +190,14 @@ SETUP       — Init, provider config, import SSH config
 
 ### 5.3 Future Features (Planned)
 
-| Fitur | Priority | Target | Keterangan |
-|-------|----------|--------|------------|
-| Plugin System | P2 | v0.9+ | Sistem plugin/extensions untuk third-party integrations |
-| Multi-language AI Responses | P2 | v0.9+ | AI bisa jawab sesuai bahasa yang diminta |
-| Tmux/Screen Session Manager | P2 | v1.0 | Manage multi-sessions dari OpsTerm |
-| Docker Exec Shortcut | P2 | v1.0 | `opsterm exec <container>` langsung masuk container |
-| SSH Config Parser | P2 | v1.0 | Parse `~/.ssh/config` lebih advanced |
-| Fish Shell Support | P3 | v1.0+ | Completion & plugin untuk Fish shell |
+| Feature | Priority | Target | Description |
+|---------|----------|--------|-------------|
+| Plugin System | P2 | v0.9+ | Plugin/extensions system for third-party integrations |
+| Multi-language AI Responses | P2 | v0.9+ | AI responds in the same language as the query |
+| Tmux/Screen Session Manager | P2 | v1.0 | Manage multi-sessions from OpsTerm |
+| Docker Exec Shortcut | P2 | v1.0 | `opsterm exec <container>` to jump directly into a container |
+| SSH Config Parser | P2 | v1.0 | Advanced `~/.ssh/config` parsing |
+| Fish Shell Support | P3 | v1.0+ | Completion & plugin for Fish shell |
 | Multi-hop Chain | P1 | Backlog | `opsterm ssh server --via jump1,jump2` |
 
 ### 5.4 Feature Detail: Core Features
@@ -205,68 +205,68 @@ SETUP       — Init, provider config, import SSH config
 #### 5.4.1 AI Chat
 
 **Behavior:**
-- Input tanpa subcommand → otomatis masuk mode AI Chat
-- Mengirim prompt + system message ke provider AI (OpenAI-compatible)
-- Mendeteksi apakah output mengandung command (diawali `$`) → offer auto-exec
-- Menyimpan history ke SQLite
+- Input without a subcommand → automatically enters AI Chat mode
+- Sends prompt + system message to AI provider (OpenAI-compatible)
+- Detects if output contains a command (starting with `$`) → offers auto-execution
+- Saves all interactions to SQLite history
 
 **Edge cases:**
-- **No API key configured:** Tampilkan error message dengan instruksi setup
-- **Provider timeout:** Timeout 30 detik, tampilkan error + saran retry
-- **Very long output:** Potong di 2000 chars untuk display, tetap simpan full di DB
-- **Network error:** Retry 2x, lalu fallback ke error message yang jelas
+- **No API key configured:** Display friendly error with setup instructions
+- **Provider timeout:** 30-second timeout, show error with retry suggestion
+- **Very long output:** Truncate display at 2000 chars, still store full output in DB
+- **Network error:** Retry 2x, then fall back to a clear error message
 
 #### 5.4.2 Smart SSH
 
 **Behavior:**
-- Fuzzy match nama server dari servers.yaml
+- Fuzzy match server name from servers.yaml
 - Resolve server config (host, user, port, key, proxy)
 - Multi-hop via `-J` (ProxyJump) flag
-- Untuk SSH interactive: `os.execvp()` → replace proses
-- Untuk command via SSH (workflow): `subprocess.run()`
+- For interactive SSH: `os.execvp()` → replaces the process
+- For command-based SSH (workflow): `subprocess.run()`
 
 **Edge cases:**
-- **Server not found:** Fuzzy match ke nama terdekat + suggestion, atau error
-- **Server name ambiguous:** Tampilkan list server yang cocok, minta user pilih
-- **Connection timeout:** Timeout 10 detik, tampilkan error
-- **Key file not found:** Fallback ke key default (~/.ssh/id_rsa, id_ed25519)
-- **Proxy unreachable:** Error jelas bahwa proxy server yang bermasalah, bukan target
+- **Server not found:** Fuzzy match to nearest name + suggestion, or clear error
+- **Server name ambiguous:** Show list of matching servers, prompt user to choose
+- **Connection timeout:** 10-second timeout, display appropriate error
+- **Key file not found:** Fall back to default keys (~/.ssh/id_rsa, id_ed25519)
+- **Proxy unreachable:** Clear error that the proxy server is the issue, not the target
 
 #### 5.4.3 SSH Escape Mode (`Ctrl+B`)
 
 **Behavior:**
-- Selama SSH session aktif, `Ctrl+B` meng-intercept input dan drop ke AI prompt
-- Natural language → AI deteksi apakah perlu command → execute via SSH kedua → explain
-- `!<command>` → execute langsung tanpa AI
-- `resume` → balik ke SSH session
-- `exit` → terminate SSH session
-- Bisa di-disable via config: `opsterm config set ssh.escape_key_enabled false`
+- During an active SSH session, `Ctrl+B` intercepts input and drops into AI prompt
+- Natural language → AI detects if a command is needed → executes via second SSH → explains
+- `!<command>` → runs directly without AI processing
+- `resume` → returns to the SSH session
+- `exit` → terminates the SSH session
+- Can be disabled via config: `opsterm config set ssh.escape_key_enabled false`
 
 **Technical:**
-- Menggunakan pseudoterminal (PTY) untuk intercept input
-- Membuka SSH connection kedua dari local untuk eksekusi command
-- Nonaktifkan key echo ke PTY selama escape mode
+- Uses pseudo-terminal (PTY) to intercept input
+- Opens a second SSH connection from local machine for command execution
+- Disables key echo to PTY during escape mode
 
 #### 5.4.4 Workflow Automation
 
 **Behavior:**
 - Step types: `ssh`, `command`, `scp`, `confirm`, `wait`
-- Sequential execution: step gagal → workflow berhenti dengan error
-- Output tiap step ditampilkan real-time
+- Sequential execution: step fails → workflow stops with error
+- Each step's output is displayed in real-time
 
 **Edge cases:**
-- **Empty workflow:** Error message, jangan crash
-- **Server in step not found:** Error di step itu, stop workflow
-- **SCP to nonexistent path:** SCP error ditampilkan, workflow berhenti
-- **`confirm` step in non-interactive mode:** Auto-skip dengan warning
+- **Empty workflow:** Error message, no crash
+- **Server in step not found:** Error at that step, stop workflow
+- **SCP to nonexistent path:** SCP error displayed, workflow stops
+- **`confirm` step in non-interactive mode:** Auto-skip with warning
 
 #### 5.4.5 RTK Token Compression
 
 **Behavior:**
-- Otomatis kompres output command sebelum dikirim ke AI
-- Threshold: skip kompresi untuk output <200 chars
-- Auto-detect tipe output (git diff, pytest, docker ps, logs, journalctl)
-- Graceful fallback jika RTK binary tidak terinstall
+- Automatically compresses command output before sending to AI
+- Threshold: skip compression for output <200 chars
+- Auto-detect output type (git diff, pytest, docker ps, logs, journalctl)
+- Graceful fallback if RTK binary is not installed
 
 **Compression targets:**
 | Output Type | Avg Raw | Avg Compressed | Savings |
@@ -337,17 +337,17 @@ SETUP       — Init, provider config, import SSH config
 
 ### 6.3 Design Decisions
 
-Keputusan arsitektural yang sudah diambil (detail lengkap di `docs/design-decisions.md`):
+Key architectural decisions already made (full details in `docs/design-decisions.md`):
 
 | # | Decision | Choice | Rationale |
 |---|----------|--------|-----------|
-| 1 | **Language** | Python 3 | Ada di setiap Linux/macOS, full stdlib |
-| 2 | **Architecture** | Single-file CLI | Portable, zero setup, mudah di-audit |
+| 1 | **Language** | Python 3 | Present on every Linux/macOS, full stdlib |
+| 2 | **Architecture** | Single-file CLI | Portable, zero setup, easy to audit |
 | 3 | **Dependencies** | Zero (stdlib only) | No pip install, no version conflicts |
-| 4 | **Config format** | YAML | Human-readable, cocok buat config |
-| 5 | **AI Protocol** | OpenAI-compatible API | Universal, banyak provider support |
-| 6 | **SSH Method** | Subprocess + system SSH | Zero dep, support semua fitur SSH |
-| 7 | **State** | File-based (no daemon) | Simpel, ga perlu service management |
+| 4 | **Config format** | YAML | Human-readable, ideal for config files |
+| 5 | **AI Protocol** | OpenAI-compatible API | Universal, supported by most providers |
+| 6 | **SSH Method** | Subprocess + system SSH | Zero dep, supports all SSH features |
+| 7 | **State** | File-based (no daemon) | Simple, no service management needed |
 
 ---
 
@@ -357,13 +357,13 @@ Keputusan arsitektural yang sudah diambil (detail lengkap di `docs/design-decisi
 
 | Requirement | Target | Notes |
 |-------------|--------|-------|
-| Startup time | <200ms | Dari command di-exec sampai siap |
-| AI response time | Tergantung provider | OpsTerm sendiri <50ms overhead |
-| SSH connect | <5s | Timeout default 10s |
-| RTK compression | <1s | Bahkan untuk output 50KB+ |
-| Config load | <50ms | YAML parsing minimal |
+| Startup time | <200ms | From command exec to ready |
+| AI response time | Provider-dependent | OpsTerm adds <50ms overhead |
+| SSH connect | <5s | Default timeout 10s |
+| RTK compression | <1s | Even for 50KB+ output |
+| Config load | <50ms | Minimal YAML parsing |
 | Web dashboard startup | <2s | Python HTTP server |
-| Memory usage | <30MB | Peak saat AI request |
+| Memory usage | <30MB | Peak during AI request |
 | Disk usage | <1MB | Binary + DB + config |
 
 ### 7.2 Security
@@ -373,20 +373,20 @@ Keputusan arsitektural yang sudah diambil (detail lengkap di `docs/design-decisi
 | **API key storage** | File-based (`~/.opsterm/config.yaml`) with `chmod 600` |
 | **Alternative** | Environment variable `OPSTERM_API_KEY` |
 | **Export** | API keys masked in exported tar.gz |
-| **SSH keys** | Menggunakan system SSH key yang sudah ada |
-| **No remote agent** | Tidak install apapun di remote server |
+| **SSH keys** | Uses existing system SSH keys |
+| **No remote agent** | Nothing installed on remote servers |
 | **Config encryption** | Optional via `cryptography` library |
-| **Input sanitization** | Semua user input di-escape untuk shell |
+| **Input sanitization** | All user input escaped for shell |
 
 ### 7.3 Reliability
 
 | Requirement | Target |
 |-------------|--------|
 | Uptime | N/A (CLI tool, no daemon) |
-| Error handling | Semua error punya user-friendly message |
-| Graceful degradation | RTK tidak terinstall → jalan normal tanpa error |
-| Network timeout | 30s untuk AI, 10s untuk SSH |
-| Config fallback | Jika YAML corrupt → fallback ke default + warning |
+| Error handling | All errors have user-friendly messages |
+| Graceful degradation | RTK not installed → runs normally, no errors |
+| Network timeout | 30s for AI, 10s for SSH |
+| Config fallback | Corrupted YAML → fallback to defaults + warning |
 
 ### 7.4 Compatibility
 
@@ -394,18 +394,18 @@ Keputusan arsitektural yang sudah diambil (detail lengkap di `docs/design-decisi
 |----------|--------|
 | **Linux** | ✅ Primary target |
 | **macOS** | ✅ Tested and supported |
-| **Windows (WSL)** | ⚠️ Community-supported, belum di-test resmi |
-| **Shell bash** | ✅ Completion tersedia |
-| **Shell zsh** | ✅ Completion + plugin tersedia |
-| **Shell fish** | ❌ Belum support |
+| **Windows (WSL)** | ⚠️ Community-supported, not officially tested |
+| **Shell bash** | ✅ Completion available |
+| **Shell zsh** | ✅ Completion + plugin available |
+| **Shell fish** | ❌ Not yet supported |
 
 ### 7.5 Maintainability
 
 | Requirement | Target |
 |-------------|--------|
-| **Code size** | <4000 lines (target di branch feat/versioning: ~2300) |
-| **Documentation** | docs/ folder dengan 15+ dokumen |
-| **Test coverage** | Belum ada automated test — target adopsi TDD di masa depan |
+| **Code size** | <4000 lines (feat/versioning target: ~2300) |
+| **Documentation** | docs/ folder with 15+ documents |
+| **Test coverage** | No automated tests yet — target TDD adoption in future |
 | **Release process** | Git tag → GitHub Release → single file distribution |
 
 ---
@@ -415,7 +415,7 @@ Keputusan arsitektural yang sudah diambil (detail lengkap di `docs/design-decisi
 ### 8.1 User Flow: First-time Setup
 
 ```
-User download opsterm
+User downloads opsterm
     │
     ▼
 opsterm init → creates ~/.opsterm/ with default config
@@ -424,16 +424,16 @@ opsterm init → creates ~/.opsterm/ with default config
 opsterm provider add default --api-key <key> --model <model>
     │
     ▼
-opsterm doctor → verifikasi semuanya OK
+opsterm doctor → verifies everything is OK
     │
     ▼
-opsterm servers add → tambah server pertama
+opsterm servers add → add first server
     │
     ▼
-Siap digunakan!
+Ready to use!
 ```
 
-**Target time-to-value:** <5 menit dari download sampai bisa SSH pake AI.
+**Target time-to-value:** <5 minutes from download to SSH with AI.
 
 ### 8.2 User Flow: Daily Use
 
@@ -444,7 +444,7 @@ opsterm run health-check
 # SSH + troubleshoot
 opsterm ssh vps-utama
     └─ Ctrl+B → AI Escape Mode
-        ├─ "cek disk usage"
+        ├─ "check disk usage"
         └─ resume
 
 # Deploy
@@ -456,12 +456,12 @@ opsterm how to check which ports are listening
 
 ### 8.3 UX Principles
 
-1. **Zero surprise** — Setiap command punya output yang predictable
-2. **Fuzzy everything** — Server names, commands, workflows — semua fuzzy match
-3. **Fail gracefully** — Error messages yang actionable, bukan stack trace
-4. **Progressive disclosure** — Fitur dasar mudah, fitur advanced ada tapi tidak wajib
-5. **Keyboard-first** — Semua interaksi dari keyboard, no mouse needed
-6. **Dark theme by default** — Web dashboard dark-themed, terminal natural
+1. **Zero surprise** — Every command produces predictable output
+2. **Fuzzy everything** — Server names, commands, workflows — all fuzzy-matched
+3. **Fail gracefully** — Actionable error messages, not stack traces
+4. **Progressive disclosure** — Basic features are simple, advanced features exist but aren't required
+5. **Keyboard-first** — All interactions from keyboard, no mouse needed
+6. **Dark theme by default** — Web dashboard is dark-themed, terminal is natural
 
 ### 8.4 CLI Design Conventions
 
@@ -470,8 +470,8 @@ opsterm how to check which ports are listening
 | `opsterm <verb> <object>` | `opsterm ssh server`, `opsterm run workflow` |
 | `opsterm <object> <verb>` | `opsterm servers list`, `opsterm servers add` |
 | `--flag` for options | `--via`, `--port`, `--json` |
-| `\--` untuk long flags | `--all`, `--continue`, `--open` |
-| Single char flags | Hanya yang umum: `-v` (verbose) |
+| `\--` for long flags | `--all`, `--continue`, `--open` |
+| Single char flags | Only common ones: `-v` (verbose) |
 
 ---
 
@@ -479,11 +479,11 @@ opsterm how to check which ports are listening
 
 ### 9.1 Direct Competitors
 
-| Aspek | OpsTerm | Warp.dev | Shell-GPT (sgpt) | Claude Code |
-|-------|---------|----------|-------------------|-------------|
+| Aspect | OpsTerm | Warp.dev | Shell-GPT (sgpt) | Claude Code |
+|--------|---------|----------|-------------------|-------------|
 | **Platform** | Linux + macOS | macOS only | Linux + macOS | Linux + macOS |
-| **Dependencies** | ✅ Zero | ❌ Binary ~200MB | ⚠️ pip + banyak | ❌ Binary ~500MB+ |
-| **Custom AI Provider** | ✅ Any provider | ❌ Vendor lock (Warp AI) | ✅ Banyak | ❌ Claude only |
+| **Dependencies** | ✅ Zero | ❌ Binary ~200MB | ⚠️ pip + many | ❌ Binary ~500MB+ |
+| **Custom AI Provider** | ✅ Any provider | ❌ Vendor lock (Warp AI) | ✅ Many providers | ❌ Claude only |
 | **SSH** | ✅ Smart SSH + multi-hop | ❌ No | ❌ No | ❌ No |
 | **SCP** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
 | **Workflows** | ✅ Multi-step YAML | ❌ No | ❌ No | ❌ No |
@@ -491,25 +491,25 @@ opsterm how to check which ports are listening
 | **Tab Completion** | ✅ bash + zsh | ✅ built-in | ❌ No | ❌ No |
 | **File size** | ~50KB | ~200MB+ | ~10MB | ~500MB+ |
 | **Price** | Free (your own API key) | Free tier limited, Pro $20/mo | Free + OpenAI cost | $20/mo bundled |
-| **Open Source** | ✅ ya | ❌ proprietary | ✅ ya | ❌ proprietary |
+| **Open Source** | ✅ Yes | ❌ Proprietary | ✅ Yes | ❌ Proprietary |
 
 ### 9.2 Indirect Competitors
 
 | Tool | Strengths | Weaknesses vs OpsTerm |
 |------|-----------|----------------------|
-| **Tabby (Eugeny/tabby)** | Terminal emulator + AI | Berat (Electron), Windows-focused, no workflow |
-| **Warp** | UI keren, native macOS | macOS only, vendor lock-in AI |
-| **Fig** | Autocomplete canggih | macOS only, di-akuisisi, no SSH features |
-| **iTerm2 + AI plugins** | Mature terminal emulator | macOS only, plugin ecosystem fragmented |
+| **Tabby (Eugeny/tabby)** | Terminal emulator + AI | Heavy (Electron), Windows-focused, no workflow |
+| **Warp** | Great UI, native macOS | macOS only, vendor lock-in AI |
+| **Fig** | Advanced autocomplete | macOS only, acquired, no SSH features |
+| **iTerm2 + AI plugins** | Mature terminal emulator | macOS only, fragmented plugin ecosystem |
 | **tmux + scripts** | Powerful, self-contained | No AI, manual scripting |
 
 ### 9.3 OpsTerm's Competitive Advantage
 
-1. **SSH + AI combo** — Tidak ada kompetitor yang punya Smart SSH + AI langsung di terminal
-2. **Zero dependency** — Satu file Python, langsung jalan — unique selling point
-3. **Multi-hop SSH built-in** — DevOps daily necessity, tidak ada kompetitor yang support
-4. **Workflow automation** — YAML-based multi-step automation, alternatif simpel dari Ansible
-5. **Provider freedom** — Bebas ganti AI provider kapan aja
+1. **SSH + AI combo** — No competitor offers Smart SSH + AI directly in the terminal
+2. **Zero dependency** — One Python file, runs immediately — unique selling point
+3. **Multi-hop SSH built-in** — DevOps daily necessity, no competitor supports this
+4. **Workflow automation** — YAML-based multi-step automation, a simpler alternative to Ansible
+5. **Provider freedom** — Switch AI providers anytime without changing tools
 
 ---
 
@@ -517,11 +517,11 @@ opsterm how to check which ports are listening
 
 ### 10.1 Version History
 
-| Version | Tanggal | Highlights |
-|---------|---------|------------|
-| v0.1.0 | — | Inisialisasi project |
+| Version | Date | Highlights |
+|---------|------|------------|
+| v0.1.0 | — | Project initialization |
 | v0.2.0 | — | AI Chat, Smart SSH |
-| v0.3.0 | — | SCP, Workflow dasar |
+| v0.3.0 | — | SCP, basic Workflow |
 | v0.4.0 | — | Multi-hop SSH, Pipe mode |
 | v0.5.0 | — | Config export/import, Zsh plugin |
 | v0.6.0 | — | RTK, Provider management, JSON output |
@@ -551,29 +551,29 @@ opsterm how to check which ports are listening
 
 ### 11.1 Product Metrics
 
-| Metric | Target | Cara Ukur |
-|--------|--------|-----------|
-| **GitHub Stars** | >500 di 2027 | GitHub |
-| **Downloads** | >1000 unique download | GitHub Releases count |
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| **GitHub Stars** | >500 by 2027 | GitHub |
+| **Downloads** | >1000 unique downloads | GitHub Releases count |
 | **GitHub Issues** | <10 open bugs | GitHub |
-| **PR merge time** | <7 hari | GitHub |
-| **Release cadence** | 1 release / 2 bulan | GitHub Releases |
+| **PR merge time** | <7 days | GitHub |
+| **Release cadence** | 1 release / 2 months | GitHub Releases |
 
 ### 11.2 Quality Metrics
 
 | Metric | Target |
 |--------|--------|
 | **CLI response time** | <200ms startup |
-| **Error rate** | <1% dari total command |
-| **CRITICAL bugs** | 0 di production |
-| **Documentation coverage** | 100% fitur punya docs |
-| **Code size** | <3000 lines untuk main script |
+| **Error rate** | <1% of total commands |
+| **CRITICAL bugs** | 0 in production |
+| **Documentation coverage** | 100% of features have docs |
+| **Code size** | <3000 lines for main script |
 
 ### 11.3 User Satisfaction
 
 | Metric | Method |
 |--------|--------|
-| **Issue response time** | <24 jam |
+| **Issue response time** | <24 hours |
 | **Feature request adoption** | Track via GitHub Discussions |
 | **User feedback** | GitHub Issues + direct feedback |
 
@@ -585,30 +585,30 @@ opsterm how to check which ports are listening
 
 | # | Question | Decision Needed By |
 |---|----------|-------------------|
-| 1 | Apakah perlu binary distribution (PyInstaller) untuk user tanpa Python? | v1.0 |
-| 2 | Apakah perlu package manager (Homebrew, apt) untuk distribusi? | v1.0 |
-| 3 | Apakah plugin system perlu WASM atau cukup Python-based? | v0.9 planning |
-| 4 | Bagaimana strategi monetisasi (jika ada)? Donation? Pro features? | TBD |
-| 5 | Perlu GitHub Actions untuk automated testing? | Saat mulai TDD |
+| 1 | Should we provide binary distribution (PyInstaller) for users without Python? | v1.0 |
+| 2 | Should we support package managers (Homebrew, apt) for distribution? | v1.0 |
+| 3 | Should the plugin system use WASM or be Python-based? | v0.9 planning |
+| 4 | What is the monetization strategy (if any)? Donation? Pro features? | TBD |
+| 5 | Do we need GitHub Actions for automated testing? | When TDD starts |
 
 ### 12.2 Technical Risks
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| **Python version fragmentation** | Medium | Medium | Target Python 3.7+, dokumentasi minimum version |
-| **SSH key compatibility** | Medium | Low | Gunakan system SSH, user manage sendiri |
-| **AI provider API changes** | High | Low | OpenAI-compatible API sudah de facto standard |
-| **Single-file maintenance** | Medium | Medium | Refactor ke modular structure di v1.0 (feat/versioning) |
-| **Competitor catches up** | Medium | Low | SSH-first + zero dep adalah moat yang kuat |
+| **Python version fragmentation** | Medium | Medium | Target Python 3.7+, document minimum version |
+| **SSH key compatibility** | Medium | Low | Use system SSH, user manages their own keys |
+| **AI provider API changes** | High | Low | OpenAI-compatible API is the de facto standard |
+| **Single-file maintenance** | Medium | Medium | Refactor to modular structure at v1.0 (feat/versioning) |
+| **Competitor catches up** | Medium | Low | SSH-first + zero dep is a strong moat |
 
 ### 12.3 Product Risks
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| **Low adoption** | High | Fokus ke DevOps niche yang butuh SSH + AI |
-| **Feature bloat** | Medium | Ketat dengan product vision, jangan jadi "super tool" |
-| **Dependency on third-party AI** | Medium | Promosiin Ollama untuk local AI, provider freedom |
-| **Maintenance burden** | Medium | Keep code small, dokumentasi baik, automated testing |
+| **Low adoption** | High | Focus on DevOps niche that needs SSH + AI |
+| **Feature bloat** | Medium | Stay disciplined with product vision, don't become a "super tool" |
+| **Dependency on third-party AI** | Medium | Promote Ollama for local AI, provider freedom |
+| **Maintenance burden** | Medium | Keep code small, good documentation, automated testing |
 
 ---
 
@@ -617,17 +617,17 @@ opsterm how to check which ports are listening
 | Term | Definition |
 |------|------------|
 | **CLI** | Command Line Interface |
-| **SSH** | Secure Shell — protokol untuk remote server access |
-| **SCP** | Secure Copy — file transfer via SSH |
-| **ProxyJump** | SSH feature untuk koneksi lewat intermediate host (bastion) |
+| **SSH** | Secure Shell — protocol for remote server access |
+| **SCP** | Secure Copy — file transfer over SSH |
+| **ProxyJump** | SSH feature for connecting through an intermediate host (bastion) |
 | **REPL** | Read-Eval-Print Loop — interactive command prompt |
-| **RTK** | Rust Token Killer — tool kompresi output untuk AI |
-| **Provider** | AI service (OpenAI, DeepSeek, Ollama, dll) |
-| **Workflow** | Multi-step automation dalam YAML |
-| **Fuzzy Match** | Partial string matching untuk server names |
-| **PTY** | Pseudo-terminal — virtual terminal untuk process interaction |
+| **RTK** | Rust Token Killer — output compression tool for AI |
+| **Provider** | AI service (OpenAI, DeepSeek, Ollama, etc.) |
+| **Workflow** | Multi-step automation defined in YAML |
+| **Fuzzy Match** | Partial string matching for server names |
+| **PTY** | Pseudo-terminal — virtual terminal for process interaction |
 | **Stdlib** | Python Standard Library |
-| **Bastion Host** | Jump server untuk akses ke internal network |
+| **Bastion Host** | Jump server for accessing an internal network |
 
 ---
 
