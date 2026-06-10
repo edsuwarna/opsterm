@@ -292,7 +292,6 @@ if result.returncode != 0:
 | SSH Connect | < 1 sec | Direct execvp, no overhead |
 | SCP Transfer | Varies | Depends on file size & bandwidth |
 | Workflow (3 steps) | 5-15 sec | Depends on step complexity |
-
 | Config load | < 10ms | Minimal YAML parsing |
 | History write | < 5ms | SQLite append |
 
