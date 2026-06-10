@@ -210,9 +210,9 @@ User input: "docker ps | opsterm any errors?"
     ┌──────────────────────────────────┐
     │ 3. Build prompt:                 │
     │    "Output of command:           │
-    │     ```                          │
+    │     '''                          │
     │     CONTAINER ID IMAGE...        │
-    │     ```                          │
+    │     '''                          │
     │                                 │
     │     Question: any errors?"      │
     └──────────────┬───────────────────┘

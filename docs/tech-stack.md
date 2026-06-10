@@ -222,7 +222,6 @@ opsterm-ti() {
 | **Custom AI** | ✅ Any provider | ❌ Vendor lock | ✅ Many providers | ❌ Claude only |
 | **SSH Multi-hop** | ✅ Built-in | ❌ No | ❌ No | ❌ No |
 | **Workflow** | ✅ Multi-step | ❌ No | ❌ No | ❌ No |
-
 | **Tab Completion** | ✅ bash+zsh | ✅ built-in | ❌ No | ❌ No |
 | **Platform** | Linux + macOS | macOS only | Linux + macOS | Linux + macOS |
 | **Weight** | ~50KB (script) | ~200MB+ | ~10MB | ~500MB+ |
