@@ -252,9 +252,6 @@
     // Blockquote
     md = md.replace(/^(&gt;|>) (.+)$/gm,'<blockquote><p>$2</p></blockquote>');
 
-    // Inline code restore
-    md = md.replace(/%%IC_(\d+)%%/g, (_,id) => `<code>${inlineCodes[parseInt(id)]}</code>`);
-
     // Tables
     md = md.replace(/^(\|.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/gm, (_,h,b) => {
       const headers = h.split('|').filter(c=>c.trim()).map(c=>c.trim());
@@ -266,6 +263,9 @@
       tbl += '</tbody></table>';
       return tbl;
     });
+
+    // Inline code restore (must be after tables to avoid splitting pipes inside code)
+    md = md.replace(/%%IC_(\d+)%%/g, (_,id) => `<code>${inlineCodes[parseInt(id)]}</code>`);
 
     // Paragraphs
     const lines = md.split('\n');

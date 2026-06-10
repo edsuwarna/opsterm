@@ -16,7 +16,7 @@ cd opsterm
 
 # OpsTerm has zero pip dependencies — just Python stdlib
 # Set up config for testing
-mkdir -p ~/.ai-workflows
+mkdir -p ~/.opsterm
 ```
 
 The main script is a single file: `bin/opsterm` (~1500 lines).

@@ -25,8 +25,8 @@ source ~/.bashrc
 # Set your API key
 export OPSTERM_API_KEY=sk-xxx
 # Or create config file
-mkdir -p ~/.ai-workflows
-cat > ~/.ai-workflows/config.yaml << 'EOF'
+mkdir -p ~/.opsterm
+cat > ~/.opsterm/config.yaml << 'EOF'
 provider: openai
 api_key: sk-xxx
 model: gpt-4o
@@ -71,7 +71,7 @@ ssh-add -l  # list loaded keys
 ssh-add ~/.ssh/id_ed25519
 
 # Or specify key in servers.yaml
-# ~/.ai-workflows/servers.yaml
+# ~/.opsterm/servers.yaml
 servers:
   my-server:
     host: 192.168.1.10

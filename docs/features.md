@@ -13,9 +13,9 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 3 | 🔗 **Multi-hop SSH** | `opsterm ssh <srv> --via <proxy>` | Core |
 | 4 | 📁 **SCP File Transfer** | `opsterm scp <src> <dst>` | Core |
 | 5 | ⚡ **Workflow** | `opsterm run <name>` | Core |
-| 6 | 🔗 **Pipe Mode** | `cmd \| opsterm <prompt>` | Core |
+| 6 | 🔗 **Pipe Mode** | `cmd | opsterm <prompt>` | Core |
 | 7 | 💻 **Shell Integration** | `opsterm explain-last` | Shell |
-| 8 | ⌨️ **Tab Completion** | `opsterm completion bash\|zsh` | Utility |
+| 8 | ⌨️ **Tab Completion** | `opsterm completion bash|zsh` | Utility |
 | 9 | 🛠️ **Server Manager** | `opsterm servers` | Management |
 | 10 | 📋 **Workflow Manager** | `opsterm workflows` | Management |
 | 11 | ⚙️ **Config Manager** | `opsterm config` | Management |
@@ -89,7 +89,7 @@ opsterm ssh vps
 opsterm servers list
 ```
 
-**Server configuration in `~/.ai-workflows/servers.yaml`:**
+**Server configuration in `~/.opsterm/servers.yaml`:**
 ```yaml
 servers:
   vps-main:
@@ -255,7 +255,7 @@ opsterm explain-last
 
 **How it works:**
 - Zsh `preexec` hook → saves command before it runs
-- Last command output is stored in `~/.ai-workflows/last_output.txt`
+- Last command output is stored in `~/.opsterm/last_output.txt`
 - `opsterm explain-last` → reads file → sends to AI
 
 ---
@@ -310,7 +310,7 @@ opsterm servers edit vps-main
 opsterm servers rm vps-main
 ```
 
-Data stored in `~/.ai-workflows/servers.yaml`.
+Data stored in `~/.opsterm/servers.yaml`.
 
 ---
 
@@ -332,7 +332,7 @@ opsterm workflows edit deploy-app
 opsterm workflows rm deploy-app
 ```
 
-Data stored in `~/.ai-workflows/workflows.yaml`.
+Data stored in `~/.opsterm/workflows.yaml`.
 
 ---
 
@@ -354,7 +354,7 @@ opsterm config set shell.confirm_before_exec true
 opsterm config get ai.model
 ```
 
-Data stored in `~/.ai-workflows/config.yaml`.
+Data stored in `~/.opsterm/config.yaml`.
 
 ---
 
@@ -389,7 +389,7 @@ opsterm history 50
 | 📁 | SCP transfer |
 
 
-Data stored in SQLite: `~/.ai-workflows/history.db`.
+Data stored in SQLite: `~/.opsterm/history.db`.
 
 ---
 

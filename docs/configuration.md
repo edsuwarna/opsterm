@@ -2,7 +2,7 @@
 
 OpsTerm is configured through YAML files in `~/.opsterm/`.
 
-> 📦 Changed from `~/.ai-workflows` → `~/.opsterm/` (auto-migrates on first run)
+> 📦 Config directory: `~/.opsterm/` (auto-migrated from `~/.ai-workflows` on first run)
 
 ## Config Directory
 

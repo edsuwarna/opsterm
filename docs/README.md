@@ -93,7 +93,7 @@ Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, 
 └── last_*.txt        ← Last command output
 ```
 
-> 📦 Changed from `~/.ai-workflows` → `~/.opsterm/` (auto-migrates on first run)
+> 📦 Config directory: `~/.opsterm/` (auto-migrated from `~/.ai-workflows` on first run)
 
 ---
 

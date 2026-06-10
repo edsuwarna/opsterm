@@ -20,11 +20,11 @@ Unlike other tools, OpsTerm doesn't install anything on remote servers. This mea
 
 ## API Key Security
 
-Your AI provider API key is stored in `~/.ai-workflows/config.yaml`:
+Your AI provider API key is stored in `~/.opsterm/config.yaml`:
 
 ```yaml
 # Recommended: restrictive permissions
-chmod 600 ~/.ai-workflows/config.yaml
+chmod 600 ~/.opsterm/config.yaml
 ```
 
 ### Alternative: Environment Variables
@@ -47,8 +47,8 @@ This is useful for CI/CD or shared environments.
 
 1. **Restrict config file permissions:**
    ```bash
-   chmod 600 ~/.ai-workflows/config.yaml
-   chmod 700 ~/.ai-workflows/
+   chmod 600 ~/.opsterm/config.yaml
+   chmod 700 ~/.opsterm/
    ```
 
 2. **Use environment variables for CI:**
