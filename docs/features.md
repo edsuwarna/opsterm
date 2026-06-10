@@ -228,7 +228,7 @@ df -h | ai
 **How it works:**
 1. Detect stdin (`sys.stdin.isatty() == False`)
 2. Read stdin → store as `stdin_data`
-3. Build prompt: "Output from command:\n```\n{stdin_data}\n```\nQuestion: {prompt}"
+3. Build prompt template: wraps stdin_data + user question with markdown code fences
 4. Send to AI → print response
 
 ---
