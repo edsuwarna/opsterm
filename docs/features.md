@@ -13,33 +13,32 @@ This document explains **all features** available in OpsTerm, complete with usag
 | 3 | 🔗 **Multi-hop SSH** | `opsterm ssh <srv> --via <proxy>` | Core |
 | 4 | 📁 **SCP File Transfer** | `opsterm scp <src> <dst>` | Core |
 | 5 | ⚡ **Workflow** | `opsterm run <name>` | Core |
-
-| 7 | 🔗 **Pipe Mode** | `cmd \| opsterm <prompt>` | Core |
-| 8 | 💻 **Shell Integration** | `opsterm explain-last` | Shell |
-| 9 | ⌨️ **Tab Completion** | `opsterm completion bash\|zsh` | Utility |
-| 10 | 🛠️ **Server Manager** | `opsterm servers` | Management |
-| 11 | 📋 **Workflow Manager** | `opsterm workflows` | Management |
-| 12 | ⚙️ **Config Manager** | `opsterm config` | Management |
-| 13 | 📖 **History** | `opsterm history` | Management |
-| 14 | 🗜️ **RTK AI** | `auto` (pipe/explain-last) | Core |
-| 15 | 🚀 **Init** | `opsterm init` | Setup |
-| 16 | 💬 **Chat REPL** | `opsterm chat` | Core |
-| 17 | 🏓 **Server Ping** | `opsterm servers ping <name>` | Management |
-| 18 | 🔌 **Provider Test** | `opsterm provider test <name>` | Management |
-| 19 | 📡 **Provider Models** | `opsterm provider models <name>` | Management |
-| 20 | 🎯 **JSON Output** | `--json` flag | Utility |
-| 21 | 🖥️ **Web Dashboard** | `opsterm web [--port]` | Utility |
-| 22 | 📦 **Config Export** | `opsterm export [<file>]` | Management |
-| 23 | 📥 **Config Import** | `opsterm import <file>` | Management |
-| 24 | 🗑️ **Config Reset** | `opsterm reset` | Management |
-| 25 | ✅ **Config Validate** | `opsterm config validate` | Management |
-| 26 | 🔄 **Chat Resume** | `opsterm chat --continue` | Core |
-| 27 | 📚 **Search History** | `opsterm search <query>` | Management |
-| 28 | 📋 **Workflow Init** | `opsterm workflows init` | Setup |
-| 29 | 📋 **Server Details** | `opsterm servers show <name>` | Management |
-| 30 | 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Management |
-|| 31 | 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Setup |
-|| 32 | 🔗 **Connect** | `opsterm connect <server>` | Core |
+| 6 | 🔗 **Pipe Mode** | `cmd \| opsterm <prompt>` | Core |
+| 7 | 💻 **Shell Integration** | `opsterm explain-last` | Shell |
+| 8 | ⌨️ **Tab Completion** | `opsterm completion bash\|zsh` | Utility |
+| 9 | 🛠️ **Server Manager** | `opsterm servers` | Management |
+| 10 | 📋 **Workflow Manager** | `opsterm workflows` | Management |
+| 11 | ⚙️ **Config Manager** | `opsterm config` | Management |
+| 12 | 📖 **History** | `opsterm history` | Management |
+| 13 | 🗜️ **RTK AI** | `auto` (pipe/explain-last) | Core |
+| 14 | 🚀 **Init** | `opsterm init` | Setup |
+| 15 | 💬 **Chat REPL** | `opsterm chat` | Core |
+| 16 | 🏓 **Server Ping** | `opsterm servers ping <name>` | Management |
+| 17 | 🔌 **Provider Test** | `opsterm provider test <name>` | Management |
+| 18 | 📡 **Provider Models** | `opsterm provider models <name>` | Management |
+| 19 | 🎯 **JSON Output** | `--json` flag | Utility |
+| 20 | 🖥️ **Web Dashboard** | `opsterm web [--port]` | Utility |
+| 21 | 📦 **Config Export** | `opsterm export [<file>]` | Management |
+| 22 | 📥 **Config Import** | `opsterm import <file>` | Management |
+| 23 | 🗑️ **Config Reset** | `opsterm reset` | Management |
+| 24 | ✅ **Config Validate** | `opsterm config validate` | Management |
+| 25 | 🔄 **Chat Resume** | `opsterm chat --continue` | Core |
+| 26 | 📚 **Search History** | `opsterm search <query>` | Management |
+| 27 | 📋 **Workflow Init** | `opsterm workflows init` | Setup |
+| 28 | 📋 **Server Details** | `opsterm servers show <name>` | Management |
+| 29 | 🔄 **Server Rename** | `opsterm servers rename <old> <new>` | Management |
+| 30 | 📥 **Import SSH Config** | `opsterm servers import-ssh-config` | Setup |
+| 31 | 🔗 **Connect** | `opsterm connect <server>` | Core |
 
 ---
 
