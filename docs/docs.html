@@ -5,45 +5,130 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpsTerm — Documentation</title>
 <meta name="description" content="OpsTerm documentation — AI Terminal Assistant">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  :root{--bg:#0f1117;--surface:#161922;--surface2:#1e2130;--border:#2a2e3f;--text:#c9d1d9;--text2:#768394;--text3:#444a5a;--accent:#7aa2f7;--green:#9ece6a;--orange:#e6b450;--red:#f7768e;--teal:#73daca;--pink:#bb9af7;--code-bg:#13151d;--term-bg:#0d0f16;--term-bar:#1a1d2b;--sidebar-bg:#11131c;--sidebar-hover:#1a1d2b}
+  :root{
+    --canvas:#0a0a0b;
+    --surface:#111113;
+    --surface-2:#161618;
+    --surface-3:#1c1c1f;
+    --hairline:#242428;
+    --hairline-strong:#2e2e32;
+    --ink:#e8e8ea;
+    --ink-muted:#a1a1aa;
+    --ink-subtle:#6b6b76;
+    --ink-tertiary:#48484f;
+    --primary:#d97706;
+    --primary-hover:#f59e0b;
+    --primary-subtle:rgba(217,119,6,0.1);
+    --primary-border:rgba(217,119,6,0.2);
+    --green:#22c55e;
+    --green-subtle:rgba(34,197,94,0.1);
+    --orange:#fb923c;
+    --teal:#2dd4bf;
+    --code-bg:#0e0e10;
+    --term-bar:#131315;
+    --sidebar-bg:#0c0c0d;
+    --sidebar-hover:#141416;
+    --radius-sm:6px;
+    --radius-md:8px;
+    --radius-lg:12px;
+    --radius-xl:16px;
+  }
   html{scroll-behavior:smooth}
-  body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased}
+  body{
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--canvas);color:var(--ink);
+    line-height:1.7;font-size:15px;-webkit-font-smoothing:antialiased
+  }
   .layout{display:flex;min-height:100vh}
 
-  /* ── Sidebar ── */
-  .sidebar{width:260px;background:var(--sidebar-bg);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
-  .sidebar-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
-  .sidebar-header .logo{font-family:'SF Mono','Fira Code',monospace;font-size:18px;color:var(--accent);font-weight:700}
-  .sidebar-header .sub{font-size:11px;color:var(--text3)}
-  .sidebar-back{display:flex;align-items:center;gap:6px;padding:10px 20px;color:var(--text2);text-decoration:none;font-size:13px;border-bottom:1px solid var(--border);transition:background .15s;flex-shrink:0}
-  .sidebar-back:hover{background:var(--sidebar-hover);color:var(--accent)}
+  /* Sidebar */
+  .sidebar{
+    width:260px;background:var(--sidebar-bg);
+    border-right:1px solid var(--hairline);
+    position:fixed;top:0;left:0;height:100vh;overflow-y:auto;
+    z-index:100;display:flex;flex-direction:column
+  }
+  .sidebar-header{
+    padding:16px 20px;border-bottom:1px solid var(--hairline);
+    display:flex;align-items:center;gap:10px;flex-shrink:0
+  }
+  .sidebar-header .logo{
+    display:flex;align-items:center;gap:8px;
+    font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--ink);text-decoration:none
+  }
+  .sidebar-header .logo svg{width:20px;height:20px;stroke:var(--primary);stroke-width:2}
+  .sidebar-header .sub{font-size:11px;color:var(--ink-tertiary)}
+  .sidebar-back{
+    display:flex;align-items:center;gap:6px;padding:10px 20px;
+    color:var(--ink-muted);text-decoration:none;font-size:13px;
+    border-bottom:1px solid var(--hairline);transition:all .15s;flex-shrink:0
+  }
+  .sidebar-back svg{width:15px;height:15px;stroke:var(--ink-muted);stroke-width:1.5}
+  .sidebar-back:hover{background:var(--sidebar-hover);color:var(--primary)}
+  .sidebar-back:hover svg{stroke:var(--primary)}
   .sidebar-nav{padding:8px 0;flex:1}
-  .sidebar-label{padding:6px 20px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)}
-  .sidebar-nav a{display:block;padding:5px 20px;color:var(--text2);text-decoration:none;font-size:13px;border-left:2px solid transparent;transition:all .15s}
-  .sidebar-nav a:hover{color:var(--text);background:var(--sidebar-hover)}
-  .sidebar-nav a.active{color:var(--accent);border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+  .sidebar-label{
+    padding:6px 20px 4px;font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-tertiary)
+  }
+  .sidebar-nav a{
+    display:flex;align-items:center;gap:10px;padding:6px 20px;
+    color:var(--ink-muted);text-decoration:none;font-size:13px;
+    border-left:2px solid transparent;transition:all .15s
+  }
+  .sidebar-nav a:hover{color:var(--ink);background:var(--sidebar-hover)}
+  .sidebar-nav a.active{
+    color:var(--primary);border-left-color:var(--primary);
+    background:rgba(217,119,6,0.06)
+  }
+  .sidebar-nav a .nav-icon{
+    width:20px;height:20px;border-radius:5px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .sidebar-nav a .nav-icon svg{width:14px;height:14px;stroke:var(--ink-subtle);stroke-width:1.5}
+  .sidebar-nav a:hover .nav-icon svg{stroke:var(--ink-muted)}
+  .sidebar-nav a.active .nav-icon svg{stroke:var(--primary)}
   .sidebar::-webkit-scrollbar{width:5px}
   .sidebar::-webkit-scrollbar-track{background:transparent}
-  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-  .sidebar-toggle{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:18px;color:var(--text);line-height:1}
-  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:3px}
+  .sidebar-toggle{
+    display:none;position:fixed;top:12px;left:12px;z-index:200;
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:8px;padding:8px 12px;cursor:pointer;font-size:18px;
+    color:var(--ink);line-height:1
+  }
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99}
 
-  /* ── Main Content ── */
+  /* Content */
   .content{flex:1;margin-left:260px;padding:40px 48px;max-width:800px}
 
-  /* ── Right TOC ── */
-  .right-toc{position:fixed;top:0;right:0;width:210px;height:100vh;overflow-y:auto;padding:24px 12px;border-left:1px solid var(--border);background:var(--bg);display:none}
-  .right-toc-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);margin-bottom:12px}
-  .right-toc a{display:block;padding:2px 8px;font-size:12px;color:var(--text2);text-decoration:none;border-left:2px solid transparent;transition:all .15s;line-height:1.6}
-  .right-toc a:hover{color:var(--text)}
-  .right-toc a.active{color:var(--accent);border-left-color:var(--accent)}
+  /* Right TOC */
+  .right-toc{
+    position:fixed;top:0;right:0;width:210px;height:100vh;
+    overflow-y:auto;padding:24px 12px;
+    border-left:1px solid var(--hairline);background:var(--canvas);display:none
+  }
+  .right-toc-label{
+    font-size:11px;font-weight:600;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--ink-tertiary);margin-bottom:12px
+  }
+  .right-toc a{
+    display:block;padding:2px 8px;font-size:12px;color:var(--ink-muted);
+    text-decoration:none;border-left:2px solid transparent;
+    transition:all .15s;line-height:1.6
+  }
+  .right-toc a:hover{color:var(--ink)}
+  .right-toc a.active{color:var(--primary);border-left-color:var(--primary)}
   .right-toc a.lvl-2{padding-left:8px}
   .right-toc a.lvl-3{padding-left:22px;font-size:11.5px}
   .right-toc a.lvl-4{padding-left:34px;font-size:11px}
   .right-toc::-webkit-scrollbar{width:4px}
-  .right-toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .right-toc::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:2px}
   @media(min-width:1300px){.right-toc{display:block}.content{max-width:720px;padding:40px 56px 40px 48px}}
   @media(min-width:1500px){.right-toc{width:240px}}
 
@@ -55,75 +140,154 @@
     .content{margin-left:0;padding:24px 20px;max-width:100%}
   }
 
-  /* ── Theme Toggle ── */
-  .theme-toggle{position:fixed;top:12px;right:12px;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s}
-  .theme-toggle:hover{background:var(--surface2)}
+  .theme-toggle{
+    position:fixed;top:12px;right:12px;z-index:300;
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:8px;width:36px;height:36px;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;
+    font-size:16px;transition:all .2s
+  }
+  .theme-toggle:hover{background:var(--surface-2)}
+  .theme-toggle svg{width:17px;height:17px;stroke:var(--ink-muted)}
+  .theme-toggle:hover svg{stroke:var(--ink)}
   @media(min-width:1300px){.theme-toggle{right:220px}}
 
-  /* ── Markdown ── */
-  .md h1{font-size:34px;font-weight:800;margin:0 0 6px;letter-spacing:-.02em}
-  .md h2{font-size:22px;font-weight:700;margin:36px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .md h3{font-size:17px;font-weight:600;margin:24px 0 8px}
-  .md h4{font-size:15px;font-weight:600;margin:18px 0 6px;color:var(--text2)}
+  /* Markdown */
+  .md h1{
+    font-size:34px;font-weight:800;margin:0 0 6px;
+    letter-spacing:-0.03em;color:var(--ink)
+  }
+  .md h2{
+    font-size:22px;font-weight:700;margin:36px 0 10px;
+    padding-bottom:8px;border-bottom:1px solid var(--hairline);
+    letter-spacing:-0.02em
+  }
+  .md h3{font-size:17px;font-weight:600;margin:24px 0 8px;letter-spacing:-0.01em}
+  .md h4{font-size:15px;font-weight:600;margin:18px 0 6px;color:var(--ink-muted)}
   .md p{margin:0 0 12px}
-  .md a{color:var(--accent);text-decoration:none}.md a:hover{text-decoration:underline}
+  .md a{color:var(--primary-hover);text-decoration:none;transition:color .2s}
+  .md a:hover{color:var(--primary);text-decoration:underline}
   .md ul,.md ol{margin:8px 0 16px;padding-left:24px}
   .md li{margin-bottom:3px}
   .md table{width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:14px}
-  .md th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border)}
-  .md td{padding:7px 12px;border:1px solid var(--border)}
+  .md th{
+    background:var(--surface-2);padding:9px 12px;text-align:left;
+    font-weight:600;border:1px solid var(--hairline)
+  }
+  .md td{padding:7px 12px;border:1px solid var(--hairline)}
   .md tr:nth-child(even) td{background:var(--surface)}
-  .md code{background:var(--surface2);border:1px solid var(--border);padding:2px 5px;border-radius:4px;font-family:'SF Mono','Fira Code',monospace;font-size:13px}
-  .md pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin:12px 0 20px;overflow-x:auto;line-height:1.5}
-  .md pre code{background:none;border:none;padding:0;font-size:13px}
-  .md blockquote{border-left:3px solid var(--accent);padding:10px 16px;margin:12px 0 20px;background:color-mix(in srgb,var(--accent) 6%,transparent);border-radius:0 8px 8px 0}
-  .md blockquote p{margin:0;color:var(--text2)}
-  .md hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+  .md code{
+    background:var(--surface-2);border:1px solid var(--hairline);
+    padding:2px 5px;border-radius:4px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary-hover)
+  }
+  .md pre{
+    background:var(--code-bg);border:1px solid var(--hairline);
+    border-radius:8px;padding:16px 18px;margin:12px 0 20px;
+    overflow-x:auto;line-height:1.5
+  }
+  .md pre code{background:none;border:none;padding:0;font-size:13px;color:#d4d4d8}
+  .md blockquote{
+    border-left:3px solid var(--primary);
+    padding:10px 16px;margin:12px 0 20px;
+    background:var(--primary-subtle);border-radius:0 8px 8px 0
+  }
+  .md blockquote p{margin:0;color:var(--ink-muted)}
+  .md hr{border:none;border-top:1px solid var(--hairline);margin:32px 0}
   .md img{max-width:100%;border-radius:8px}
 
-  /* ── Terminal-style code blocks ── */
-  .code-win{border-radius:8px;overflow:hidden;border:1px solid var(--border);margin:12px 0 20px}
-  .code-bar{background:var(--term-bar);padding:7px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+  /* Code blocks (terminal-style) */
+  .code-win{
+    border-radius:8px;overflow:hidden;
+    border:1px solid var(--hairline);margin:12px 0 20px
+  }
+  .code-bar{
+    background:var(--term-bar);padding:7px 12px;
+    display:flex;align-items:center;gap:6px;
+    border-bottom:1px solid var(--hairline)
+  }
   .code-dots{display:flex;gap:5px}
   .code-dot{width:8px;height:8px;border-radius:50%}
   .code-dot.r{background:#ff5f56}.code-dot.y{background:#ffbd2e}.code-dot.g{background:#27c93f}
-  .code-lang{font-size:11px;color:var(--text3);font-family:'SF Mono',monospace;margin-left:6px}
-  .code-body{background:var(--code-bg);padding:14px 16px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;line-height:1.5;overflow-x:auto;position:relative}
-  .code-body .cm{color:var(--text3)}.code-body .pr{color:var(--green)}.code-body .cmd{color:var(--accent)}
-  .code-body .kw{color:var(--orange)}.code-body .str{color:var(--green)}.code-body .out{color:var(--text2)}
-  .md .code-body pre{background:none;border:none;padding:0;margin:0}
-  .md .code-body code{background:none;border:none;padding:0;font-size:13px}
+  .code-lang{font-size:11px;color:var(--ink-tertiary);font-family:'JetBrains Mono',monospace;margin-left:6px}
+  .code-body{
+    background:var(--code-bg);padding:14px 16px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;
+    overflow-x:auto;position:relative
+  }
+  .code-body pre{background:none;border:none;padding:0;margin:0}
+  .code-body code{background:none;border:none;padding:0;font-size:13px;color:#d4d4d8}
+  .code-body .cm{color:var(--ink-tertiary)}
+  .code-body .pr{color:var(--green)}
+  .code-body .cmd{color:var(--primary)}
+  .code-body .kw{color:var(--orange)}
+  .code-body .str{color:var(--teal)}
+  .code-body .out{color:var(--ink-muted)}
+  .copy-btn-c{
+    position:absolute;top:4px;right:4px;background:var(--surface-2);
+    border:1px solid var(--hairline);border-radius:4px;
+    padding:2px 8px;font-size:11px;color:var(--ink-muted);
+    cursor:pointer;opacity:0;transition:opacity .2s;
+    font-family:inherit;z-index:2;line-height:1.6;
+    display:flex;align-items:center;gap:4px
+  }
+  .code-body:hover .copy-btn-c{opacity:1}
+  .copy-btn-c:hover{color:var(--ink);background:var(--surface-3)}
+  .copy-btn-c.done{opacity:1;color:var(--green);border-color:var(--green)}
 
-  .copy-btn{position:absolute;top:4px;right:4px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--text2);cursor:pointer;opacity:0;transition:opacity .2s;font-family:inherit;z-index:2;line-height:1.6}
-  .code-body:hover .copy-btn{opacity:1}.copy-btn:hover{color:var(--text);background:var(--surface)}
-  .copy-btn.done{opacity:1;color:var(--green);border-color:var(--green)}
-
-  .loading-info{text-align:center;padding:80px 20px;color:var(--text3);font-size:14px}
-  .loading-info .pulse{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-bottom:12px;animation:pulse 1s ease-in-out infinite}
+  .loading-info{text-align:center;padding:80px 20px;color:var(--ink-tertiary);font-size:14px}
+  .loading-info .pulse{
+    display:inline-block;width:10px;height:10px;border-radius:50%;
+    background:var(--primary);margin-bottom:12px;animation:pulse 1s ease-in-out infinite
+  }
   @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
   .error-info{text-align:center;padding:60px 20px}
-  .error-info .icon{font-size:36px;margin-bottom:10px}
-  .error-info h2{color:var(--red);font-size:18px;margin-bottom:6px}
-  .error-info p{color:var(--text2);font-size:14px}
+  .error-info .icon-big{width:40px;height:40px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
+  .error-info .icon-big svg{width:36px;height:36px;stroke:var(--ink-tertiary);stroke-width:1.5}
+  .error-info h2{color:var(--orange);font-size:18px;margin-bottom:6px}
+  .error-info p{color:var(--ink-muted);font-size:14px}
 
-  .doc-footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);text-align:center;color:var(--text3);font-size:13px}
-  .doc-footer a{color:var(--text2);text-decoration:none}.doc-footer a:hover{color:var(--accent)}
-  .doc-footer .sep{color:var(--border);margin:0 8px}
+  .doc-footer{
+    margin-top:48px;padding-top:20px;border-top:1px solid var(--hairline);
+    text-align:center;color:var(--ink-tertiary);font-size:13px
+  }
+  .doc-footer a{color:var(--ink-muted);text-decoration:none;transition:color .2s}
+  .doc-footer a:hover{color:var(--primary)}
+  .doc-footer .sep{color:var(--hairline);margin:0 8px}
+
+  .nav-icon-map{
+    overview:book-open;
+    installation:download;
+    "quick-start":zap;
+    architecture:layers;
+    "usage-guide":terminal;
+    configuration:settings;
+    features:sparkles;
+    "tech-stack":wrench;
+    security:lock;
+    development:code;
+    troubleshooting:search;
+    "design-decisions":lightbulb
+  }
 </style>
 </head>
 <body>
 
-<button class="sidebar-toggle" id="sidebarToggle">☰</button>
+<button class="sidebar-toggle" id="sidebarToggle"><i data-lucide="menu" style="width:20px;height:20px"></i></button>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="layout">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="logo">OpsTerm</div>
-      <div class="sub">AI Terminal Assistant</div>
+      <a href="index.html" class="logo">
+        <i data-lucide="terminal"></i>
+        <span>OpsTerm</span>
+      </a>
     </div>
-    <a href="index.html" class="sidebar-back">← Home</a>
+    <a href="index.html" class="sidebar-back">
+      <i data-lucide="arrow-left"></i> Home
+    </a>
     <div class="sidebar-nav" id="navLinks">
       <div class="sidebar-label">Documentation</div>
     </div>
@@ -150,24 +314,35 @@
 </div>
 
 <script>
+  // ── Icon map ──
+  const PAGE_ICONS = {
+    overview:"book-open", installation:"download", "quick-start":"zap",
+    architecture:"layers", "usage-guide":"terminal", configuration:"settings",
+    features:"sparkles", "tech-stack":"wrench", security:"lock",
+    development:"code", troubleshooting:"search", "design-decisions":"lightbulb"
+  };
+
   // ── PAGES ──
   const PAGES = [
-    { id:"overview",         label:"📖 Overview" },
-    { id:"architecture",     label:"🏗️ Architecture" },
-    { id:"features",         label:"✨ Features" },
-    { id:"quick-start",      label:"⚡ Quick Start" },
-    { id:"installation",     label:"📦 Installation" },
-    { id:"configuration",    label:"⚙️ Configuration" },
-    { id:"usage-guide",      label:"🚀 Usage Guide" },
-    { id:"tech-stack",       label:"🔧 Tech Stack" },
-    { id:"design-decisions", label:"🤔 Design Decisions" },
-    { id:"development",      label:"🛠️ Development" },
-    { id:"security",         label:"🔒 Security" },
-    { id:"troubleshooting",  label:"🔍 Troubleshooting" },
+    { id:"overview",         label:"Overview" },
+    { id:"architecture",     label:"Architecture" },
+    { id:"features",         label:"Features" },
+    { id:"quick-start",      label:"Quick Start" },
+    { id:"installation",     label:"Installation" },
+    { id:"configuration",    label:"Configuration" },
+    { id:"usage-guide",      label:"Usage Guide" },
+    { id:"tech-stack",       label:"Tech Stack" },
+    { id:"design-decisions", label:"Design Decisions" },
+    { id:"development",      label:"Development" },
+    { id:"security",         label:"Security" },
+    { id:"troubleshooting",  label:"Troubleshooting" },
   ];
 
   let currentPage = "overview";
   let tocObserver = null;
+  let lucideIconsInited = false;
+
+  function initLucide() { if(typeof lucide !== 'undefined') { lucide.createIcons(); lucideIconsInited = true; } }
 
   // ── Sidebar ──
   function rebuildNav() {
@@ -178,8 +353,9 @@
     PAGES.forEach(p => {
       const a = document.createElement("a");
       a.href = `?page=${p.id}`;
-      a.textContent = p.label;
       a.dataset.page = p.id;
+      const icon = PAGE_ICONS[p.id] || "file-text";
+      a.innerHTML = `<span class="nav-icon"><i data-lucide="${icon}"></i></span>${p.label}`;
       if (p.id === currentPage) a.classList.add("active");
       a.addEventListener("click", e => {
         e.preventDefault();
@@ -188,38 +364,35 @@
       });
       container.appendChild(a);
     });
+    if (!lucideIconsInited) setTimeout(initLucide, 50);
+    else initLucide();
   }
 
   function toggleSidebar() {
-    const open = !document.getElementById('sidebar').classList.contains('open');
-    document.getElementById('sidebar').classList.toggle('open', open);
-    document.getElementById('sidebarOverlay').classList.toggle('open', open);
+    const s = document.getElementById('sidebar');
+    const o = document.getElementById('sidebarOverlay');
+    const open = !s.classList.contains('open');
+    s.classList.toggle('open', open);
+    o.classList.toggle('open', open);
   }
   document.getElementById("sidebarToggle").onclick = toggleSidebar;
   document.getElementById("sidebarOverlay").onclick = toggleSidebar;
 
   // ── Markdown Renderer ──
   function renderMarkdown(md) {
-    // Escape HTML first
     md = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-    // Extract code blocks before processing
     const codeBlocks = [];
     md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
       const id = codeBlocks.length;
       codeBlocks.push({ lang, code: code.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&') });
       return `%%CB_${id}%%`;
     });
-
-    // Inline code
     const inlineCodes = [];
     md = md.replace(/`([^`]+)`/g, (_, c) => {
       const id = inlineCodes.length;
       inlineCodes.push(c);
       return `%%IC_${id}%%`;
     });
-
-    // Headings
     let hCount = {};
     function makeId(t) {
       const id = t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'section';
@@ -230,30 +403,18 @@
     md = md.replace(/^### (.+)$/gm, (_,t) => `<h3 id="${makeId(t)}">${t}</h3>`);
     md = md.replace(/^## (.+)$/gm, (_,t) => `<h2 id="${makeId(t)}">${t}</h2>`);
     md = md.replace(/^# (.+)$/gm, (_,t) => `<h1 id="${makeId(t)}">${t}</h1>`);
-
-    // Bold, italic, strikethrough
     md = md.replace(/^---+$/gm,'<hr>');
     md = md.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
     md = md.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
     md = md.replace(/\*(.+?)\*/g,'<em>$1</em>');
     md = md.replace(/~~(.+?)~~/g,'<del>$1</del>');
-
-    // Images & links
     md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy">');
     md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_,t,u) => `<a href="${u}"${u.startsWith('http')?' target="_blank" rel="noopener"':''}>${t}</a>`);
-
-    // Task lists
     md = md.replace(/- \[x\] /gi,'- ✅ ').replace(/- \[ \] /gi,'- ☐ ');
-
-    // Lists
     md = md.replace(/^(\s*)[-*] (.+)$/gm,'$1• $2');
     md = md.replace(/^(\s*)(\d+)\. (.+)$/gm,'$1$2. $3');
-
-    // Blockquote
     md = md.replace(/^(&gt;|>) (.+)$/gm,'<blockquote><p>$2</p></blockquote>');
-
-    // Tables
-    md = md.replace(/^(\|.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/gm, (_,h,b) => {
+    md = md.replace(/^(\|.+)\|\n\|[-| :]+\|\n((?:\|.+)\|\n?)*/gm, (_,h,b) => {
       const headers = h.split('|').filter(c=>c.trim()).map(c=>c.trim());
       const rows = b.trim().split('\n').map(r => r.split('|').filter(c=>c.trim()).map(c=>c.trim()));
       let tbl = '<table><thead><tr>';
@@ -263,11 +424,7 @@
       tbl += '</tbody></table>';
       return tbl;
     });
-
-    // Inline code restore (must be after tables to avoid splitting pipes inside code)
     md = md.replace(/%%IC_(\d+)%%/g, (_,id) => `<code>${inlineCodes[parseInt(id)]}</code>`);
-
-    // Paragraphs
     const lines = md.split('\n');
     let html = '', inPara = false;
     for (let i = 0; i < lines.length; i++) {
@@ -281,8 +438,6 @@
       html += l;
     }
     if (inPara) html += '</p>';
-
-    // Code blocks → terminal window
     html = html.replace(/%%CB_(\d+)%%/g, (_, id) => {
       const b = codeBlocks[parseInt(id)];
       const lang = b.lang || 'bash';
@@ -292,10 +447,9 @@
           <div class="code-dots"><span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span></div>
           <span class="code-lang">${lang}</span>
         </div>
-        <div class="code-body"><button class="copy-btn" data-enc="${encoded}">📋</button><pre><code>${escapeHtml(b.code)}</code></pre></div>
+        <div class="code-body"><button class="copy-btn-c" data-enc="${encoded}"><i data-lucide="copy" style="width:12px;height:12px;pointer-events:none"></i> Copy</button><pre><code>${escapeHtml(b.code)}</code></pre></div>
       </div>`;
     });
-
     return html;
   }
 
@@ -303,7 +457,7 @@
 
   // ── Copy Buttons ──
   function setupCopy() {
-    document.querySelectorAll('.copy-btn').forEach(btn => {
+    document.querySelectorAll('.copy-btn-c').forEach(btn => {
       btn.addEventListener('click', function() {
         const code = decodeURIComponent(this.dataset.enc);
         const self = this;
@@ -320,7 +474,7 @@
     document.execCommand('copy'); document.body.removeChild(ta);
     copyOk(btn);
   }
-  function copyOk(btn) { btn.textContent = '✅'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '📋'; btn.classList.remove('done'); }, 1800); }
+  function copyOk(btn) { btn.innerHTML = '<i data-lucide="check" style="width:12px;height:12px;pointer-events:none"></i> Copied!'; btn.classList.add('done'); initLucide(); setTimeout(() => { btn.innerHTML = '<i data-lucide="copy" style="width:12px;height:12px;pointer-events:none"></i> Copy'; btn.classList.remove('done'); initLucide(); }, 1800); }
 
   // ── Right TOC ──
   function buildTOC(html) {
@@ -328,7 +482,7 @@
     container.innerHTML = '';
     const headings = html.match(/<h([234]) id="([^"]+)"[^>]*>([^<]+)<\/h[234]>/g);
     if (!headings || headings.length < 2) {
-      container.innerHTML = '<div style="color:var(--text3);font-size:12px;">—</div>';
+      container.innerHTML = '<div style="color:var(--ink-tertiary);font-size:12px;">\u2014</div>';
       return [];
     }
     const items = [];
@@ -375,30 +529,19 @@
   // ── Load Page ──
   async function loadPage(pageId) {
     currentPage = pageId;
-
-    // Update nav
     document.querySelectorAll('.sidebar-nav a').forEach(a => {
       a.classList.toggle('active', a.dataset.page === pageId);
     });
-
-    // Update URL
     const url = new URL(window.location);
     url.search = `?page=${pageId}`;
     url.hash = '';
     window.history.replaceState({page: pageId}, '', url);
-
-    // GitHub edit link
     const fn = pageId === 'overview' ? 'README' : pageId;
     document.getElementById('editOnGitHub').href = `https://github.com/edsuwarna/opsterm/blob/main/docs/${fn}.md`;
-
-    // Title
     const p = PAGES.find(p => p.id === pageId);
-    if (p) document.title = `${p.label.replace(/^[^\s]+\s/,'')} — OpsTerm`;
-
-    // Fetch & render
+    if (p) document.title = `${p.label} — OpsTerm`;
     const container = document.getElementById('docsContent');
     container.innerHTML = '<div class="loading-info"><div class="pulse"></div><p>Loading...</p></div>';
-
     try {
       const resp = await fetch(`${fn}.md`);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -406,25 +549,25 @@
       const html = renderMarkdown(md);
       container.innerHTML = `<div class="md">${html}</div>`;
       setupCopy();
-
+      initLucide();
       const tocItems = buildTOC(html);
       setupScroll(tocItems);
-
       if (window.location.hash) {
         setTimeout(() => {
           document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
         }, 150);
       }
     } catch (err) {
-      const name = p ? p.label.replace(/^[^\s]+\s/,'') : pageId;
+      const name = p ? p.label : pageId;
       container.innerHTML = `
         <div class="error-info">
-          <div class="icon">📄</div>
+          <div class="icon-big"><i data-lucide="file-x"></i></div>
           <h2>Page not found</h2>
           <p>"${name}" is still being written.</p>
-          <p style="margin-top:12px;font-size:13px;color:var(--text3);">${err.message}</p>
-          <div style="margin-top:16px;"><a href="https://github.com/edsuwarna/opsterm/blob/main/docs/${fn}.md" style="color:var(--accent);">View on GitHub →</a></div>
+          <p style="margin-top:12px;font-size:13px;color:var(--ink-tertiary);">${err.message}</p>
+          <div style="margin-top:16px;"><a href="https://github.com/edsuwarna/opsterm/blob/main/docs/${fn}.md" style="color:var(--primary-hover);">View on GitHub →</a></div>
         </div>`;
+      initLucide();
     }
   }
 
@@ -433,7 +576,6 @@
   rebuildNav();
   const initial = params.get('page') || 'overview';
   loadPage(initial);
-
   window.addEventListener('hashchange', () => {
     if (window.location.hash) {
       setTimeout(() => {

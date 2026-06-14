@@ -5,326 +5,542 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpsTerm — AI Terminal Assistant</title>
 <meta name="description" content="A local AI terminal assistant. SSH into any server without losing AI access. Zero-dependency, any AI provider.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  :root{--bg:#0f1117;--surface:#161922;--surface2:#1e2130;--border:#2a2e3f;--text:#c9d1d9;--text2:#768394;--text3:#444a5a;--accent:#7aa2f7;--green:#9ece6a;--orange:#e6b450;--red:#f7768e;--teal:#73daca;--code-bg:#13151d;--term-bg:#0d0f16;--term-bar:#1a1d2b}
-  body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
-  .container{max-width:880px;margin:0 auto;padding:40px 24px}
+  :root{
+    --canvas:#0a0a0b;
+    --surface:#111113;
+    --surface-2:#161618;
+    --surface-3:#1c1c1f;
+    --hairline:#242428;
+    --hairline-strong:#2e2e32;
+    --ink:#e8e8ea;
+    --ink-muted:#a1a1aa;
+    --ink-subtle:#6b6b76;
+    --ink-tertiary:#48484f;
+    --primary:#d97706;
+    --primary-hover:#f59e0b;
+    --primary-subtle:rgba(217,119,6,0.1);
+    --primary-border:rgba(217,119,6,0.2);
+    --green:#22c55e;
+    --green-subtle:rgba(34,197,94,0.1);
+    --orange:#fb923c;
+    --teal:#2dd4bf;
+    --code-bg:#0e0e10;
+    --term-bar:#131315;
+    --radius-sm:6px;
+    --radius-md:8px;
+    --radius-lg:12px;
+    --radius-xl:16px;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--canvas);color:var(--ink);
+    line-height:1.6;-webkit-font-smoothing:antialiased
+  }
+  .container{max-width:1040px;margin:0 auto;padding:0 24px}
 
-  /* ── Cursor blink ── */
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  .cursor{display:inline-block;width:8px;height:1.1em;background:var(--accent);margin-left:4px;animation:blink 1s step-end infinite;vertical-align:text-bottom;border-radius:1px}
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    height:60px;border-bottom:1px solid var(--hairline);
+    position:sticky;top:0;background:rgba(10,10,11,0.85);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    z-index:100
+  }
+  .nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:-0.3px;text-decoration:none;color:var(--ink)}
+  .nav-logo svg{width:22px;height:22px;stroke:var(--primary);stroke-width:2}
+  .nav-links{display:flex;align-items:center;gap:24px;font-size:14px}
+  .nav-links a{color:var(--ink-muted);text-decoration:none;transition:color .2s}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-actions{display:flex;align-items:center;gap:10px}
+  .btn-ghost{color:var(--ink-muted);text-decoration:none;transition:color .2s;padding:7px 14px;border-radius:var(--radius-md);font-size:13px;display:inline-flex;align-items:center;gap:5px}
+  .btn-ghost:hover{color:var(--ink)}
 
-  /* ── Terminal Prompt ── */
-  .hero{text-align:center;padding:60px 0 20px}
-  .hero .prompt{display:inline-flex;align-items:center;gap:8px;background:var(--term-bg);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'SF Mono','Fira Code','JetBrains Mono',monospace;font-size:14px;color:var(--text2);margin-bottom:24px}
-  .hero .prompt .dollar{color:var(--green);font-weight:700}
-  .hero .prompt .cmd{color:var(--text)}.hero .prompt .cursor{height:16px}
-  .hero h1{font-size:48px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;color:var(--text)}
-  .hero .sub{font-size:17px;color:var(--text2);max-width:560px;margin:0 auto 20px}
-  .hero .badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);color:var(--teal);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:500}
+  .btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
+  .btn-primary{
+    background:var(--primary);color:#09090b;padding:10px 20px;
+    border-radius:var(--radius-md);font-weight:600;font-size:14px
+  }
+  .btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px)}
+  .btn-secondary{
+    background:var(--surface-2);color:var(--ink);padding:10px 20px;
+    border-radius:var(--radius-md);font-weight:500;font-size:14px;
+    border:1px solid var(--hairline)
+  }
+  .btn-secondary:hover{background:var(--surface-3);border-color:var(--hairline-strong)}
+  .btn-outline{
+    color:var(--ink-muted);padding:10px 20px;
+    border-radius:var(--radius-md);font-weight:500;font-size:14px;
+    border:1px solid var(--hairline)
+  }
+  .btn-outline:hover{color:var(--ink);border-color:var(--hairline-strong)}
+  .btn-sm{padding:7px 14px;font-size:13px}
 
-  /* ── Buttons ── */
-  .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:28px 0}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s}
-  .btn-primary{background:var(--accent);color:#0f1117}.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
-  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
-  .btn-outline{color:var(--text2);border:1px solid var(--border);font-size:13px;padding:11px 20px}.btn-outline:hover{color:var(--text);background:var(--surface)}
+  .hero{text-align:center;padding:80px 0 40px}
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    background:var(--primary-subtle);border:1px solid var(--primary-border);
+    color:var(--primary-hover);padding:5px 14px;border-radius:999px;
+    font-size:12px;font-weight:500;margin-bottom:24px
+  }
+  .hero h1{
+    font-size:60px;font-weight:800;letter-spacing:-0.03em;
+    line-height:1.05;margin-bottom:16px
+  }
+  .hero h1 .hl{color:var(--primary)}
+  .hero-sub{
+    font-size:18px;color:var(--ink-muted);
+    max-width:600px;margin:0 auto 32px;line-height:1.6
+  }
+  .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
-  /* ── Terminal Window ── */
-  .term-win{border-radius:10px;overflow:hidden;border:1px solid var(--border);margin:24px 0}
-  .term-bar{background:var(--term-bar);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+  .term-win{
+    border-radius:var(--radius-lg);overflow:hidden;
+    border:1px solid var(--hairline);margin:48px auto;
+    max-width:780px;box-shadow:0 4px 40px rgba(0,0,0,0.4)
+  }
+  .term-bar{
+    background:var(--term-bar);padding:10px 16px;
+    display:flex;align-items:center;gap:8px;
+    border-bottom:1px solid var(--hairline)
+  }
   .term-dots{display:flex;gap:6px}
   .term-dot{width:10px;height:10px;border-radius:50%}
   .term-dot.r{background:#ff5f56}.term-dot.y{background:#ffbd2e}.term-dot.g{background:#27c93f}
-  .term-title{font-size:12px;color:var(--text3);font-family:'SF Mono',monospace;margin-left:8px}
-  .term-body{background:var(--code-bg);padding:18px 20px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;line-height:1.6;overflow-x:auto;color:var(--text)}
-  .term-body .cm{color:var(--text3)}.term-body .prompt-c{color:var(--green)}
-  .term-body .cmd-c{color:var(--accent)}.term-body .out{color:var(--text2)}
-  .term-body .k{color:var(--orange)}.term-body .s{color:var(--green)}
+  .term-title{font-size:12px;color:var(--ink-tertiary);font-family:'JetBrains Mono',monospace;margin-left:8px}
+  .term-body{
+    background:var(--code-bg);padding:20px 24px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;
+    overflow-x:auto;color:#d4d4d8
+  }
+  .term-body .cm{color:var(--ink-tertiary)}
+  .term-body .prompt-c{color:var(--green)}
+  .term-body .cmd-c{color:#e8e8ea}
+  .term-body .out{color:var(--ink-muted)}
+  .term-body .k{color:var(--orange)}
+  .term-body .s{color:var(--teal)}
+  .term-body .hl-c{color:var(--primary)}
+  .term-body .nb{color:#a78bfa}
+  .term-body .nv{color:#f9a8d4}
+  .term-body .si{color:#facc15}
+  .term-body .o{color:var(--ink-muted)}
 
-  /* ── Install Box ── */
-  .install-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px;margin:40px 0}
-  .install-box h2{font-size:18px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-  .install-box .term-body{padding:16px 18px;font-size:13px}
-  .install-box .term-body code{display:block;white-space:pre}
-  .copy-btn{position:absolute;top:6px;right:6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:11px;color:var(--text2);cursor:pointer;opacity:0;transition:opacity .2s;font-family:inherit;z-index:2}
-  .code-wrap{position:relative}.code-wrap:hover .copy-btn{opacity:1}.copy-btn:hover{color:var(--text);background:var(--border)}
-  .copy-btn.done{opacity:1;color:var(--green);border-color:var(--green)}
+  .section-title{
+    font-size:14px;font-weight:600;text-transform:uppercase;
+    letter-spacing:1px;color:var(--primary);margin-bottom:6px
+  }
+  .section-heading{
+    font-size:32px;font-weight:700;letter-spacing:-0.03em;
+    margin-bottom:12px
+  }
+  .section-sub{
+    font-size:15px;color:var(--ink-muted);max-width:560px;
+    line-height:1.6;margin-bottom:32px
+  }
+  section{padding:64px 0}
+  section+section{border-top:1px solid var(--hairline)}
 
-  /* ── Features ── */
-  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:40px 0}
-  .f-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;transition:border-color .2s}
-  .f-card:hover{border-color:var(--accent)}
-  .f-card .icon{font-size:22px;margin-bottom:6px}
-  .f-card h3{font-size:14px;font-weight:600;margin-bottom:4px}
-  .f-card p{font-size:13px;color:var(--text2);line-height:1.5}
-  .f-card code{background:var(--surface2);border:1px solid var(--border);padding:1px 5px;border-radius:3px;font-family:'SF Mono',monospace;font-size:12px;color:var(--accent)}
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .f-card{
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius-lg);padding:24px;
+    transition:border-color .2s,transform .2s
+  }
+  .f-card:hover{border-color:var(--primary-border);transform:translateY(-2px)}
+  .f-card .icon-wrap{
+    width:38px;height:38px;border-radius:var(--radius-md);
+    background:var(--primary-subtle);border:1px solid var(--primary-border);
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px
+  }
+  .f-card .icon-wrap svg{width:18px;height:18px;stroke:var(--primary);stroke-width:1.5}
+  .f-card h3{font-size:14px;font-weight:600;margin-bottom:5px;letter-spacing:-0.2px}
+  .f-card p{font-size:13px;color:var(--ink-muted);line-height:1.55}
+  .f-card code{
+    background:var(--surface-2);border:1px solid var(--hairline);
+    padding:1px 5px;border-radius:4px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-hover)
+  }
 
-  /* ── Section Titles ── */
-  .section-title{font-size:20px;font-weight:700;margin:48px 0 16px;display:flex;align-items:center;gap:8px}
-  .section-title:after{content:'';flex:1;height:1px;background:var(--border);margin-left:12px}
+  .install-wrap{
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius-xl);padding:40px;
+    position:relative;overflow:hidden
+  }
+  .install-wrap::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,transparent,var(--primary),transparent);
+    opacity:0.5
+  }
+  .install-head{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .install-head .icon-wrap{
+    width:36px;height:36px;border-radius:var(--radius-md);
+    background:var(--green-subtle);border:1px solid rgba(34,197,94,0.2);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .install-head .icon-wrap svg{width:17px;height:17px;stroke:var(--green);stroke-width:1.5}
+  .install-head h2{font-size:17px;font-weight:600}
+  .install-head span{font-size:13px;color:var(--ink-muted);font-weight:400}
+  .code-wrap{position:relative;background:var(--code-bg);border:1px solid var(--hairline);border-radius:var(--radius-md);overflow:hidden}
+  .code-wrap pre{margin:0;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.65;overflow-x:auto;color:#d4d4d8}
+  .copy-btn{
+    position:absolute;top:6px;right:6px;background:var(--surface-2);
+    border:1px solid var(--hairline);border-radius:5px;padding:4px 8px;
+    font-size:11px;color:var(--ink-muted);cursor:pointer;opacity:0;
+    transition:opacity .2s;font-family:inherit;z-index:2;
+    display:flex;align-items:center;gap:4px
+  }
+  .code-wrap:hover .copy-btn{opacity:1}
+  .copy-btn:hover{color:var(--ink);background:var(--surface-3)}
+  .copy-btn.copied{opacity:1;color:var(--green);border-color:var(--green)}
+  .install-meta{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--ink-muted)}
+  .install-meta svg{width:14px;height:14px;stroke:var(--ink-subtle);stroke-width:1.5}
 
-  /* ── Perks / Highlights ── */
-  .perks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:24px 0}
-  .perk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
-  .perk .check{color:var(--green);font-weight:700}
+  .perks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .perk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)}
+  .perk svg{width:16px;height:16px;stroke:var(--green);stroke-width:2;flex-shrink:0}
 
-  /* ── Doc Grid ── */
-  .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin:24px 0}
-  .doc-link{display:block;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-decoration:none;color:var(--text);transition:border-color .2s}
-  .doc-link:hover{border-color:var(--accent)}
-  .doc-link .doc-icon{font-size:20px;display:block;margin-bottom:4px}
-  .doc-link .doc-title{font-size:13px;font-weight:600}
-  .doc-link .doc-desc{font-size:12px;color:var(--text2);margin-top:2px}
+  .doc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .doc-link{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius-md);padding:12px 14px;
+    text-decoration:none;color:var(--ink);transition:all .2s
+  }
+  .doc-link:hover{border-color:var(--primary-border);background:var(--surface-2)}
+  .doc-link .doc-icon{
+    width:30px;height:30px;border-radius:6px;
+    background:var(--primary-subtle);display:flex;
+    align-items:center;justify-content:center;flex-shrink:0
+  }
+  .doc-link .doc-icon svg{width:15px;height:15px;stroke:var(--primary);stroke-width:1.5}
+  .doc-link .doc-info{min-width:0}
+  .doc-link .doc-title{font-size:13px;font-weight:500;display:block}
+  .doc-link .doc-desc{font-size:11.5px;color:var(--ink-subtle);display:block;margin-top:1px}
 
-  /* ── Footer ── */
-  footer{text-align:center;padding:32px 0;margin-top:60px;border-top:1px solid var(--border);font-size:13px;color:var(--text3)}
-  footer a{color:var(--text2);text-decoration:none}footer a:hover{color:var(--accent)}
+  .cta-box{
+    background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--hairline);border-radius:var(--radius-xl);
+    padding:48px 40px;text-align:center
+  }
+  .cta-box h2{font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px}
+  .cta-box p{color:var(--ink-muted);font-size:15px;margin-bottom:24px}
+  .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
-  /* ── Responsive ── */
+  footer{padding:40px 0 48px;border-top:1px solid var(--hairline)}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center}
+  .footer-inner .copy{font-size:13px;color:var(--ink-subtle)}
+  .footer-links{display:flex;gap:20px;font-size:13px}
+  .footer-links a{color:var(--ink-muted);text-decoration:none;transition:color .2s}
+  .footer-links a:hover{color:var(--ink)}
+  .footer-logo{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:var(--ink-muted);text-decoration:none}
+  .footer-logo svg{width:16px;height:16px;stroke:var(--primary);stroke-width:2}
+
+  @media(max-width:900px){
+    .features{grid-template-columns:repeat(2,1fr)}
+    .perks{grid-template-columns:repeat(2,1fr)}
+    .doc-grid{grid-template-columns:repeat(2,1fr)}
+  }
   @media(max-width:640px){
-    .container{padding:24px 16px}
-    .hero h1{font-size:32px}
-    .hero .prompt{font-size:12px;padding:8px 14px}
+    .hero h1{font-size:36px}
+    .hero{padding:48px 0 24px}
     .features{grid-template-columns:1fr}
     .perks{grid-template-columns:1fr}
-    .doc-grid{grid-template-columns:repeat(2,1fr)}
-    .btns{flex-direction:column;align-items:stretch}
-    .btn{justify-content:center}
+    .doc-grid{grid-template-columns:1fr}
+    .footer-inner{flex-direction:column;gap:16px;text-align:center}
+    section{padding:40px 0}
+    .install-wrap{padding:24px}
+    .cta-box{padding:32px 24px}
+    .nav-links{display:none}
   }
 </style>
 </head>
 <body>
 
+<div class="nav"><div class="container" style="display:flex;align-items:center;justify-content:space-between;width:100%">
+  <a href="index.html" class="nav-logo">
+    <i data-lucide="terminal"></i>
+    <span>OpsTerm</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="docs.html">Documentation</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/edsuwarna/opsterm">GitHub</a>
+  </div>
+  <div class="nav-actions">
+    <a href="docs.html?page=quick-start" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px"></i> Quick Install</a>
+  </div>
+</div></div>
+
 <div class="container">
 
   <!-- Hero -->
   <div class="hero">
-    <div class="prompt">
-      <span class="dollar">$</span>
-      <span class="cmd">opsterm <span style="color:var(--accent)">"what can you do?"</span></span>
-      <span class="cursor"></span>
+    <div class="hero-badge">
+      <i data-lucide="sparkles" style="width:12px;height:12px"></i>
+      v0.8.0 — Zero dependency AI terminal
     </div>
-    <h1>OpsTerm</h1>
-    <div class="sub">
-      A local AI terminal assistant that lives in your terminal.<br>
-      SSH into any server without leaving your AI behind.
-    </div>
-    <div class="badge">⚡ Zero dependencies · Any AI provider</div>
-    <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <span class="badge" style="color:var(--green);border-color:var(--green);font-size:12px">🗜️ RTK AI — 60-95% token compression</span>
-      <span class="badge" style="color:var(--orange);border-color:var(--orange);font-size:12px">🔗 Multi-hop SSH</span>
-    </div>
-
-    <div class="btns">
-      <a href="docs.html?page=overview" class="btn btn-primary">📖 Documentation</a>
-      <a href="docs.html?page=installation" class="btn btn-secondary">⚡ Quick Install</a>
-      <a href="https://github.com/edsuwarna/opsterm" class="btn btn-outline">🐙 GitHub</a>
+    <h1>Your terminal,<br><span class="hl">supercharged with AI</span></h1>
+    <p class="hero-sub">
+      OpsTerm is a local AI terminal assistant that works anywhere — 
+      any server, any AI provider, zero complex setup. SSH, chat, 
+      automate — all from a single 50KB file.
+    </p>
+    <div class="hero-btns">
+      <a href="docs.html?page=installation" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
+      <a href="docs.html" class="btn btn-secondary"><i data-lucide="book-open"></i> Documentation</a>
+      <a href="https://github.com/edsuwarna/opsterm" class="btn btn-outline"><i data-lucide="github"></i> GitHub</a>
     </div>
   </div>
 
   <!-- Terminal Demo -->
-  <div class="section-title">⚡ What it looks like</div>
   <div class="term-win">
     <div class="term-bar">
       <div class="term-dots"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
-      <span class="term-title">~/opsterm — bash</span>
+      <span class="term-title">~/opsterm — zsh</span>
     </div>
     <div class="term-body">
-      <span class="cm"># Ask AI for a command</span><br>
-      <span class="prompt-c">$</span> <span class="cmd-c">opsterm</span> how to find large log files<br>
+      <span class="cm"># Ask AI for any command</span><br>
+      <span class="prompt-c">$</span> <span class="cmd-c">opsterm</span> <span class="hl-c">how to find large log files</span><br>
       <span class="out">$ find /var/log -type f -size +100M -exec ls -lh {} \;</span><br><br>
 
-      <span class="cm"># SSH without remembering IPs</span><br>
+      <span class="cm"># SSH by name — no IPs to remember</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">opsterm ssh</span> vps-utama<br>
-      <span class="out">🔑 Connecting to vps-utama...<br>ubuntu@43.157.204.199:~$</span><br><br>
+      <span class="out">🔑 Connecting to vps-utama (43.157.204.199)<br>ubuntu@vps-utama:~$</span><br><br>
 
-      <span class="cm"># Explain any command output</span><br>
-      <span class="prompt-c">$</span> <span class="cmd-c">docker ps | opsterm</span> "any errors?"<br>
-      <span class="out">✓ All 3 containers healthy. No errors found.</span><br><br>
+      <span class="cm"># Pipe output for AI analysis</span><br>
+      <span class="prompt-c">$</span> <span class="cmd-c">docker ps</span> <span class="o">|</span> <span class="cmd-c">opsterm</span> <span class="hl-c">"any errors?"</span><br>
+      <span class="out">✓ All 3 containers healthy. No errors detected.</span><br><br>
 
-      <span class="cm"># Connect — AI REPL on any server</span><br>
+      <span class="cm"># AI REPL during SSH connection</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">opsterm connect</span> vps-utama<br>
-      <span class="out">🔮 Connected to vps-utama (root@203.0.113.10)<br>opsterm❯ ada berapa container?<br>  🔍 Running `docker ps -a`...<br>  ✅ Ada 5 container: 3 redis, 2 nginx<br>opsterm❯ exit<br>  👋 Disconnected.</span>
-    </div>
-  </div>
-
-  <!-- Quick Install -->
-  <div class="install-box">
-    <h2>⚡ Quick Install <span style="color:var(--text3);font-weight:400;font-size:12px;">— one command, no repo</span></h2>
-    <div class="code-wrap">
-      <div class="term-body">
-        <code><span class="cm"># 1. Download (single file, zero deps)</span>
-<span class="prompt-c">$</span> <span class="k">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST <span class="k">-o</span> /tmp/opsterm_latest
-<span class="prompt-c">$</span> <span class="nb">export</span> <span class="nv">OPSTERM_VER</span><span class="o">=</span><span class="si">$(</span>cat /tmp/opsterm_latest<span class="si">)</span>
-<span class="prompt-c">$</span> <span class="k">curl -L</span> <span class="s2">"https://raw.githubusercontent.com/edsuwarna/opsterm/</span><span class="si">${</span><span class="nv">OPSTERM_VER</span><span class="si">}</span><span class="s2">/bin/opsterm"</span> <span class="k">-o</span> ~/.local/bin/opsterm
-<span class="prompt-c">$</span> chmod +x ~/.local/bin/opsterm
-<span class="prompt-c">$</span> <span class="k">opsterm provider add</span> default --api-key <span class="s">'sk-...'</span></span>
-      </div>
-      <button class="copy-btn" onclick="copyInstall(this)">📋</button>
+      <span class="out">🔮 Connected to vps-utama (root@203.0.113.10)<br>opsterm❯ <span class="hl-c">ada berapa container?</span><br>  🔍 Running `docker ps -a`...<br>  ✅ Found 5 containers: 3 redis, 2 nginx<br>opsterm❯ <span class="hl-c">!systemctl status nginx</span><br>  🔌 Executing on server...<br>  ● nginx.service — A high performance web server<br>     Active: active (running)<br>opsterm❯ exit<br>  👋 Disconnected.</span>
     </div>
   </div>
 
   <!-- Features -->
-  <div class="section-title">✨ Features</div>
-  <div class="features">
-    <div class="f-card">
-      <div class="icon">🤖</div>
-      <h3>AI Chat</h3>
-      <p>Ask anything — commands, explanations, scripts. Works with any OpenAI-compatible provider.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">🔑</div>
-      <h3>Smart SSH</h3>
-      <p>SSH without IPs. Fuzzy matching, multi-hop via <code>--via</code>, YAML config.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">🔮</div>
-      <h3>SSH Connect</h3>
-      <p>AI REPL during SSH. Ask questions, run <code>!commands</code>, no install on server. Works with <code>opsterm connect</code> or <code>Ctrl+B</code> escape.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">⚡</div>
-      <h3>Workflows</h3>
-      <p>Multi-step YAML automation: SSH → SCP → Local commands, all in one file.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">🔐</div>
+  <section id="features">
+    <div class="section-title">Features</div>
+    <h2 class="section-heading">Everything a sysadmin needs</h2>
+    <p class="section-sub">From quick AI queries to complex multi-hop SSH workflows — all from your terminal, with any AI provider you choose.</p>
 
-      <p>AES-128 + PBKDF2 encrypted credential store. Zero external deps.</p>
+    <div class="features">
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="message-square"></i></div>
+        <h3>AI Chat</h3>
+        <p>Ask anything — commands, explanations, scripts. Works with any OpenAI-compatible provider including DeepSeek, Ollama, and OpenRouter.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="key-round"></i></div>
+        <h3>Smart SSH</h3>
+        <p>SSH by server name, not IP. Fuzzy matching, multi-hop via <code>--via</code>, YAML config. Import from <code>~/.ssh/config</code> automatically.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="satellite"></i></div>
+        <h3>SSH Connect</h3>
+        <p>AI REPL during active SSH. Ask questions, run <code>!commands</code> on server. No install needed — <code>opsterm connect</code> or <code>Ctrl+B</code> escape.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="git-branch"></i></div>
+        <h3>Workflows</h3>
+        <p>Multi-step YAML automation: SSH to SCP to local commands. Deploy apps, run diagnostics with one command.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="arrow-left-right"></i></div>
+        <h3>Pipe Mode</h3>
+        <p><code>cmd | opsterm "analyze"</code> — pipe command output for AI analysis. Detect errors, get insights, explain complex output.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="folder-sync"></i></div>
+        <h3>SCP Transfer</h3>
+        <p>Upload/download files by server name: <code>opsterm scp file.txt server:/path</code>. No more scp syntax headaches.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="archive"></i></div>
+        <h3>RTK AI</h3>
+        <p>Auto-compress command output 60-95% before AI processing. Save tokens, get faster responses. Zero config if installed.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="terminal"></i></div>
+        <h3>Tab Completion</h3>
+        <p>Bash + Zsh auto-complete for servers, workflows, and subcommands. Type less, do more.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="shield"></i></div>
+        <h3>Secure by Default</h3>
+        <p>AES-128 + PBKDF2 encrypted credential store. Your API keys never leave your machine.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="clock"></i></div>
+        <h3>History</h3>
+        <p>SQLite-backed history with search. Revisit, explain, or re-run past commands.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="sliders-horizontal"></i></div>
+        <h3>Provider Freedom</h3>
+        <p>Choose any AI provider — OpenAI, DeepSeek, Ollama, OpenRouter, or custom.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap"><i data-lucide="layers"></i></div>
+        <h3>Multi-hop SSH</h3>
+        <p>Jump through bastion hosts: <code>opsterm ssh internal --via bastion</code>. ProxyJump built-in.</p>
+      </div>
     </div>
-    <div class="f-card">
-      <div class="icon">🔗</div>
-      <h3>Pipe Mode</h3>
-      <p><code>cmd | opsterm "analyze this"</code> — explain output, detect errors, get insights.</p>
+  </section>
+
+  <!-- Install -->
+  <section id="install">
+    <div class="section-title">Get Started</div>
+    <h2 class="section-heading">Install in 10 seconds</h2>
+    <p class="section-sub">A single curl command. No pip, no npm, no package managers. Just one 50KB file that runs anywhere Python 3 does.</p>
+
+    <div class="install-wrap">
+      <div class="install-head">
+        <div class="icon-wrap"><i data-lucide="check-circle"></i></div>
+        <h2>One-line install <span>— works on Linux & macOS</span></h2>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyInstall(this)"><i data-lucide="copy" style="width:13px;height:13px"></i> Copy</button>
+        <pre><span style="color:#71717a"># Download latest release — zero deps, ~50KB</span>
+<span style="color:#22c55e">$</span> <span style="color:#fb923c">curl -L</span> https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST <span style="color:#fb923c">-o</span> /tmp/opsterm_latest
+<span style="color:#22c55e">$</span> <span style="color:#e8e8ea">export</span> <span style="color:#f9a8d4">OPSTERM_VER</span><span style="color:#71717a">=</span><span style="color:#facc15">$(</span>cat /tmp/opsterm_latest<span style="color:#facc15">)</span>
+<span style="color:#22c55e">$</span> <span style="color:#fb923c">curl -L</span> <span style="color:#2dd4bf">"https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm"</span> <span style="color:#fb923c">-o</span> ~/.local/bin/opsterm
+<span style="color:#22c55e">$</span> chmod +x ~/.local/bin/opsterm
+<span style="color:#22c55e">$</span> <span style="color:#e8e8ea">opsterm provider add</span> default <span style="color:#fb923c">--api-key</span> <span style="color:#2dd4bf">'sk-...'</span></pre>
+      </div>
+      <div class="install-meta">
+        <i data-lucide="info"></i>
+        <span>No sudo required. Make sure <code>~/.local/bin</code> is in your <code>PATH</code>.</span>
+      </div>
     </div>
-    <div class="f-card">
-      <div class="icon">⌨️</div>
-      <h3>Tab Completion</h3>
-      <p>Bash + Zsh auto-complete for servers, workflows, and subcommands.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">📁</div>
-      <h3>SCP Transfer</h3>
-      <p>Upload/download files via server name: <code>opsterm scp file.txt server:/path</code></p>
-    </div>
-    <div class="f-card">
-      <div class="icon">📋</div>
-      <h3>History</h3>
-      <p>SQLite-backed history. Revisit, explain, or re-run past commands.</p>
-    </div>
-    <div class="f-card">
-      <div class="icon">🗜️</div>
-      <h3>RTK AI</h3>
-      <p>Auto-compress command output 60-95% with RTK before AI. Zero config — if installed, it just works.</p>
-    </div>
-  </div>
+  </section>
 
   <!-- Highlights -->
-  <div class="section-title">🏗️ Under the hood</div>
-  <div class="perks">
-    <div class="perk"><span class="check">✓</span> Single Python file — zero deps</div>
-    <div class="perk"><span class="check">✓</span> Config at <code style="color:var(--accent);background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:12px;">~/.opsterm/</code></div>
-    <div class="perk"><span class="check">✓</span> Any OpenAI-compatible provider</div>
-    <div class="perk"><span class="check">✓</span> Multi-hop SSH via ProxyJump</div>
-    <div class="perk"><span class="check">✓</span> Auto-migrate from <code>~/.opsterm/</code></div>
-    <div class="perk"><span class="check">✓</span> Shell operators in local commands</div>
-    <div class="perk" style="color:var(--green)"><span class="check">✓</span> RTK AI — 60-95% token compression</div>
-  </div>
+  <section>
+    <div class="section-title">Under the Hood</div>
+    <h2 class="section-heading">Built for the real world</h2>
+    <p class="section-sub">OpsTerm is designed for DevOps engineers who need a tool that just works — anywhere, with anything.</p>
 
-  <!-- Documentation Links -->
-  <div class="section-title">📚 Documentation</div>
-  <div class="doc-grid">
-    <a href="docs.html?page=overview" class="doc-link">
-      <span class="doc-icon">📖</span>
-      <span class="doc-title">Overview</span>
-      <span class="doc-desc">What is OpsTerm?</span>
-    </a>
-    <a href="docs.html?page=installation" class="doc-link">
-      <span class="doc-icon">📦</span>
-      <span class="doc-title">Installation</span>
-      <span class="doc-desc">Install & uninstall guide</span>
-    </a>
-    <a href="docs.html?page=quick-start" class="doc-link">
-      <span class="doc-icon">⚡</span>
-      <span class="doc-title">Quick Start</span>
-      <span class="doc-desc">Get running in 2 minutes</span>
-    </a>
-    <a href="docs.html?page=architecture" class="doc-link">
-      <span class="doc-icon">🏗️</span>
-      <span class="doc-title">Architecture</span>
-      <span class="doc-desc">How it works</span>
-    </a>
-    <a href="docs.html?page=usage-guide" class="doc-link">
-      <span class="doc-icon">🚀</span>
-      <span class="doc-title">Usage Guide</span>
-      <span class="doc-desc">All commands explained</span>
-    </a>
-    <a href="docs.html?page=configuration" class="doc-link">
-      <span class="doc-icon">⚙️</span>
-      <span class="doc-title">Configuration</span>
-      <span class="doc-desc">AI provider, shell settings</span>
-    </a>
-    <a href="docs.html?page=features" class="doc-link">
-      <span class="doc-icon">✨</span>
-      <span class="doc-title">Features</span>
-      <span class="doc-desc">Complete feature list</span>
-    </a>
-    <a href="docs.html?page=tech-stack" class="doc-link">
-      <span class="doc-icon">🔧</span>
-      <span class="doc-title">Tech Stack</span>
-      <span class="doc-desc">Languages, protocols</span>
-    </a>
-    <a href="docs.html?page=security" class="doc-link">
-      <span class="doc-icon">🔒</span>
-      <span class="doc-title">Security</span>
+    <div class="perks">
+      <div class="perk"><i data-lucide="check-circle"></i> Single Python file — zero dependencies</div>
+      <div class="perk"><i data-lucide="check-circle"></i> Config at <code style="color:var(--primary-hover);background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12px">~/.opsterm/</code></div>
+      <div class="perk"><i data-lucide="check-circle"></i> Any OpenAI-compatible provider</div>
+      <div class="perk"><i data-lucide="check-circle"></i> Multi-hop SSH via ProxyJump</div>
+      <div class="perk"><i data-lucide="check-circle"></i> Shell operators in local commands</div>
+      <div class="perk"><i data-lucide="check-circle"></i> RTK AI — 60-95% token compression</div>
+      <div class="perk"><i data-lucide="check-circle"></i> AES-128 + PBKDF2 encrypted storage</div>
+      <div class="perk"><i data-lucide="check-circle"></i> Self-update: <code>opsterm update</code></div>
+      <div class="perk"><i data-lucide="check-circle"></i> Config validate: <code>opsterm config validate</code></div>
+    </div>
+  </section>
 
-    </a>
-    <a href="docs.html?page=development" class="doc-link">
-      <span class="doc-icon">🛠️</span>
-      <span class="doc-title">Development</span>
-      <span class="doc-desc">Contributing guide</span>
-    </a>
-    <a href="docs.html?page=troubleshooting" class="doc-link">
-      <span class="doc-icon">🔍</span>
-      <span class="doc-title">Troubleshooting</span>
-      <span class="doc-desc">Common issues</span>
-    </a>
-    <a href="docs.html?page=design-decisions" class="doc-link">
-      <span class="doc-icon">🤔</span>
-      <span class="doc-title">Design Decisions</span>
-      <span class="doc-desc">Why things are built this way</span>
-    </a>
-  </div>
+  <!-- Docs -->
+  <section>
+    <div class="section-title">Resources</div>
+    <h2 class="section-heading">Documentation</h2>
+    <p class="section-sub">Everything you need to master OpsTerm — from quick start to advanced configuration.</p>
 
-  <!-- Footer -->
-  <footer>
-    <p>Built by <a href="https://github.com/edsuwarna">Endang Suwarna</a> · MIT License · <a href="https://github.com/edsuwarna/opsterm">GitHub</a> · Inspired by <a href="https://warp.dev">Warp.dev</a></p>
-  </footer>
+    <div class="doc-grid">
+      <a href="docs.html?page=overview" class="doc-link">
+        <div class="doc-icon"><i data-lucide="book-open"></i></div>
+        <div class="doc-info"><span class="doc-title">Overview</span><span class="doc-desc">What is OpsTerm?</span></div>
+      </a>
+      <a href="docs.html?page=installation" class="doc-link">
+        <div class="doc-icon"><i data-lucide="download"></i></div>
+        <div class="doc-info"><span class="doc-title">Installation</span><span class="doc-desc">Install & uninstall</span></div>
+      </a>
+      <a href="docs.html?page=quick-start" class="doc-link">
+        <div class="doc-icon"><i data-lucide="zap"></i></div>
+        <div class="doc-info"><span class="doc-title">Quick Start</span><span class="doc-desc">2 minute guide</span></div>
+      </a>
+      <a href="docs.html?page=architecture" class="doc-link">
+        <div class="doc-icon"><i data-lucide="layers"></i></div>
+        <div class="doc-info"><span class="doc-title">Architecture</span><span class="doc-desc">How it works</span></div>
+      </a>
+      <a href="docs.html?page=usage-guide" class="doc-link">
+        <div class="doc-icon"><i data-lucide="terminal"></i></div>
+        <div class="doc-info"><span class="doc-title">Usage Guide</span><span class="doc-desc">All commands</span></div>
+      </a>
+      <a href="docs.html?page=configuration" class="doc-link">
+        <div class="doc-icon"><i data-lucide="settings"></i></div>
+        <div class="doc-info"><span class="doc-title">Configuration</span><span class="doc-desc">Providers, shell</span></div>
+      </a>
+      <a href="docs.html?page=features" class="doc-link">
+        <div class="doc-icon"><i data-lucide="sparkles"></i></div>
+        <div class="doc-info"><span class="doc-title">Features</span><span class="doc-desc">Complete list</span></div>
+      </a>
+      <a href="docs.html?page=tech-stack" class="doc-link">
+        <div class="doc-icon"><i data-lucide="wrench"></i></div>
+        <div class="doc-info"><span class="doc-title">Tech Stack</span><span class="doc-desc">Languages, protocols</span></div>
+      </a>
+      <a href="docs.html?page=security" class="doc-link">
+        <div class="doc-icon"><i data-lucide="lock"></i></div>
+        <div class="doc-info"><span class="doc-title">Security</span><span class="doc-desc">Encryption, storage</span></div>
+      </a>
+      <a href="docs.html?page=development" class="doc-link">
+        <div class="doc-icon"><i data-lucide="code"></i></div>
+        <div class="doc-info"><span class="doc-title">Development</span><span class="doc-desc">Contributing</span></div>
+      </a>
+      <a href="docs.html?page=troubleshooting" class="doc-link">
+        <div class="doc-icon"><i data-lucide="search"></i></div>
+        <div class="doc-info"><span class="doc-title">Troubleshooting</span><span class="doc-desc">Common issues</span></div>
+      </a>
+      <a href="docs.html?page=design-decisions" class="doc-link">
+        <div class="doc-icon"><i data-lucide="lightbulb"></i></div>
+        <div class="doc-info"><span class="doc-title">Design Decisions</span><span class="doc-desc">Why this way</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="padding-bottom:64px">
+    <div class="cta-box">
+      <h2>Ready to supercharge your terminal?</h2>
+      <p>One command, zero dependencies, any AI provider. Start using OpsTerm in 10 seconds.</p>
+      <div class="cta-btns">
+        <a href="docs.html?page=installation" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
+        <a href="docs.html" class="btn btn-secondary"><i data-lucide="book-open"></i> Read the Docs</a>
+      </div>
+    </div>
+  </section>
+
 </div>
 
-<script>
-function copyInstall(btn) {
-  const text = `curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest
-OPSTERM_VER=$(cat /tmp/opsterm_latest)
-curl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm
-chmod +x ~/.local/bin/opsterm
-rm -f /tmp/opsterm_latest
-opsterm provider add default --api-key 'sk-...'`;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => copyDone(btn)).catch(() => fallbackCopy(text, btn));
-  } else { fallbackCopy(text, btn); }
-}
-function fallbackCopy(text, btn) {
-  const ta = document.createElement('textarea'); ta.value = text;
-  ta.style.position = 'fixed'; ta.style.opacity = '0';
-  document.body.appendChild(ta); ta.select();
-  document.execCommand('copy'); document.body.removeChild(ta);
-  copyDone(btn);
-}
-function copyDone(btn) { btn.textContent = '✅'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '📋'; btn.classList.remove('done'); }, 1800); }
-</script>
+<footer><div class="container">
+  <div class="footer-inner">
+    <a href="index.html" class="footer-logo">
+      <i data-lucide="terminal"></i>
+      <span>OpsTerm</span>
+    </a>
+    <div class="copy">Built by <a href="https://github.com/edsuwarna" style="color:var(--ink-muted);text-decoration:none">Endang Suwarna</a> · MIT License</div>
+    <div class="footer-links">
+      <a href="https://github.com/edsuwarna/opsterm">GitHub</a>
+      <a href="https://github.com/edsuwarna/opsterm/releases">Releases</a>
+      <a href="https://warp.dev">Inspired by Warp</a>
+    </div>
+  </div>
+</div></footer>
 
+<script>
+lucide.createIcons();
+function copyInstall(btn) {
+  const text = 'curl -L https://raw.githubusercontent.com/edsuwarna/opsterm/main/LATEST -o /tmp/opsterm_latest\nOPSTERM_VER=$(cat /tmp/opsterm_latest)\ncurl -L "https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm" -o ~/.local/bin/opsterm\nchmod +x ~/.local/bin/opsterm\nrm -f /tmp/opsterm_latest\nopsterm provider add default --api-key \'sk-...\'';
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{btn.innerHTML='<i data-lucide="check" style="width:13px;height:13px"></i> Copied!';btn.classList.add('copied');lucide.createIcons();setTimeout(()=>{btn.innerHTML='<i data-lucide="copy" style="width:13px;height:13px"></i> Copy';btn.classList.remove('copied');lucide.createIcons();},1800)}).catch(()=>fallbackCopy(text,btn));
+  }else{fallbackCopy(text,btn)}
+}
+function fallbackCopy(text,btn){
+  const ta=document.createElement('textarea');ta.value=text;
+  ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  document.execCommand('copy');document.body.removeChild(ta);
+  btn.innerHTML='<i data-lucide="check" style="width:13px;height:13px"></i> Copied!';btn.classList.add('copied');lucide.createIcons();
+  setTimeout(()=>{btn.innerHTML='<i data-lucide="copy" style="width:13px;height:13px"></i> Copy';btn.classList.remove('copied');lucide.createIcons();},1800);
+}
+</script>
 </body>
 </html>
