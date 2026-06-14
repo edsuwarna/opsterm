@@ -1,4 +1,4 @@
-# 🎯 OpsTerm Features — Complete
+# Features
 
 This document explains **all features** available in OpsTerm, complete with usage examples and explanations.
 

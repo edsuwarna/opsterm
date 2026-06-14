@@ -1,4 +1,4 @@
-# 📦 Installation
+# Installation
 
 OpsTerm is a zero-dependency Python script — just Python 3 and a terminal.
 

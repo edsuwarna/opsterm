@@ -1,4 +1,4 @@
-# 🤔 Design Decisions
+# Design Decisions
 
 This document explains **why** OpsTerm is designed the way it is — the reasoning behind each technical decision, including the trade-offs that were made.
 

@@ -1,4 +1,4 @@
-# 📐 Architecture & System Design
+# Architecture & System Design
 
 This document explains in detail how OpsTerm works — from when the user types a command until the output is displayed.
 

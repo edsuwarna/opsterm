@@ -1,4 +1,4 @@
-# 🔧 Tech Stack
+# Tech Stack
 
 This document explains the technology used in OpsTerm — from the programming language to the communication protocol.
 

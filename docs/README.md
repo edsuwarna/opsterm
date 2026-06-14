@@ -1,4 +1,4 @@
-# 📚 OpsTerm Documentation
+# OpsTerm Documentation
 
 Welcome to the OpsTerm documentation! Here you'll understand how OpsTerm works, the technologies it uses, and why it's designed the way it is.
 

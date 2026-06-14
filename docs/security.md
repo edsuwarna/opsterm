@@ -1,4 +1,4 @@
-# 🔒 Security
+# Security
 
 OpsTerm's security model, best practices, and known considerations.
 

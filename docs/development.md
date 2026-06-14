@@ -1,4 +1,4 @@
-# 🛠️ Development
+# Development
 
 How to set up a development environment for OpsTerm and contribute.
 

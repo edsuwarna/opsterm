@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpsTerm — Brutalist Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  :root{
+    --black:#000;
+    --white:#fff;
+    --blue:#0000FF;
+    --red:#FF0000;
+    --green:#008000;
+    --gray:#ccc;
+
+    --border-thin:2px;
+    --border-thick:4px;
+    --border-heavy:6px;
+  }
+
+  body{
+    font-family:'Work Sans',system-ui,sans-serif;
+    background:var(--white);
+    color:var(--black);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased
+  }
+
+  .mockup-label{
+    position:fixed;top:0;left:50%;transform:translateX(-50%);
+    background:var(--black);color:var(--white);
+    font-family:'Space Mono',monospace;font-size:11px;
+    padding:4px 20px;z-index:999
+  }
+
+  /* ── NAV ── */
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 40px;
+    border-bottom:var(--border-thick) solid var(--black);
+    position:sticky;top:0;background:var(--white);z-index:100
+  }
+  .nav-logo{
+    font-family:'Archivo Black',sans-serif;
+    font-size:24px;text-transform:uppercase;letter-spacing:-0.5px
+  }
+  .nav-logo .x{color:var(--blue)}
+  .nav-links{display:flex;gap:0}
+  .nav-links a{
+    color:var(--black);text-decoration:none;
+    font-family:'Work Sans',sans-serif;font-size:14px;font-weight:600;
+    padding:8px 20px;border-left:var(--border-thin) solid var(--black);
+    text-transform:uppercase;letter-spacing:0.05em;
+    transition:background .15s
+  }
+  .nav-links a:hover{background:var(--black);color:var(--white)}
+  .nav-links a:last-child{border-right:var(--border-thin) solid var(--black)}
+
+  .container{max-width:1000px;margin:0 auto;padding:0 40px}
+
+  /* ── HERO ── */
+  .hero{
+    padding:80px 0 60px;
+    border-bottom:var(--border-thick) solid var(--black)
+  }
+  .hero-badge{
+    display:inline-block;
+    border:var(--border-thin) solid var(--black);
+    padding:4px 16px;margin-bottom:24px;
+    font-family:'Space Mono',monospace;font-size:12px;
+    text-transform:uppercase;letter-spacing:0.08em
+  }
+  .hero h1{
+    font-family:'Archivo Black',sans-serif;
+    font-size:64px;line-height:1.0;text-transform:uppercase;
+    letter-spacing:-1.5px;max-width:800px;margin-bottom:16px
+  }
+  .hero h1 .hl{color:var(--white);background:var(--black);padding:0 12px;display:inline-block}
+  .hero .sub{
+    font-size:18px;max-width:600px;margin-bottom:32px;
+    border-left:var(--border-thick) solid var(--black);
+    padding-left:20px;line-height:1.5
+  }
+  .hero-ctas{display:flex;gap:0;flex-wrap:wrap}
+  .btn-primary{
+    background:var(--black);color:var(--white);border:var(--border-thick) solid var(--black);
+    padding:12px 32px;font-family:'Archivo Black',sans-serif;
+    font-size:14px;text-transform:uppercase;letter-spacing:0.1em;
+    cursor:pointer;text-decoration:none;transition:all .15s
+  }
+  .btn-primary:hover{background:var(--white);color:var(--black)}
+  .btn-secondary{
+    background:var(--white);color:var(--black);border:var(--border-thick) solid var(--black);
+    padding:12px 32px;font-family:'Archivo Black',sans-serif;
+    font-size:14px;text-transform:uppercase;letter-spacing:0.1em;
+    cursor:pointer;text-decoration:none;transition:all .15s
+  }
+  .btn-secondary:hover{background:var(--black);color:var(--white)}
+  .btn-ghost{
+    color:var(--black);text-decoration:underline;
+    padding:12px 24px;font-family:'Work Sans',sans-serif;
+    font-size:14px;font-weight:600
+  }
+  .btn-ghost:hover{color:var(--blue)}
+
+  /* ── TERMINAL ── */
+  .term-win{
+    border:var(--border-thick) solid var(--black);
+    margin:48px 0;font-family:'Space Mono',monospace;font-size:13px
+  }
+  .term-bar{
+    background:var(--black);color:var(--white);
+    padding:8px 16px;font-family:'Space Mono',monospace;font-size:11px;
+    text-transform:uppercase;letter-spacing:0.05em;
+    display:flex;align-items:center;justify-content:space-between
+  }
+  .term-body{
+    padding:20px 24px;line-height:1.7;
+    background:var(--white);color:var(--black)
+  }
+  .term-body .cm{color:#666;font-style:italic}
+  .term-body .pr{color:var(--green);font-weight:700}
+  .term-body .cmd{color:var(--black);font-weight:700}
+  .term-body .out{color:#333}
+  .term-body .hl{color:var(--red)}
+  .term-body .sep{display:block;margin-bottom:8px}
+
+  /* ── SECTION ── */
+  .section{padding:60px 0;border-bottom:var(--border-thick) solid var(--black)}
+  .section:last-child{border-bottom:none}
+  .section-eyebrow{
+    font-family:'Space Mono',monospace;font-size:11px;
+    text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;
+    display:inline-block;border-bottom:var(--border-thin) solid var(--black);padding-bottom:4px
+  }
+  .section-title{
+    font-family:'Archivo Black',sans-serif;
+    font-size:38px;text-transform:uppercase;letter-spacing:-1px;
+    margin-bottom:32px;line-height:1.05
+  }
+
+  /* ── FEATURES ── */
+  .features{display:grid;grid-template-columns:repeat(3,1fr)}
+  .f-card{
+    border:var(--border-thin) solid var(--black);
+    padding:28px 24px;border-top:none;border-left:none
+  }
+  .f-card:nth-child(3n+1){border-left:var(--border-thin) solid var(--black)}
+  .f-card:nth-child(1),
+  .f-card:nth-child(2),
+  .f-card:nth-child(3){border-top:var(--border-thin) solid var(--black)}
+  .f-card .icon{font-size:20px;margin-bottom:8px;display:block}
+  .f-card h3{
+    font-family:'Archivo Black',sans-serif;
+    font-size:16px;text-transform:uppercase;letter-spacing:-0.3px;
+    margin-bottom:6px
+  }
+  .f-card p{font-size:14px;line-height:1.5;color:#333}
+  .f-card code{
+    font-family:'Space Mono',monospace;font-size:12px;
+    background:var(--black);color:var(--white);padding:1px 6px
+  }
+
+  /* ── INSTALL ── */
+  .install-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .install-card{
+    border:var(--border-thick) solid var(--black);
+    padding:28px
+  }
+  .install-card h3{
+    font-family:'Archivo Black',sans-serif;
+    font-size:18px;text-transform:uppercase;letter-spacing:-0.5px;
+    margin-bottom:16px
+  }
+  .install-steps{list-style:none}
+  .install-steps li{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:12px 0;font-size:14px;border-top:var(--border-thin) solid var(--black)
+  }
+  .install-steps li:first-child{border-top:none;padding-top:0}
+  .install-steps .step-num{
+    font-family:'Archivo Black',sans-serif;
+    font-size:14px;width:28px;height:28px;
+    border:var(--border-thin) solid var(--black);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .perks{
+    border:var(--border-thick) solid var(--black);
+    padding:20px 24px;margin-top:16px;
+    display:grid;grid-template-columns:1fr 1fr;gap:8px
+  }
+  .perk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .perk .check{
+    width:18px;height:18px;
+    background:var(--black);color:var(--white);
+    display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0
+  }
+  .install-code{
+    border:var(--border-thick) solid var(--black);border-left:none;
+    padding:20px 24px;font-family:'Space Mono',monospace;font-size:13px;line-height:1.65;
+    background:var(--white)
+  }
+  .install-code .cm{color:#999}
+  .install-code .pr{color:var(--green);font-weight:700}
+  .install-code .cmd{font-weight:700}
+  .install-code .str{color:var(--red)}
+
+  /* ── DOCS ── */
+  .doc-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+  .doc-link{
+    display:block;padding:20px;text-decoration:none;color:var(--black);
+    border:var(--border-thin) solid var(--black);border-top:none;border-left:none;
+    transition:background .15s
+  }
+  .doc-link:nth-child(-n+4){border-top:var(--border-thin) solid var(--black)}
+  .doc-link:nth-child(4n+1){border-left:var(--border-thin) solid var(--black)}
+  .doc-link:hover{background:var(--black);color:var(--white)}
+  .doc-link:hover .doc-desc{color:#999}
+  .doc-link .doc-icon{font-size:18px;display:block;margin-bottom:4px}
+  .doc-link .doc-title{font-family:'Archivo Black',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:-0.2px}
+  .doc-link .doc-desc{font-size:12px;color:#666;margin-top:2px}
+
+  /* ── FOOTER ── */
+  footer{
+    padding:32px 0 40px;
+    font-size:13px;text-align:center;
+    border-top:var(--border-thick) solid var(--black)
+  }
+  footer a{color:var(--black);font-weight:600}
+  footer a:hover{color:var(--blue)}
+  footer .sep{color:#999;margin:0 8px}
+
+  @media(max-width:768px){
+    .nav{padding:12px 20px;flex-wrap:wrap;gap:8px}
+    .nav-links a{padding:6px 12px;font-size:12px}
+    .container{padding:0 16px}
+    .hero h1{font-size:36px}
+    .features{grid-template-columns:1fr}
+    .f-card:nth-child(3n+1){border-left:none}
+    .f-card:nth-child(1){border-top:var(--border-thin) solid var(--black)}
+    .f-card{border-left:var(--border-thin) solid var(--black)!important}
+    .doc-grid{grid-template-columns:repeat(2,1fr)}
+    .doc-link:nth-child(4n+1){border-left:none}
+    .doc-link:nth-child(odd){border-left:var(--border-thin) solid var(--black)!important}
+    .perks{grid-template-columns:1fr}
+    .install-grid{grid-template-columns:1fr}
+    .install-code{border-left:var(--border-thick) solid var(--black);border-top:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-label">✦ BRUTALIST ✦</div>
+
+<nav class="nav">
+  <div class="nav-logo">OPSTERM<span class="x">_</span></div>
+  <div class="nav-links">
+    <a href="#">Features</a>
+    <a href="#">Docs</a>
+    <a href="#">GitHub</a>
+    <a href="#">Install</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">ZERO DEPS / ANY AI / v0.8.0</div>
+    <h1>YOUR TERMINAL<br><span class="hl">AUGMENTED</span> BY AI</h1>
+    <p class="sub">OpsTerm is a local AI assistant that lives in your terminal. SSH into any server without leaving your AI behind — because the AI runs on YOUR machine, not the remote server.</p>
+    <div class="hero-ctas">
+      <a href="#" class="btn-primary">📖 Docs</a>
+      <a href="#" class="btn-secondary">⚡ Install</a>
+      <a href="#" class="btn-ghost">GitHub →</a>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="term-win">
+    <div class="term-bar">
+      <span>~/opsterm — zsh</span>
+      <span>● ● ●</span>
+    </div>
+    <div class="term-body">
+      <span class="cm"># Ask AI for anything</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm</span> how to find large log files<br>
+      <span class="out">$ find /var/log -type f -size +100M -exec ls -lh {} \;</span><br><br>
+
+      <span class="cm"># SSH by name, not IP</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm ssh</span> vps-utama<br>
+      <span class="out">🔑 Connecting to vps-utama…<br>ubuntu@203.0.113.10:~$</span><br><br>
+
+      <span class="cm"># Explain any output</span><br>
+      <span class="pr">$</span> docker ps | <span class="cmd">opsterm</span> <span class="hl">"any errors?"</span><br>
+      <span class="out">✓ All 3 containers healthy. No errors.</span><br><br>
+
+      <span class="cm"># SSH escape — AI mid-session</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm connect</span> vps-utama<br>
+      <span class="out">🔮 AI REPL active.<br>opsterm❯ ada berapa container?<br>  ✅ Ada 5 container: 3 redis, 2 nginx</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section">
+    <div class="section-eyebrow">Capabilities</div>
+    <div class="section-title">EVERYTHING IN THE TERMINAL</div>
+    <div class="features">
+      <div class="f-card"><span class="icon">🤖</span><h3>AI CHAT</h3><p>Ask anything — commands, explanations, scripts. Any OpenAI-compatible provider.</p></div>
+      <div class="f-card"><span class="icon">🔑</span><h3>SMART SSH</h3><p>SSH by server name. Fuzzy matching, multi-hop via <code>--via</code>.</p></div>
+      <div class="f-card"><span class="icon">🔮</span><h3>SSH ESCAPE</h3><p>AI REPL during SSH. Ask questions, run <code>!commands</code>, no server install.</p></div>
+      <div class="f-card"><span class="icon">⚡</span><h3>WORKFLOWS</h3><p>Multi-step YAML automation: SSH → SCP → Local in one file.</p></div>
+      <div class="f-card"><span class="icon">🗜️</span><h3>RTK AI</h3><p>Auto-compress output 60-95% with RTK before AI. Zero config.</p></div>
+      <div class="f-card"><span class="icon">🔗</span><h3>PIPE MODE</h3><p><code>cmd | opsterm "analyze"</code> — explain, detect, get insights.</p></div>
+      <div class="f-card"><span class="icon">📁</span><h3>SCP</h3><p>Transfer files via server name: <code>opsterm scp file.txt server:/path</code></p></div>
+      <div class="f-card"><span class="icon">⌨️</span><h3>COMPLETION</h3><p>Bash + Zsh auto-complete for servers, workflows, subcommands.</p></div>
+      <div class="f-card"><span class="icon">📋</span><h3>HISTORY</h3><p>SQLite-backed history. Revisit, explain, re-run commands.</p></div>
+    </div>
+  </div>
+
+  <!-- Install -->
+  <div class="section">
+    <div class="section-eyebrow">Getting Started</div>
+    <div class="section-title">ONE COMMAND</div>
+    <div class="install-grid">
+      <div>
+        <div class="install-card">
+          <h3>QUICK INSTALL</h3>
+          <ol class="install-steps">
+            <li><span class="step-num">1</span> Download latest release via curl</li>
+            <li><span class="step-num">2</span> Export OPSTERM_VER</li>
+            <li><span class="step-num">3</span> Install to ~/.local/bin</li>
+            <li><span class="step-num">4</span> Configure AI provider</li>
+          </ol>
+        </div>
+        <div class="perks">
+          <div class="perk"><span class="check">✓</span> SINGLE PYTHON FILE</div>
+          <div class="perk"><span class="check">✓</span> ANY AI PROVIDER</div>
+          <div class="perk"><span class="check">✓</span> MULTI-HOP SSH</div>
+          <div class="perk"><span class="check">✓</span> RTK COMPRESSION</div>
+        </div>
+      </div>
+      <div class="install-code">
+        <span class="cm"># Install latest release</span><br>
+        <span class="pr">$</span> curl -L https://raw.githubusercontent.com/<br>
+        <span style="padding-left:22px">edsuwarna/opsterm/main/LATEST \</span><br>
+        <span style="padding-left:22px">-o /tmp/opsterm_latest</span><br>
+        <span class="pr">$</span> <span class="cmd">export</span> OPSTERM_VER=$(cat /tmp/opsterm_latest)<br>
+        <span class="pr">$</span> curl -L <span class="hl">"https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm"</span> \ <br>
+        <span style="padding-left:22px">-o ~/.local/bin/opsterm</span><br>
+        <span class="pr">$</span> chmod +x ~/.local/bin/opsterm<br>
+        <span class="pr">$</span> opsterm provider add default --api-key 'sk-...'
+      </div>
+    </div>
+  </div>
+
+  <!-- Docs -->
+  <div class="section" style="border-bottom:none">
+    <div class="section-eyebrow">Reference</div>
+    <div class="section-title">DOCUMENTATION</div>
+    <div class="doc-grid">
+      <a href="#" class="doc-link"><span class="doc-icon">📖</span><span class="doc-title">OVERVIEW</span><span class="doc-desc">What is OpsTerm?</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">📦</span><span class="doc-title">INSTALL</span><span class="doc-desc">Install & uninstall</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">⚡</span><span class="doc-title">QUICK START</span><span class="doc-desc">2-minute setup</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">🚀</span><span class="doc-title">USAGE</span><span class="doc-desc">All commands</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">🏗️</span><span class="doc-title">ARCHITECTURE</span><span class="doc-desc">How it works</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">⚙️</span><span class="doc-title">CONFIG</span><span class="doc-desc">AI provider setup</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">🔒</span><span class="doc-title">SECURITY</span><span class="doc-desc">Credential store</span></a>
+      <a href="#" class="doc-link"><span class="doc-icon">🔍</span><span class="doc-title">TROUBLESHOOT</span><span class="doc-desc">Common issues</span></a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built by <a href="#">Endang Suwarna</a> <span class="sep">·</span> MIT <span class="sep">·</span> <a href="#">GitHub</a>
+</footer>
+
+</body>
+</html>

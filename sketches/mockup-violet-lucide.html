@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpsTerm — Redesigned</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  :root{
+    --primary:#5E6AD2;
+    --primary-glow:rgba(94,106,210,0.3);
+    --primary-subtle:rgba(94,106,210,0.08);
+    --bg:#101014;
+    --neutral:#1B1B25;
+    --surface:#1F1F2E;
+    --elevated:#252536;
+    --text:#F1F1F4;
+    --text-secondary:#8A8F98;
+    --text-tertiary:#5E636B;
+    --border:#2C2C3A;
+    --border-light:#333344;
+    --success:#3DD68C;
+    --warning:#F0C000;
+    --error:#EB5757;
+    --rad-sm:6px;
+    --rad-md:8px;
+    --rad-lg:12px;
+  }
+
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-size:14px
+  }
+
+  /* ── NAV ── */
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 48px;
+    border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:rgba(16,16,20,0.85);backdrop-filter:blur(12px);z-index:100
+  }
+  .nav-logo{
+    font-weight:600;font-size:16px;letter-spacing:-0.3px;
+    display:flex;align-items:center;gap:8px
+  }
+  .nav-logo svg{width:18px;height:18px;stroke:var(--primary);stroke-width:2}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{
+    color:var(--text-secondary);text-decoration:none;
+    font-size:13px;font-weight:500;transition:color .2s
+  }
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{
+    background:var(--primary);color:var(--text);border:none;
+    padding:6px 16px;border-radius:var(--rad-sm);font-size:13px;font-weight:500;
+    cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;text-decoration:none;
+    box-shadow:0 0 24px var(--primary-glow);
+    display:flex;align-items:center;gap:6px
+  }
+  .nav-cta:hover{background:#4E5BBF;box-shadow:0 0 32px var(--primary-glow)}
+  .nav-cta svg{width:14px;height:14px;stroke-width:2}
+
+  .container{max-width:1000px;margin:0 auto;padding:0 48px}
+
+  /* ── HERO ── */
+  .hero{padding:80px 0 56px}
+  .hero-label{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--neutral);border:1px solid var(--border);
+    padding:4px 12px;border-radius:var(--rad-sm);font-size:11px;color:var(--text-tertiary);
+    margin-bottom:20px;font-weight:500;font-family:'JetBrains Mono',monospace
+  }
+  .hero-label .dot{width:5px;height:5px;border-radius:50%;background:var(--success);display:inline-block}
+  .hero h1{
+    font-size:42px;font-weight:600;letter-spacing:-1px;
+    max-width:680px;margin-bottom:14px;line-height:1.12
+  }
+  .hero h1 .accent{color:var(--primary)}
+  .hero .sub{
+    font-size:15px;color:var(--text-secondary);
+    max-width:520px;margin-bottom:32px;line-height:1.65
+  }
+  .hero-ctas{display:flex;gap:8px;flex-wrap:wrap}
+  .btn-primary{
+    background:var(--primary);color:var(--text);border:none;
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 18px;border-radius:var(--rad-sm);font-size:13px;font-weight:500;
+    cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;text-decoration:none;
+    box-shadow:0 0 24px var(--primary-glow)
+  }
+  .btn-primary:hover{background:#4E5BBF}
+  .btn-primary svg{width:14px;height:14px;stroke-width:2}
+  .btn-secondary{
+    background:transparent;color:var(--text);border:1px solid var(--border);
+    display:inline-flex;align-items:center;gap:6px;
+    padding:7px 18px;border-radius:var(--rad-sm);font-size:13px;font-weight:500;
+    cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;text-decoration:none
+  }
+  .btn-secondary:hover{border-color:var(--text-secondary)}
+  .btn-secondary svg{width:14px;height:14px;stroke-width:2}
+  .btn-ghost{
+    color:var(--text-secondary);text-decoration:none;font-size:13px;font-weight:500;
+    display:inline-flex;align-items:center;gap:4px;
+    padding:8px 14px;transition:color .2s
+  }
+  .btn-ghost:hover{color:var(--primary)}
+
+  /* ── TERMINAL ── */
+  .term-win{
+    border-radius:var(--rad-md);overflow:hidden;
+    border:1px solid var(--border);margin:48px 0;
+    box-shadow:0 8px 40px rgba(0,0,0,.5),0 0 60px rgba(94,106,210,0.04)
+  }
+  .term-bar{
+    background:var(--neutral);padding:8px 14px;
+    display:flex;align-items:center;gap:8px;
+    border-bottom:1px solid var(--border)
+  }
+  .term-dots{display:flex;gap:5px}
+  .term-dot{width:8px;height:8px;border-radius:50%}
+  .term-dot.r{background:#ff5f56}.term-dot.y{background:#ffbd2e}.term-dot.g{background:#27c93f}
+  .term-title{font-size:10px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace;margin-left:4px}
+  .term-body{
+    background:var(--neutral);padding:16px 20px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7
+  }
+  .term-body .cm{color:var(--text-tertiary);font-style:italic}
+  .term-body .pr{color:var(--success)}
+  .term-body .cmd{color:var(--text);font-weight:500}
+  .term-body .out{color:var(--text-secondary)}
+  .term-body .hl{color:var(--warning)}
+
+  /* ── PROMPT HOVER ── */
+  .prompt-line{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--neutral);border:1px solid var(--border);
+    border-radius:var(--rad-md);padding:8px 16px;margin-bottom:28px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-secondary)
+  }
+  .prompt-line .dollar{color:var(--success)}
+  .prompt-line .cmd{color:var(--text)}
+  .prompt-line .hl{color:var(--primary)}
+  .prompt-line .cur{
+    display:inline-block;width:6px;height:13px;
+    background:var(--primary);animation:blink 1s step-end infinite;border-radius:1px
+  }
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ── SECTION ── */
+  .section{padding:60px 0}
+  .section-eyebrow{
+    font-size:11px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:6px
+  }
+  .section-title{
+    font-size:24px;font-weight:600;letter-spacing:-0.5px;
+    margin-bottom:32px;line-height:1.2
+  }
+
+  /* ── FEATURES ── */
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--border)}
+  .f-card{
+    background:var(--neutral);padding:28px 24px 24px;
+    transition:all .2s;position:relative;
+    cursor:default
+  }
+  .f-card:hover{background:var(--surface)}
+  .f-card .icon-wrap{
+    width:36px;height:36px;border-radius:8px;
+    background:var(--primary-subtle);border:1px solid rgba(94,106,210,0.12);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+    transition:all .2s
+  }
+  .f-card:hover .icon-wrap{background:rgba(94,106,210,0.12);border-color:rgba(94,106,210,0.2)}
+  .f-card .icon-wrap svg{
+    width:18px;height:18px;stroke:var(--primary);stroke-width:1.5
+  }
+  .f-card h3{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text)}
+  .f-card p{font-size:12px;color:var(--text-secondary);line-height:1.55}
+  .f-card code{
+    background:var(--bg);border:1px solid var(--border);padding:1px 5px;
+    border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--primary)
+  }
+
+  /* ── STATS ── */
+  .stats-row{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px
+  }
+  .stat-card{
+    background:var(--neutral);border:1px solid var(--border);
+    border-radius:var(--rad-md);padding:20px;text-align:center
+  }
+  .stat-card .num{
+    font-size:24px;font-weight:600;color:var(--text);
+    letter-spacing:-0.5px;margin-bottom:2px
+  }
+  .stat-card .num .accent{color:var(--primary)}
+  .stat-card .label{
+    font-size:11px;color:var(--text-secondary);font-weight:500
+  }
+
+  /* ── INSTALL ── */
+  .install-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .install-card{
+    background:var(--neutral);border:1px solid var(--border);
+    border-radius:var(--rad-md);padding:24px
+  }
+  .install-card h3{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+  .install-card h3 svg{width:16px;height:16px;stroke:var(--primary);stroke-width:1.5}
+  .install-steps{list-style:none}
+  .install-steps li{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:8px 0;font-size:13px;color:var(--text-secondary);
+    border-top:1px solid var(--border)
+  }
+  .install-steps li:first-child{border-top:none}
+  .install-steps .step-num{
+    background:var(--bg);border:1px solid var(--border);color:var(--primary);
+    width:22px;height:22px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:600;flex-shrink:0;
+    font-family:'JetBrains Mono',monospace
+  }
+  .perks{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;
+    background:var(--neutral);border:1px solid var(--border);
+    border-radius:var(--rad-md);padding:16px 20px;margin-top:12px
+  }
+  .perk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+  .perk .check{
+    width:16px;height:16px;border-radius:4px;
+    background:var(--success);color:var(--neutral);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0
+  }
+  .perk .check svg{width:10px;height:10px;stroke:currentColor;stroke-width:3}
+  .install-code{
+    background:var(--neutral);border:1px solid var(--border);
+    border-radius:var(--rad-md);padding:20px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65
+  }
+  .install-code .cm{color:var(--text-tertiary)}
+  .install-code .pr{color:var(--success)}
+  .install-code .cmd{color:var(--text);font-weight:500}
+  .install-code .str{color:var(--primary)}
+
+  /* ── DOCS ── */
+  .doc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--border)}
+  .doc-link{
+    display:flex;align-items:flex-start;gap:10px;
+    background:var(--neutral);padding:16px;text-decoration:none;
+    transition:all .2s
+  }
+  .doc-link:hover{background:var(--surface)}
+  .doc-link .doc-icon{
+    width:32px;height:32px;border-radius:6px;
+    background:var(--bg);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:all .2s
+  }
+  .doc-link:hover .doc-icon{border-color:var(--border-light)}
+  .doc-link .doc-icon svg{
+    width:16px;height:16px;stroke:var(--text-secondary);stroke-width:1.5;
+    transition:stroke .2s
+  }
+  .doc-link:hover .doc-icon svg{stroke:var(--primary)}
+  .doc-link .doc-text{min-width:0}
+  .doc-link .doc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:1px}
+  .doc-link .doc-desc{font-size:11px;color:var(--text-secondary)}
+
+  /* ── FOOTER ── */
+  footer{
+    text-align:center;padding:40px 0 48px;
+    border-top:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary)
+  }
+  footer a{color:var(--text-secondary);text-decoration:none;transition:color .2s}
+  footer a:hover{color:var(--primary)}
+  footer .sep{color:var(--border);margin:0 6px}
+
+  @media(max-width:768px){
+    .nav{padding:12px 20px}
+    .nav-links{display:none}
+    .container{padding:0 20px}
+    .hero h1{font-size:28px}
+    .features{grid-template-columns:1fr}
+    .doc-grid{grid-template-columns:repeat(2,1fr)}
+    .install-grid{grid-template-columns:1fr}
+    .perks{grid-template-columns:1fr}
+    .stats-row{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo" data-lucide="terminal"></div>
+  <div class="nav-links">
+    <a href="#">Features</a>
+    <a href="#">Docs</a>
+    <a href="#">GitHub</a>
+    <a href="#" class="nav-cta" data-lucide="download">Install</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label"><span class="dot"></span> v0.8.0 — zsh, bash, fish</div>
+    <div class="prompt-line">
+      <span class="dollar">$</span>
+      <span class="cmd">opsterm <span class="hl">"how many pods are crashing?"</span></span>
+      <span class="cur"></span>
+    </div>
+    <h1>Your terminal,<br><span class="accent">now with AI</span></h1>
+    <p class="sub">OpsTerm is an AI assistant that lives in your terminal. Pipe any command output, SSH into any server — the AI follows wherever you go. Zero daemons, zero cloud dependencies.</p>
+    <div class="hero-ctas">
+      <a href="#" class="btn-primary" data-lucide="book-open">Get Started</a>
+      <a href="#" class="btn-secondary" data-lucide="terminal">Quick Install</a>
+      <a href="#" class="btn-ghost">GitHub <span style="font-size:11px;margin-left:2px">→</span></a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="num"><span class="accent">1</span> file</div><div class="label">Single Python binary</div></div>
+    <div class="stat-card"><div class="num">99<span class="accent">%</span></div><div class="label">Terminal-native</div></div>
+    <div class="stat-card"><div class="num">0</div><div class="label">Daemons / agents</div></div>
+    <div class="stat-card"><div class="num">∞</div><div class="label">Providers supported</div></div>
+  </div>
+
+  <!-- Terminal Demo -->
+  <div class="term-win">
+    <div class="term-bar">
+      <div class="term-dots"><span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span></div>
+      <span class="term-title">~/ops — zsh</span>
+    </div>
+    <div class="term-body">
+      <span class="cm"># Explain any command output</span><br>
+      <span class="pr">$</span> <span class="cmd">docker ps -a</span> | opsterm <span class="hl">"any errors?"</span><br>
+      <span class="out">✓ All 3 containers healthy. No errors.</span><br><br>
+      <span class="cm"># SSH by server name, not IP</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm ssh</span> prod-api<br>
+      <span class="out">🔑 Connecting to prod-api (203.0.113.10)…<br>root@prod-api:~#</span><br><br>
+      <span class="cm"># AI REPL mid-SSH — no server-side install</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm connect</span> prod-api<br>
+      <span class="out">🔮 AI REPL active. 12 pods running: 5 web, 3 worker, 4 redis</span><br><br>
+      <span class="cm"># Multi-step workflows</span><br>
+      <span class="pr">$</span> <span class="cmd">opsterm run</span> deploy.yaml<br>
+      <span class="out">✓ Built image → pushed registry → SSH prod → restarted → verified</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section">
+    <div class="section-eyebrow">Capabilities</div>
+    <div class="section-title">Everything you need, right in your shell</div>
+    <div class="features">
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="message-square"></div>
+        <h3>AI Chat</h3>
+        <p>Ask anything — commands, explanations, debugging. Works with any OpenAI-compatible provider.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="key-round"></div>
+        <h3>Smart SSH</h3>
+        <p>SSH by server name, not IP. Fuzzy matching, multi-hop via <code>--via</code>, YAML config.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="wand-2"></div>
+        <h3>SSH Escape</h3>
+        <p>AI REPL inside SSH sessions. Ask questions, run <code>!commands</code>, no server-side install.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="git-branch"></div>
+        <h3>Workflows</h3>
+        <p>Multi-step YAML automation: SSH → SCP → local commands in a single file. Repeatable.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="archive"></div>
+        <h3>RTK Compress</h3>
+        <p>Auto-compress output 60-95% with RTK before AI. Zero config, works out of the box.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="arrow-left-right"></div>
+        <h3>Pipe Mode</h3>
+        <p><code>cmd | opsterm "analyze"</code> — explain output, detect errors, get actionable insights.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="folder-sync"></div>
+        <h3>SCP Transfer</h3>
+        <p>Upload/download via server name: <code>opsterm scp file.txt server:/path</code>.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="command"></div>
+        <h3>Tab Completion</h3>
+        <p>Bash + Zsh auto-complete for servers, workflows, and subcommands. Fast.</p>
+      </div>
+      <div class="f-card">
+        <div class="icon-wrap" data-lucide="clock"></div>
+        <h3>History</h3>
+        <p>SQLite-backed command history. Revisit, explain, or re-run past commands.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install -->
+  <div class="section">
+    <div class="section-eyebrow">Getting started</div>
+    <div class="section-title">One command, zero dependencies</div>
+    <div class="install-grid">
+      <div>
+        <div class="install-card">
+          <h3 data-lucide="download">Quick Install</h3>
+          <ol class="install-steps">
+            <li><span class="step-num">1</span> Download latest release via curl</li>
+            <li><span class="step-num">2</span> Export OPSTERM_VER</li>
+            <li><span class="step-num">3</span> Install to ~/.local/bin</li>
+            <li><span class="step-num">4</span> Configure your AI provider</li>
+          </ol>
+        </div>
+        <div class="perks">
+          <div class="perk"><span class="check" data-lucide="check"></span> Single Python file</div>
+          <div class="perk"><span class="check" data-lucide="check"></span> Any AI provider</div>
+          <div class="perk"><span class="check" data-lucide="check"></span> Multi-hop SSH</div>
+          <div class="perk"><span class="check" data-lucide="check"></span> RTK compression</div>
+        </div>
+      </div>
+      <div class="install-code">
+        <span class="cm"># Install latest release</span><br>
+        <span class="pr">$</span> curl -L https://raw.githubusercontent.com/<br>
+        <span style="padding-left:20px">edsuwarna/opsterm/main/LATEST \</span><br>
+        <span style="padding-left:20px">-o /tmp/opsterm_latest</span><br>
+        <span class="pr">$</span> export OPSTERM_VER=$(cat /tmp/opsterm_latest)<br>
+        <span class="pr">$</span> curl -L <span class="str">"https://raw.githubusercontent.com/edsuwarna/opsterm/${OPSTERM_VER}/bin/opsterm"</span> \<br>
+        <span style="padding-left:20px">-o ~/.local/bin/opsterm</span><br>
+        <span class="pr">$</span> chmod +x ~/.local/bin/opsterm<br>
+        <span class="pr">$</span> opsterm provider add default --api-key 'sk-...'
+      </div>
+    </div>
+  </div>
+
+  <!-- Docs -->
+  <div class="section">
+    <div class="section-eyebrow">Reference</div>
+    <div class="section-title">Documentation</div>
+    <div class="doc-grid">
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="book-open"></div>
+        <div class="doc-text"><div class="doc-title">Overview</div><div class="doc-desc">What is OpsTerm?</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="package"></div>
+        <div class="doc-text"><div class="doc-title">Installation</div><div class="doc-desc">Install & uninstall</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="zap"></div>
+        <div class="doc-text"><div class="doc-title">Quick Start</div><div class="doc-desc">2-minute setup</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="navigation-2"></div>
+        <div class="doc-text"><div class="doc-title">Usage Guide</div><div class="doc-desc">All commands</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="layers"></div>
+        <div class="doc-text"><div class="doc-title">Architecture</div><div class="doc-desc">How it works</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="sliders-horizontal"></div>
+        <div class="doc-text"><div class="doc-title">Configuration</div><div class="doc-desc">AI provider setup</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="shield"></div>
+        <div class="doc-text"><div class="doc-title">Security</div><div class="doc-desc">Credential store</div></div>
+      </a>
+      <a href="#" class="doc-link">
+        <div class="doc-icon" data-lucide="search"></div>
+        <div class="doc-text"><div class="doc-title">Troubleshooting</div><div class="doc-desc">Common issues</div></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built by <a href="#">Endang Suwarna</a> <span class="sep">·</span> MIT <span class="sep">·</span> <a href="#">GitHub</a>
+</footer>
+
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

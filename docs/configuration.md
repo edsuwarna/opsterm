@@ -1,4 +1,4 @@
-# ⚙️ Configuration
+# Configuration
 
 OpsTerm is configured through YAML files in `~/.opsterm/`.
 

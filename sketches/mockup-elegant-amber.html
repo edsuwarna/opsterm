@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpsTerm — AI Terminal Assistant</title>
-<meta name="description" content="A local AI terminal assistant. SSH into any server without losing AI access. Zero-dependency, any AI provider.">
+<title>OpsTerm — Redesign (Amber)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -44,6 +43,7 @@
   }
   .container{max-width:1040px;margin:0 auto;padding:0 24px}
 
+  /* Nav */
   .nav{
     display:flex;align-items:center;justify-content:space-between;
     height:60px;border-bottom:1px solid var(--hairline);
@@ -51,15 +51,17 @@
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     z-index:100
   }
-  .nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:-0.3px;text-decoration:none;color:var(--ink)}
+  .nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:-0.3px}
   .nav-logo svg{width:22px;height:22px;stroke:var(--primary);stroke-width:2}
   .nav-links{display:flex;align-items:center;gap:24px;font-size:14px}
   .nav-links a{color:var(--ink-muted);text-decoration:none;transition:color .2s}
   .nav-links a:hover{color:var(--ink)}
   .nav-actions{display:flex;align-items:center;gap:10px}
-  .btn-ghost{color:var(--ink-muted);text-decoration:none;transition:color .2s;padding:7px 14px;border-radius:var(--radius-md);font-size:13px;display:inline-flex;align-items:center;gap:5px}
+  .nav-actions .btn{padding:7px 14px;border-radius:var(--radius-md);font-size:13px;font-weight:500}
+  .btn-ghost{color:var(--ink-muted);text-decoration:none;transition:color .2s}
   .btn-ghost:hover{color:var(--ink)}
 
+  /* Buttons */
   .btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:all .2s;cursor:pointer;border:none;font-family:inherit}
   .btn-primary{
     background:var(--primary);color:#09090b;padding:10px 20px;
@@ -80,6 +82,7 @@
   .btn-outline:hover{color:var(--ink);border-color:var(--hairline-strong)}
   .btn-sm{padding:7px 14px;font-size:13px}
 
+  /* Hero */
   .hero{text-align:center;padding:80px 0 40px}
   .hero-badge{
     display:inline-flex;align-items:center;gap:5px;
@@ -98,6 +101,7 @@
   }
   .hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
+  /* Terminal Demo */
   .term-win{
     border-radius:var(--radius-lg);overflow:hidden;
     border:1px solid var(--hairline);margin:48px auto;
@@ -129,6 +133,7 @@
   .term-body .si{color:#facc15}
   .term-body .o{color:var(--ink-muted)}
 
+  /* Section Titles */
   .section-title{
     font-size:14px;font-weight:600;text-transform:uppercase;
     letter-spacing:1px;color:var(--primary);margin-bottom:6px
@@ -144,6 +149,7 @@
   section{padding:64px 0}
   section+section{border-top:1px solid var(--hairline)}
 
+  /* Features Grid */
   .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   .f-card{
     background:var(--surface);border:1px solid var(--hairline);
@@ -165,6 +171,7 @@
     font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-hover)
   }
 
+  /* Install Box */
   .install-wrap{
     background:var(--surface);border:1px solid var(--hairline);
     border-radius:var(--radius-xl);padding:40px;
@@ -199,10 +206,15 @@
   .install-meta{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--ink-muted)}
   .install-meta svg{width:14px;height:14px;stroke:var(--ink-subtle);stroke-width:1.5}
 
+  /* Perks */
   .perks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .perk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)}
+  .perk{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--ink-muted);padding:0
+  }
   .perk svg{width:16px;height:16px;stroke:var(--green);stroke-width:2;flex-shrink:0}
 
+  /* Doc Grid */
   .doc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   .doc-link{
     display:flex;align-items:center;gap:10px;
@@ -221,6 +233,7 @@
   .doc-link .doc-title{font-size:13px;font-weight:500;display:block}
   .doc-link .doc-desc{font-size:11.5px;color:var(--ink-subtle);display:block;margin-top:1px}
 
+  /* CTA */
   .cta-box{
     background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);
     border:1px solid var(--hairline);border-radius:var(--radius-xl);
@@ -230,15 +243,17 @@
   .cta-box p{color:var(--ink-muted);font-size:15px;margin-bottom:24px}
   .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
-  footer{padding:40px 0 48px;border-top:1px solid var(--hairline)}
+  /* Footer */
+  footer{padding:40px 0 48px;border-top:1px solid var(--hairline);margin-top:0}
   .footer-inner{display:flex;justify-content:space-between;align-items:center}
   .footer-inner .copy{font-size:13px;color:var(--ink-subtle)}
   .footer-links{display:flex;gap:20px;font-size:13px}
   .footer-links a{color:var(--ink-muted);text-decoration:none;transition:color .2s}
   .footer-links a:hover{color:var(--ink)}
-  .footer-logo{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:var(--ink-muted);text-decoration:none}
+  .footer-logo{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:var(--ink-muted)}
   .footer-logo svg{width:16px;height:16px;stroke:var(--primary);stroke-width:2}
 
+  /* Responsive */
   @media(max-width:900px){
     .features{grid-template-columns:repeat(2,1fr)}
     .perks{grid-template-columns:repeat(2,1fr)}
@@ -260,23 +275,21 @@
 </head>
 <body>
 
+<!-- Nav -->
 <div class="nav"><div class="container" style="display:flex;align-items:center;justify-content:space-between;width:100%">
-  <a href="index.html" class="nav-logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10" opacity="0.12" fill="#d97706" stroke="#d97706" stroke-width="1"/>
-      <polyline points="9,9 14,12 9,15"/>
-      <circle cx="16" cy="12" r="1.5" fill="#d97706" stroke="none" opacity="0.9"/>
-    </svg>
+  <div class="nav-logo">
+    <i data-lucide="terminal"></i>
     <span>OpsTerm</span>
-  </a>
+  </div>
   <div class="nav-links">
-    <a href="#features">Features</a>
+    <a href="#">Features</a>
     <a href="docs.html">Documentation</a>
-    <a href="#install">Install</a>
+    <a href="#">Install</a>
     <a href="https://github.com/edsuwarna/opsterm">GitHub</a>
   </div>
   <div class="nav-actions">
-    <a href="docs.html?page=quick-start" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px"></i> Quick Install</a>
+    <a href="#" class="btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-md);font-size:13px"><i data-lucide="terminal" style="width:15px;height:15px"></i> Demo</a>
+    <a href="#" class="btn btn-primary btn-sm"><i data-lucide="download" style="width:14px;height:14px"></i> Quick Install</a>
   </div>
 </div></div>
 
@@ -295,7 +308,7 @@
       automate — all from a single 50KB file.
     </p>
     <div class="hero-btns">
-      <a href="docs.html?page=installation" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
+      <a href="#" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
       <a href="docs.html" class="btn btn-secondary"><i data-lucide="book-open"></i> Documentation</a>
       <a href="https://github.com/edsuwarna/opsterm" class="btn btn-outline"><i data-lucide="github"></i> GitHub</a>
     </div>
@@ -314,7 +327,7 @@
 
       <span class="cm"># SSH by name — no IPs to remember</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">opsterm ssh</span> vps-utama<br>
-      <span class="out">🔑 Connecting to vps-utama (198.51.100.5)<br>ubuntu@vps-utama:~$</span><br><br>
+      <span class="out">🔑 Connecting to vps-utama (43.157.204.199)<br>ubuntu@vps-utama:~$</span><br><br>
 
       <span class="cm"># Pipe output for AI analysis</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">docker ps</span> <span class="o">|</span> <span class="cmd-c">opsterm</span> <span class="hl-c">"any errors?"</span><br>
@@ -322,12 +335,12 @@
 
       <span class="cm"># AI REPL during SSH connection</span><br>
       <span class="prompt-c">$</span> <span class="cmd-c">opsterm connect</span> vps-utama<br>
-      <span class="out">🔮 Connected to vps-utama (root@192.0.2.10)<br>opsterm❯ <span class="hl-c">ada berapa container?</span><br>  🔍 Running `docker ps -a`...<br>  ✅ Found 5 containers: 3 redis, 2 nginx<br>opsterm❯ <span class="hl-c">!systemctl status nginx</span><br>  🔌 Executing on server...<br>  ● nginx.service — A high performance web server<br>     Active: active (running)<br>opsterm❯ exit<br>  👋 Disconnected.</span>
+      <span class="out">🔮 Connected to vps-utama (root@203.0.113.10)<br>opsterm❯ <span class="hl-c">ada berapa container?</span><br>  🔍 Running `docker ps -a`...<br>  ✅ Found 5 containers: 3 redis, 2 nginx<br>opsterm❯ <span class="hl-c">!systemctl status nginx</span><br>  🔌 Executing on server...<br>  ● nginx.service — A high performance web server<br>     Active: active (running)<br>opsterm❯ exit<br>  👋 Disconnected.</span>
     </div>
   </div>
 
   <!-- Features -->
-  <section id="features">
+  <section>
     <div class="section-title">Features</div>
     <h2 class="section-heading">Everything a sysadmin needs</h2>
     <p class="section-sub">From quick AI queries to complex multi-hop SSH workflows — all from your terminal, with any AI provider you choose.</p>
@@ -366,7 +379,7 @@
       <div class="f-card">
         <div class="icon-wrap"><i data-lucide="archive"></i></div>
         <h3>RTK AI</h3>
-        <p>Auto-compress command output 60-95% before AI processing. Save tokens, get faster responses. Zero config if installed.</p>
+        <p>Auto-compress command output 60-95% before AI processing. Save tokens, get faster responses. Zero config.</p>
       </div>
       <div class="f-card">
         <div class="icon-wrap"><i data-lucide="terminal"></i></div>
@@ -397,7 +410,7 @@
   </section>
 
   <!-- Install -->
-  <section id="install">
+  <section>
     <div class="section-title">Get Started</div>
     <h2 class="section-heading">Install in 10 seconds</h2>
     <p class="section-sub">A single curl command. No pip, no npm, no package managers. Just one 50KB file that runs anywhere Python 3 does.</p>
@@ -434,11 +447,11 @@
       <div class="perk"><i data-lucide="check-circle"></i> Config at <code style="color:var(--primary-hover);background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12px">~/.opsterm/</code></div>
       <div class="perk"><i data-lucide="check-circle"></i> Any OpenAI-compatible provider</div>
       <div class="perk"><i data-lucide="check-circle"></i> Multi-hop SSH via ProxyJump</div>
+      <div class="perk"><i data-lucide="check-circle"></i> Auto-migrate from legacy <code>~/.opsterm/</code></div>
       <div class="perk"><i data-lucide="check-circle"></i> Shell operators in local commands</div>
       <div class="perk"><i data-lucide="check-circle"></i> RTK AI — 60-95% token compression</div>
       <div class="perk"><i data-lucide="check-circle"></i> AES-128 + PBKDF2 encrypted storage</div>
       <div class="perk"><i data-lucide="check-circle"></i> Self-update: <code>opsterm update</code></div>
-      <div class="perk"><i data-lucide="check-circle"></i> Config validate: <code>opsterm config validate</code></div>
     </div>
   </section>
 
@@ -449,51 +462,51 @@
     <p class="section-sub">Everything you need to master OpsTerm — from quick start to advanced configuration.</p>
 
     <div class="doc-grid">
-      <a href="docs.html?page=overview" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="book-open"></i></div>
         <div class="doc-info"><span class="doc-title">Overview</span><span class="doc-desc">What is OpsTerm?</span></div>
       </a>
-      <a href="docs.html?page=installation" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="download"></i></div>
         <div class="doc-info"><span class="doc-title">Installation</span><span class="doc-desc">Install & uninstall</span></div>
       </a>
-      <a href="docs.html?page=quick-start" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="zap"></i></div>
         <div class="doc-info"><span class="doc-title">Quick Start</span><span class="doc-desc">2 minute guide</span></div>
       </a>
-      <a href="docs.html?page=architecture" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="layers"></i></div>
         <div class="doc-info"><span class="doc-title">Architecture</span><span class="doc-desc">How it works</span></div>
       </a>
-      <a href="docs.html?page=usage-guide" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="terminal"></i></div>
         <div class="doc-info"><span class="doc-title">Usage Guide</span><span class="doc-desc">All commands</span></div>
       </a>
-      <a href="docs.html?page=configuration" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="settings"></i></div>
         <div class="doc-info"><span class="doc-title">Configuration</span><span class="doc-desc">Providers, shell</span></div>
       </a>
-      <a href="docs.html?page=features" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="sparkles"></i></div>
         <div class="doc-info"><span class="doc-title">Features</span><span class="doc-desc">Complete list</span></div>
       </a>
-      <a href="docs.html?page=tech-stack" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="wrench"></i></div>
         <div class="doc-info"><span class="doc-title">Tech Stack</span><span class="doc-desc">Languages, protocols</span></div>
       </a>
-      <a href="docs.html?page=security" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="lock"></i></div>
         <div class="doc-info"><span class="doc-title">Security</span><span class="doc-desc">Encryption, storage</span></div>
       </a>
-      <a href="docs.html?page=development" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="code"></i></div>
         <div class="doc-info"><span class="doc-title">Development</span><span class="doc-desc">Contributing</span></div>
       </a>
-      <a href="docs.html?page=troubleshooting" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="search"></i></div>
         <div class="doc-info"><span class="doc-title">Troubleshooting</span><span class="doc-desc">Common issues</span></div>
       </a>
-      <a href="docs.html?page=design-decisions" class="doc-link">
+      <a href="#" class="doc-link">
         <div class="doc-icon"><i data-lucide="lightbulb"></i></div>
         <div class="doc-info"><span class="doc-title">Design Decisions</span><span class="doc-desc">Why this way</span></div>
       </a>
@@ -506,7 +519,7 @@
       <h2>Ready to supercharge your terminal?</h2>
       <p>One command, zero dependencies, any AI provider. Start using OpsTerm in 10 seconds.</p>
       <div class="cta-btns">
-        <a href="docs.html?page=installation" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
+        <a href="#" class="btn btn-primary"><i data-lucide="download"></i> Install Now</a>
         <a href="docs.html" class="btn btn-secondary"><i data-lucide="book-open"></i> Read the Docs</a>
       </div>
     </div>
@@ -514,16 +527,17 @@
 
 </div>
 
+<!-- Footer -->
 <footer><div class="container">
   <div class="footer-inner">
-    <a href="index.html" class="footer-logo">
+    <div class="footer-logo">
       <i data-lucide="terminal"></i>
       <span>OpsTerm</span>
-    </a>
+    </div>
     <div class="copy">Built by <a href="https://github.com/edsuwarna" style="color:var(--ink-muted);text-decoration:none">Endang Suwarna</a> · MIT License</div>
     <div class="footer-links">
       <a href="https://github.com/edsuwarna/opsterm">GitHub</a>
-      <a href="https://github.com/edsuwarna/opsterm/releases">Releases</a>
+      <a href="#">Releases</a>
       <a href="https://warp.dev">Inspired by Warp</a>
     </div>
   </div>

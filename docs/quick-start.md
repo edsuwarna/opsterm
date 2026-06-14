@@ -1,4 +1,4 @@
-# ⚡ Quick Start
+# Quick Start
 
 Get OpsTerm running in less than 2 minutes.
 
