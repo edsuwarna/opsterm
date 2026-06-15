@@ -508,3 +508,12 @@ workflows:
   <br>
   <sub>Inspired by <a href="https://warp.dev">Warp.dev</a> — AI in your terminal, your own provider.</sub>
 </p>
+
+---
+
+## License
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-7c3aed.svg)](LICENSE)
+
+Apache License 2.0 — see [LICENSE](LICENSE).
+</p>
